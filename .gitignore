@@ -1,0 +1,54 @@
+# 构建输出目录
+target/
+*/target/
+**/target/
+*/maven-compiler/
+
+# IDE相关文件
+.idea/
+.idea
+*.iml
+*.ipr
+*.iws
+.settings/
+.classpath
+.project
+.metadata/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# 日志文件
+*.log
+logs/
+**/logs/
+
+# 配置文件
+*.properties
+*.xml
+*.yml
+*.yaml
+!src/main/resources/**/*.properties
+!src/main/resources/**/*.xml
+!src/main/resources/**/*.yml
+!src/main/resources/**/*.yaml
+
+# Maven相关
+.mvn/
+mvnw
+sqldialect.xml
+setting.xml
+Project_default.xml
+mvnw.cmd
+vcs.xml
+pom.properties
+misc.xml
+MarsCodeWorkspaceAppSettings.xml
+
+# 测试覆盖率报告
+coverage/
+jacoco.exec
