@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.1</version>
+    </parent>
+
+    <groupId>com.titanium</groupId>
+    <artifactId>titanium-product</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>titanium-product</name>
+    <description>Titanium Insurance Product Service</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <spring-boot.version>4.0.1</spring-boot.version>
+        <spring-cloud.version>2023.0.1</spring-cloud.version>
+        <axon.version>4.10.0</axon.version>
+        <spring.data.jpa.version>4.0.1</spring.data.jpa.version>
+        <kafka.version>4.0.1</kafka.version>
+        <mysql.connector.version>9.5.0</mysql.connector.version>
+        <redis.version>3.2.6</redis.version>
+        <jjwt.version>0.11.5</jjwt.version>
+        <lombok.version>1.18.30</lombok.version>
+        <fastjson2.version>2.0.45</fastjson2.version>
+        <commons-lang3.version>3.14.0</commons-lang3.version>
+        <feign.version>3.2.2</feign.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <liquibase.version>4.26.0</liquibase.version>
+        <spring.boot.liquibase.starter.version>4.0.1</spring.boot.liquibase.starter.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot Dependencies -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-validation</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+
+            <!-- Spring Cloud Dependencies -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Axon Framework -->
+            <dependency>
+                <groupId>org.axonframework</groupId>
+                <artifactId>axon-bom</artifactId>
+                <version>${axon.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Additional Dependencies -->
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <!-- Liquibase核心依赖 -->
+            <dependency>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-core</artifactId>
+                <version>${liquibase.version}</version>
+            </dependency>
+            <!-- Spring Boot整合Liquibase（可选，简化配置） -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-liquibase</artifactId>
+                <version>${spring.boot.liquibase.starter.version}</version>
+            </dependency>
+
+            <!-- MySQL Connector -->
+            <dependency>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
+                <version>${mysql.connector.version}</version>
+            </dependency>
+
+            <!-- JWT -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <!-- Common Project -->
+            <dependency>
+                <groupId>com.titanium</groupId>
+                <artifactId>titanium-common</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            <!-- Metadata Project -->
+            <dependency>
+                <groupId>com.titanium</groupId>
+                <artifactId>titanium-metadata</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            <!-- Clause Project -->
+            <dependency>
+                <groupId>com.titanium</groupId>
+                <artifactId>titanium-clause-api</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+
+            <!-- MapStruct -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <modules>
+        <module>titanium-product-common</module>
+        <module>titanium-product-domain</module>
+        <module>titanium-product-infrastructure</module>
+        <module>titanium-product-application</module>
+        <module>titanium-product-api</module>
+        <module>titanium-product-web</module>
+        <module>titanium-product-bootstrap</module>
+        <module>titanium-product-query</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -36,6 +36,7 @@ logs/
 !src/main/resources/**/*.xml
 !src/main/resources/**/*.yml
 !src/main/resources/**/*.yaml
+!**/pom.xml
 
 # Maven相关
 .mvn/
