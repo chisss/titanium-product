@@ -1,82 +1,49 @@
 package com.titanium.product.api.dto;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
+
+import lombok.Data;
 
 /**
  * 产品DTO
- * 用于产品数据的传输
+ * 用于产品数据的传输，包含完整的产品配置信息
  */
 @Data
 public class ProductDTO {
-    /**
-     * 产品ID
-     */
     private String productId;
-    
-    /**
-     * 产品名称
-     */
+    private String productCode;
     private String productName;
-    
-    /**
-     * 产品形态（INDIVIDUAL-个险/GROUP-团险）
-     */
+    private String productDesc;
     private String form;
-    
-    /**
-     * 险种类型（CAR-车险/LIFE-寿险/ACCIDENT-意外险/PET-宠物险/PROPERTY-财产险/INVESTMENT-投连险）
-     */
     private String insuranceType;
-    
-    /**
-     * 产品版本（如 V1.0/V2.0）
-     */
+    private String category;
     private String version;
-    
-    /**
-     * 产品状态（DRAFT-草稿/AUDITING-审核中/EFFECTIVE-生效/INVALID-下架）
-     */
     private String status;
-    
-    /**
-     * 生效时间
-     */
+    private String originalProductId;
     private LocalDateTime effectiveTime;
-    
-    /**
-     * 下架时间
-     */
     private LocalDateTime invalidTime;
-    
-    /**
-     * 投保条件
-     */
-    private InsureConditionDTO insureCondition;
-    
-    /**
-     * 定价基础规则
-     */
-    private PricingBasicRuleDTO pricingBasicRule;
-    
-    /**
-     * 创建时间
-     */
+    private LocalDateTime saleStartTime;
+    private LocalDateTime saleEndTime;
+
+    /** 投保条件（JSON对象或结构化DTO） */
+    private Object insureCondition;
+    /** 保障期间配置 */
+    private Object coveragePeriod;
+    /** 缴费方式配置 */
+    private Object paymentConfig;
+    /** 定价基础规则 */
+    private Object pricingBasicRule;
+    /** 出单流程配置 */
+    private Object issuanceProcessConfig;
+    /** 保单形态配置 */
+    private Object policyFormConfig;
+    /** 核保配置 */
+    private Object underwritingConfig;
+    /** 审核信息 */
+    private Object auditInfo;
+
     private LocalDateTime createdAt;
-    
-    /**
-     * 创建人
-     */
     private String createdBy;
-    
-    /**
-     * 更新时间
-     */
     private LocalDateTime updatedAt;
-    
-    /**
-     * 更新人
-     */
     private String updatedBy;
 }

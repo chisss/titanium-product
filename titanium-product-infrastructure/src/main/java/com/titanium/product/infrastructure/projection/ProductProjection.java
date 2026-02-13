@@ -1,0 +1,165 @@
+package com.titanium.product.infrastructure.projection;
+
+import java.time.LocalDateTime;
+
+import org.axonframework.eventhandling.EventHandler;
+import org.springframework.stereotype.Component;
+
+import com.titanium.product.domain.event.*;
+import com.titanium.product.infrastructure.entity.ProductClauseRelDO;
+import com.titanium.product.infrastructure.entity.ProductEntity;
+import com.titanium.product.infrastructure.mapper.ProductInfraMapper;
+import com.titanium.product.infrastructure.repository.jpa.ProductClauseRelJpaRepository;
+import com.titanium.product.infrastructure.repository.jpa.ProductJpaRepository;
+
+/**
+ * 产品投影处理器
+ * 监听领域事件，同步更新读模型（ProductEntity）
+ * 实现CQRS中的投影（Projection）职责
+ */
+@Component
+public class ProductProjection {
+
+    private final ProductJpaRepository productJpaRepository;
+    private final ProductClauseRelJpaRepository productClauseRelJpaRepository;
+
+    public ProductProjection(ProductJpaRepository productJpaRepository,
+                             ProductClauseRelJpaRepository productClauseRelJpaRepository) {
+        this.productJpaRepository = productJpaRepository;
+        this.productClauseRelJpaRepository = productClauseRelJpaRepository;
+    }
+
+    @EventHandler
+    public void on(ProductCreatedEvent event) {
+        ProductInfraMapper mapper = ProductInfraMapper.INSTANCE;
+        ProductEntity entity = new ProductEntity();
+        entity.setProductId(event.productId());
+        entity.setProductCode(event.productCode());
+        entity.setProductName(event.productName());
+        entity.setProductDesc(event.productDesc());
+        entity.setForm(event.form() != null ? event.form().name() : null);
+        entity.setInsuranceType(event.insuranceType() != null ? event.insuranceType().name() : null);
+        entity.setCategory(event.category() != null ? event.category().name() : null);
+        entity.setVersion(event.version());
+        entity.setStatus(event.status() != null ? event.status().name() : null);
+        entity.setSaleStartTime(event.saleStartTime());
+        entity.setSaleEndTime(event.saleEndTime());
+        entity.setInsureCondition(mapper.insureConditionToJson(event.insureCondition()));
+        entity.setCoveragePeriod(mapper.coveragePeriodConfigToJson(event.coveragePeriod()));
+        entity.setPaymentConfig(mapper.paymentConfigToJson(event.paymentConfig()));
+        entity.setPricingBasicRule(mapper.pricingBasicRuleToJson(event.pricingBasicRule()));
+        entity.setIssuanceProcessConfig(mapper.issuanceProcessConfigToJson(event.issuanceProcessConfig()));
+        entity.setPolicyFormConfig(mapper.policyFormConfigToJson(event.policyFormConfig()));
+        entity.setUnderwritingConfig(mapper.underwritingConfigToJson(event.underwritingConfig()));
+        entity.setSalesChannels(mapper.salesChannelsToJson(event.salesChannels()));
+        entity.setAttachProductIds(mapper.attachProductIdsToJson(event.attachProductIds()));
+        entity.setTenantId(event.tenantId());
+        entity.setCreatedAt(event.createdAt());
+        entity.setCreatedBy("system");
+        entity.setUpdatedAt(event.createdAt());
+        entity.setUpdatedBy("system");
+        productJpaRepository.save(entity);
+
+        // 保存条款关联
+        if (event.clauseRels() != null) {
+            event.clauseRels().forEach(clauseRel -> {
+                ProductClauseRelDO relDO = new ProductClauseRelDO();
+                relDO.setProductId(event.productId());
+                relDO.setClauseId(clauseRel.getClauseId());
+                relDO.setClauseVersion(clauseRel.getClauseVersion());
+                relDO.setIsMainClause(clauseRel.getIsMainClause());
+                relDO.setTenantId(event.tenantId());
+                relDO.setCreatedAt(LocalDateTime.now());
+                relDO.setCreatedBy("system");
+                productClauseRelJpaRepository.save(relDO);
+            });
+        }
+    }
+
+    @EventHandler
+    public void on(ProductSubmittedForAuditEvent event) {
+        productJpaRepository.findById(event.productId()).ifPresent(entity -> {
+            entity.setStatus("AUDITING");
+            entity.setUpdatedAt(event.submittedAt());
+            entity.setUpdatedBy(event.submitterName());
+            productJpaRepository.save(entity);
+        });
+    }
+
+    @EventHandler
+    public void on(ProductAuditedEvent event) {
+        productJpaRepository.findById(event.productId()).ifPresent(entity -> {
+            entity.setStatus(event.status().name());
+            entity.setEffectiveTime(event.effectiveTime());
+            if (event.auditInfo() != null) {
+                entity.setAuditorId(event.auditInfo().auditorId());
+                entity.setAuditorName(event.auditInfo().auditorName());
+                entity.setAuditOpinion(event.auditInfo().auditOpinion());
+                entity.setAuditTime(event.auditInfo().auditTime());
+                entity.setAuditResult(event.auditInfo().auditResult().name());
+            }
+            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setUpdatedBy("system");
+            productJpaRepository.save(entity);
+        });
+    }
+
+    @EventHandler
+    public void on(ProductAuditRejectedEvent event) {
+        productJpaRepository.findById(event.productId()).ifPresent(entity -> {
+            entity.setStatus(event.status().name());
+            if (event.auditInfo() != null) {
+                entity.setAuditorId(event.auditInfo().auditorId());
+                entity.setAuditorName(event.auditInfo().auditorName());
+                entity.setAuditOpinion(event.auditInfo().auditOpinion());
+                entity.setAuditTime(event.auditInfo().auditTime());
+                entity.setAuditResult(event.auditInfo().auditResult().name());
+            }
+            entity.setUpdatedAt(event.rejectedAt());
+            entity.setUpdatedBy("system");
+            productJpaRepository.save(entity);
+        });
+    }
+
+    @EventHandler
+    public void on(ProductInvalidatedEvent event) {
+        productJpaRepository.findById(event.productId()).ifPresent(entity -> {
+            entity.setStatus(event.status().name());
+            entity.setInvalidTime(event.invalidTime());
+            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setUpdatedBy("system");
+            productJpaRepository.save(entity);
+        });
+    }
+
+    @EventHandler
+    public void on(ProductClauseRelUpdatedEvent event) {
+        // 先删除旧的关联
+        productClauseRelJpaRepository.deleteByProductId(event.productId());
+        // 再保存新的关联
+        if (event.clauseRels() != null) {
+            event.clauseRels().forEach(clauseRel -> {
+                ProductClauseRelDO relDO = new ProductClauseRelDO();
+                relDO.setProductId(event.productId());
+                relDO.setClauseId(clauseRel.getClauseId());
+                relDO.setClauseVersion(clauseRel.getClauseVersion());
+                relDO.setIsMainClause(clauseRel.getIsMainClause());
+                relDO.setTenantId("default");
+                relDO.setCreatedAt(LocalDateTime.now());
+                relDO.setCreatedBy("system");
+                productClauseRelJpaRepository.save(relDO);
+            });
+        }
+    }
+
+    @EventHandler
+    public void on(ProductSalesChannelUpdatedEvent event) {
+        ProductInfraMapper mapper = ProductInfraMapper.INSTANCE;
+        productJpaRepository.findById(event.productId()).ifPresent(entity -> {
+            entity.setSalesChannels(mapper.salesChannelsToJson(event.salesChannels()));
+            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setUpdatedBy("system");
+            productJpaRepository.save(entity);
+        });
+    }
+}

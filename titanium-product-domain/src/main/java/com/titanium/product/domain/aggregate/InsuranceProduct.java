@@ -12,17 +12,10 @@ import org.axonframework.spring.stereotype.Aggregate;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.domain.command.AuditProductCommand;
-import com.titanium.product.domain.command.CreateProductCommand;
-import com.titanium.product.domain.command.InvalidateProductCommand;
-import com.titanium.product.domain.command.ReviseProductCommand;
+import com.titanium.product.domain.command.*;
 import com.titanium.product.domain.entity.ProductClauseRel;
-import com.titanium.product.domain.event.ProductAuditedEvent;
-import com.titanium.product.domain.event.ProductCreatedEvent;
-import com.titanium.product.domain.event.ProductInvalidatedEvent;
-import com.titanium.product.domain.event.ProductRevisedEvent;
-import com.titanium.product.domain.valueobject.InsureCondition;
-import com.titanium.product.domain.valueobject.PricingBasicRule;
+import com.titanium.product.domain.event.*;
+import com.titanium.product.domain.valueobject.*;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -30,136 +23,344 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * 保险产品聚合根 核心聚合根，封装产品的基础信息、形态、险种、绑定条款、定价基础规则等核心配置
+ * 保险产品聚合根
+ * 核心聚合根，封装产品的基础信息、形态、险种、绑定条款、定价基础规则、
+ * 出单流程配置、保单形态配置、核保配置等核心业务配置
  */
 @Getter
 @Builder(builderMethodName = "builder")
-@AllArgsConstructor(access = AccessLevel.PRIVATE) // 为 Builder 提供全参构造函数
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Aggregate
 public class InsuranceProduct {
-    // 聚合根ID：产品编号（如 P2024_CAR_IND_001：2024年车险个险产品001）
-    @AggregateIdentifier
-    private String                    productId;
-    // 产品名称（如 2024版个人机动车综合险）
-    private String                    productName;
-    // 产品形态（团险/个险）
-    private ProductEnum.ProductForm   form;
-    // 险种类型（车险/寿险/意外险/宠物险/财产险/投连险）
-    private InsuranceType             insuranceType;
-    // 产品版本（如 V1.0/V2.0，修订时递增）
-    private String                    version;
-    // 产品状态（DRAFT-草稿/AUDITING-审核中/EFFECTIVE-生效/INVALID-下架）
-    private ProductEnum.ProductStatus status;
-    // 生效时间（生效状态有效）
-    private LocalDateTime             effectiveTime;
-    // 下架时间（下架状态有效）
-    private LocalDateTime             invalidTime;
-    // 投保条件（值对象，如年龄范围、职业限制）
-    private InsureCondition           insureCondition;
-    // 产品绑定的条款关联列表（聚合内实体，含条款ID、版本、是否主条款）
-    private List<ProductClauseRel>    clauseRels;
-    // 定价基础规则（值对象，不同险种形态差异化配置）
-    private PricingBasicRule          pricingBasicRule;
 
-    // 聚合根初始化：创建产品（CommandHandler）
+    // ====== 基础标识 ======
+    /** 产品编号（聚合根ID） */
+    @AggregateIdentifier
+    private String productId;
+    /** 产品代码（简短唯一标识） */
+    private String productCode;
+    /** 产品名称 */
+    private String productName;
+    /** 产品描述 */
+    private String productDesc;
+
+    // ====== 产品分类与形态 ======
+    /** 产品形态（团险/个险） */
+    private ProductEnum.ProductForm form;
+    /** 险种类型 */
+    private InsuranceType insuranceType;
+    /** 产品类别（MAIN-主险/RIDER-附加险） */
+    private ProductEnum.ProductCategory category;
+
+    // ====== 版本与状态 ======
+    /** 产品版本（如 V1.0/V2.0） */
+    private String version;
+    /** 产品状态（DRAFT/AUDITING/EFFECTIVE/INVALID） */
+    private ProductEnum.ProductStatus status;
+    /** 原始产品ID（修订溯源） */
+    private String originalProductId;
+
+    // ====== 时间管理 ======
+    /** 产品生效时间 */
+    private LocalDateTime effectiveTime;
+    /** 下架时间 */
+    private LocalDateTime invalidTime;
+    /** 销售开始时间 */
+    private LocalDateTime saleStartTime;
+    /** 销售截止时间 */
+    private LocalDateTime saleEndTime;
+
+    // ====== 核心配置（值对象） ======
+    /** 投保条件 */
+    private InsureCondition insureCondition;
+    /** 保障期间配置 */
+    private CoveragePeriodConfig coveragePeriod;
+    /** 缴费方式配置 */
+    private PaymentConfig paymentConfig;
+    /** 定价基础规则 */
+    private PricingBasicRule pricingBasicRule;
+
+    // ====== 关联 ======
+    /** 条款关联列表 */
+    private List<ProductClauseRel> clauseRels;
+    /** 销售渠道配置 */
+    private List<SalesChannelConfig> salesChannels;
+    /** 可搭配的附加险产品ID */
+    private List<String> attachProductIds;
+
+    // ====== 出单流程编排（核心新增） ======
+    /** 出单流程配置 */
+    private IssuanceProcessConfig issuanceProcessConfig;
+    /** 保单形态配置 */
+    private PolicyFormConfig policyFormConfig;
+    /** 核保配置 */
+    private UnderwritingConfig underwritingConfig;
+
+    // ====== 审核 ======
+    /** 审核信息 */
+    private AuditInfo auditInfo;
+
+    // ====== 规则引擎预留 ======
+    /** 定价规则集ID（接入规则引擎后使用） */
+    private String pricingRuleSetId;
+    /** 投保条件规则集ID（接入规则引擎后使用） */
+    private String insureConditionRuleSetId;
+    /** 核保规则集ID（接入规则引擎后使用） */
+    private String underwritingRuleSetId;
+
+    // ====== 租户 ======
+    /** 租户ID */
+    private String tenantId;
+
+    /** 无参构造器（Axon反射必备） */
+    public InsuranceProduct() {
+    }
+
+    // ==================== 命令处理器 ====================
+
+    /**
+     * 创建产品
+     */
     @CommandHandler
     public InsuranceProduct(CreateProductCommand command) {
-        // 业务校验：核心参数非空、条款列表非空、投保条件合法
         validateCreateCommand(command);
-        // 初始化基础属性
+
         this.productId = command.productId();
+        this.productCode = command.productCode();
         this.productName = command.productName();
+        this.productDesc = command.productDesc();
         this.form = command.form();
         this.insuranceType = command.insuranceType();
+        this.category = command.category() != null ? command.category() : ProductEnum.ProductCategory.MAIN;
         this.version = "V1.0";
         this.status = ProductEnum.ProductStatus.DRAFT;
+        this.saleStartTime = command.saleStartTime();
+        this.saleEndTime = command.saleEndTime();
         this.insureCondition = command.insureCondition();
-        // 封装条款关联（关联条款ID、版本，标记主条款）
-        this.clauseRels = command
-                .clauseIds().stream().map(clauseId -> new ProductClauseRel(clauseId,
-                        command.clauseVersionMap().get(clauseId), clauseId.equals(command.mainClauseId())))
-                .collect(Collectors.toList());
-        // 绑定定价基础规则
+        this.coveragePeriod = command.coveragePeriod();
+        this.paymentConfig = command.paymentConfig();
         this.pricingBasicRule = command.pricingBasicRule();
-        // 发布领域事件
-        AggregateLifecycle.apply(new ProductCreatedEvent(productId, productName, form, insuranceType, version,
-                ProductEnum.ProductStatus.DRAFT, LocalDateTime.now(), insureCondition, clauseRels, pricingBasicRule));
+        this.clauseRels = command.clauseIds().stream()
+                .map(clauseId -> new ProductClauseRel(clauseId,
+                        command.clauseVersionMap().get(clauseId),
+                        clauseId.equals(command.mainClauseId())))
+                .collect(Collectors.toList());
+        this.salesChannels = command.salesChannels();
+        this.attachProductIds = command.attachProductIds();
+        this.issuanceProcessConfig = command.issuanceProcessConfig();
+        this.policyFormConfig = command.policyFormConfig();
+        this.underwritingConfig = command.underwritingConfig();
+        this.tenantId = command.tenantId();
+
+        AggregateLifecycle.apply(new ProductCreatedEvent(
+                productId, productCode, productName, productDesc,
+                form, insuranceType, category, version,
+                ProductEnum.ProductStatus.DRAFT, LocalDateTime.now(),
+                saleStartTime, saleEndTime,
+                insureCondition, coveragePeriod, paymentConfig, pricingBasicRule,
+                clauseRels, salesChannels, attachProductIds,
+                issuanceProcessConfig, policyFormConfig, underwritingConfig,
+                tenantId
+        ));
     }
 
-    // 业务方法：产品审核通过（生效）
+    /**
+     * 提交产品审核（DRAFT → AUDITING）
+     */
+    @CommandHandler
+    public void handle(SubmitProductForAuditCommand command) {
+        if (!ProductEnum.ProductStatus.DRAFT.equals(this.status)) {
+            throw new IllegalStateException("仅草稿状态的产品可提交审核");
+        }
+        this.status = ProductEnum.ProductStatus.AUDITING;
+        AggregateLifecycle.apply(new ProductSubmittedForAuditEvent(
+                productId, command.submitterId(), command.submitterName(), LocalDateTime.now()
+        ));
+    }
+
+    /**
+     * 审核产品通过（AUDITING → EFFECTIVE）
+     */
     @CommandHandler
     public void handle(AuditProductCommand command) {
-        // 规则校验：仅草稿/审核中状态可审核通过
-        if (!this.status.equals(ProductEnum.ProductStatus.DRAFT)
-                && !this.status.equals(ProductEnum.ProductStatus.AUDITING)) {
-            throw new IllegalStateException("仅草稿、审核中产品可审核通过");
+        if (!ProductEnum.ProductStatus.AUDITING.equals(this.status)) {
+            throw new IllegalStateException("仅审核中的产品可进行审核");
         }
-        // 状态更新
-        this.status = ProductEnum.ProductStatus.EFFECTIVE;
-        this.effectiveTime = LocalDateTime.now();
-        // 发布事件（同步通知条款域、保单域）
-        AggregateLifecycle
-                .apply(new ProductAuditedEvent(productId, ProductEnum.ProductStatus.EFFECTIVE, effectiveTime));
+        if (ProductEnum.AuditResult.PASS.equals(command.auditResult())) {
+            this.status = ProductEnum.ProductStatus.EFFECTIVE;
+            this.effectiveTime = LocalDateTime.now();
+            this.auditInfo = new AuditInfo(
+                    command.auditorId(), command.auditorName(),
+                    command.auditOpinion(), LocalDateTime.now(),
+                    ProductEnum.AuditResult.PASS
+            );
+            AggregateLifecycle.apply(new ProductAuditedEvent(
+                    productId, ProductEnum.ProductStatus.EFFECTIVE, effectiveTime, auditInfo
+            ));
+        } else {
+            // 审核驳回走RejectProductAuditCommand
+            throw new IllegalArgumentException("审核不通过请使用驳回命令");
+        }
     }
 
-    // 业务方法：产品修订（生成新版本）
+    /**
+     * 驳回产品审核（AUDITING → DRAFT）
+     */
+    @CommandHandler
+    public void handle(RejectProductAuditCommand command) {
+        if (!ProductEnum.ProductStatus.AUDITING.equals(this.status)) {
+            throw new IllegalStateException("仅审核中的产品可驳回");
+        }
+        this.status = ProductEnum.ProductStatus.DRAFT;
+        this.auditInfo = new AuditInfo(
+                command.auditorId(), command.auditorName(),
+                command.rejectReason(), LocalDateTime.now(),
+                ProductEnum.AuditResult.REJECT
+        );
+        AggregateLifecycle.apply(new ProductAuditRejectedEvent(
+                productId, ProductEnum.ProductStatus.DRAFT, auditInfo, LocalDateTime.now()
+        ));
+    }
+
+    /**
+     * 产品修订（EFFECTIVE → 创建新版本DRAFT）
+     */
     @CommandHandler
     public void handle(ReviseProductCommand command) {
-        // 规则校验：仅生效状态产品可修订
-        if (!this.status.equals(ProductEnum.ProductStatus.EFFECTIVE)) {
+        if (!ProductEnum.ProductStatus.EFFECTIVE.equals(this.status)) {
             throw new IllegalStateException("仅生效产品可修订");
         }
-        // 生成新版本（如 V1.0 → V2.0）
-        String newVersion = "V" + (Integer.parseInt(this.version.substring(1)) + 1) + ".0";
-        // 发布修订事件（新版本聚合根由事件溯源生成）
-        AggregateLifecycle.apply(new ProductRevisedEvent(command.newProductId(), this.productId, newVersion,
-                command.newProductName(), command.newForm(), command.newInsuranceType(), command.newInsureCondition(),
-                command.newClauseRels(), command.newPricingBasicRule()));
+        String newVersion = generateNewVersion(this.version);
+        AggregateLifecycle.apply(new ProductRevisedEvent(
+                command.newProductId(), this.productId, newVersion,
+                command.newProductName(), command.newProductDesc(),
+                command.newForm(), command.newInsuranceType(), command.newCategory(),
+                command.newInsureCondition(), command.newCoveragePeriod(), command.newPaymentConfig(),
+                command.newClauseRels(), command.newPricingBasicRule(), command.newSalesChannels(),
+                command.newIssuanceProcessConfig(), command.newPolicyFormConfig(), command.newUnderwritingConfig()
+        ));
     }
 
-    // 业务方法：产品下架（废止）
+    /**
+     * 产品下架（EFFECTIVE → INVALID）
+     */
     @CommandHandler
     public void handle(InvalidateProductCommand command) {
-        if (!this.status.equals(ProductEnum.ProductStatus.EFFECTIVE)) {
+        if (!ProductEnum.ProductStatus.EFFECTIVE.equals(this.status)) {
             throw new IllegalStateException("仅生效产品可下架");
         }
         this.status = ProductEnum.ProductStatus.INVALID;
         this.invalidTime = LocalDateTime.now();
-        AggregateLifecycle
-                .apply(new ProductInvalidatedEvent(productId, ProductEnum.ProductStatus.INVALID, invalidTime));
+        AggregateLifecycle.apply(new ProductInvalidatedEvent(
+                productId, ProductEnum.ProductStatus.INVALID, invalidTime
+        ));
     }
 
-    // 事件溯源处理器：同步聚合根状态
+    /**
+     * 更新产品条款关联（仅DRAFT状态）
+     */
+    @CommandHandler
+    public void handle(UpdateProductClauseRelCommand command) {
+        if (!ProductEnum.ProductStatus.DRAFT.equals(this.status)) {
+            throw new IllegalStateException("仅草稿状态的产品可更新条款关联");
+        }
+        this.clauseRels = command.newClauseRels();
+        AggregateLifecycle.apply(new ProductClauseRelUpdatedEvent(
+                productId, clauseRels
+        ));
+    }
+
+    /**
+     * 更新销售渠道配置（仅DRAFT状态）
+     */
+    @CommandHandler
+    public void handle(UpdateSalesChannelCommand command) {
+        if (!ProductEnum.ProductStatus.DRAFT.equals(this.status)) {
+            throw new IllegalStateException("仅草稿状态的产品可更新销售渠道");
+        }
+        this.salesChannels = command.salesChannels();
+        AggregateLifecycle.apply(new ProductSalesChannelUpdatedEvent(
+                productId, salesChannels
+        ));
+    }
+
+    /**
+     * 更新附加险关联（仅DRAFT/EFFECTIVE状态）
+     */
+    @CommandHandler
+    public void handle(UpdateAttachProductCommand command) {
+        if (!ProductEnum.ProductStatus.DRAFT.equals(this.status)
+                && !ProductEnum.ProductStatus.EFFECTIVE.equals(this.status)) {
+            throw new IllegalStateException("仅草稿或生效状态的产品可更新附加险关联");
+        }
+        this.attachProductIds = command.attachProductIds();
+    }
+
+    // ==================== 事件溯源处理器 ====================
+
     @EventSourcingHandler
     public void on(ProductCreatedEvent event) {
         this.productId = event.productId();
+        this.productCode = event.productCode();
         this.productName = event.productName();
+        this.productDesc = event.productDesc();
         this.form = event.form();
         this.insuranceType = event.insuranceType();
+        this.category = event.category();
         this.version = event.version();
         this.status = event.status();
+        this.saleStartTime = event.saleStartTime();
+        this.saleEndTime = event.saleEndTime();
         this.insureCondition = event.insureCondition();
-        this.clauseRels = event.clauseRels();
+        this.coveragePeriod = event.coveragePeriod();
+        this.paymentConfig = event.paymentConfig();
         this.pricingBasicRule = event.pricingBasicRule();
+        this.clauseRels = event.clauseRels();
+        this.salesChannels = event.salesChannels();
+        this.attachProductIds = event.attachProductIds();
+        this.issuanceProcessConfig = event.issuanceProcessConfig();
+        this.policyFormConfig = event.policyFormConfig();
+        this.underwritingConfig = event.underwritingConfig();
+        this.tenantId = event.tenantId();
+    }
+
+    @EventSourcingHandler
+    public void on(ProductSubmittedForAuditEvent event) {
+        this.status = ProductEnum.ProductStatus.AUDITING;
     }
 
     @EventSourcingHandler
     public void on(ProductAuditedEvent event) {
         this.status = event.status();
         this.effectiveTime = event.effectiveTime();
+        this.auditInfo = event.auditInfo();
+    }
+
+    @EventSourcingHandler
+    public void on(ProductAuditRejectedEvent event) {
+        this.status = event.status();
+        this.auditInfo = event.auditInfo();
     }
 
     @EventSourcingHandler
     public void on(ProductRevisedEvent event) {
         this.productId = event.newProductId();
         this.productName = event.newProductName();
+        this.productDesc = event.newProductDesc();
         this.version = event.newVersion();
         this.form = event.newForm();
         this.insuranceType = event.newInsuranceType();
+        this.category = event.newCategory();
         this.insureCondition = event.newInsureCondition();
+        this.coveragePeriod = event.newCoveragePeriod();
+        this.paymentConfig = event.newPaymentConfig();
         this.clauseRels = event.newClauseRels();
         this.pricingBasicRule = event.newPricingBasicRule();
-        this.status = ProductEnum.ProductStatus.DRAFT; // 新版本默认草稿状态
+        this.salesChannels = event.newSalesChannels();
+        this.issuanceProcessConfig = event.newIssuanceProcessConfig();
+        this.policyFormConfig = event.newPolicyFormConfig();
+        this.underwritingConfig = event.newUnderwritingConfig();
+        this.status = ProductEnum.ProductStatus.DRAFT;
     }
 
     @EventSourcingHandler
@@ -168,10 +369,24 @@ public class InsuranceProduct {
         this.invalidTime = event.invalidTime();
     }
 
-    // 私有校验方法
+    @EventSourcingHandler
+    public void on(ProductClauseRelUpdatedEvent event) {
+        this.clauseRels = event.clauseRels();
+    }
+
+    @EventSourcingHandler
+    public void on(ProductSalesChannelUpdatedEvent event) {
+        this.salesChannels = event.salesChannels();
+    }
+
+    // ==================== 私有方法 ====================
+
     private void validateCreateCommand(CreateProductCommand command) {
         if (command.productId() == null || command.productName() == null) {
             throw new IllegalArgumentException("产品编号、名称不能为空");
+        }
+        if (command.productCode() == null || command.productCode().isBlank()) {
+            throw new IllegalArgumentException("产品代码不能为空");
         }
         if (command.clauseIds() == null || command.clauseIds().isEmpty()) {
             throw new IllegalArgumentException("产品必须绑定至少一条条款");
@@ -179,9 +394,17 @@ public class InsuranceProduct {
         if (command.insureCondition() == null) {
             throw new IllegalArgumentException("投保条件不能为空");
         }
+        if (command.tenantId() == null || command.tenantId().isBlank()) {
+            throw new IllegalArgumentException("租户ID不能为空");
+        }
     }
 
-    // 无参构造器（Axon 反射必备）
-    public InsuranceProduct() {
+    private String generateNewVersion(String currentVersion) {
+        int dotIndex = currentVersion.indexOf('.');
+        if (dotIndex > 0) {
+            int majorVersion = Integer.parseInt(currentVersion.substring(1, dotIndex));
+            return "V" + (majorVersion + 1) + ".0";
+        }
+        return "V2.0";
     }
 }

@@ -7,14 +7,28 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.domain.entity.ProductClauseRel;
-import com.titanium.product.domain.valueobject.InsureCondition;
-import com.titanium.product.domain.valueobject.PricingBasicRule;
+import com.titanium.product.domain.valueobject.*;
 
 /**
- * 修订产品命令 用于修订产品，生成新版本的产品
+ * 修订产品命令
+ * 用于修订产品，生成新版本的产品（携带完整的新配置）
  */
-public record ReviseProductCommand(@TargetAggregateIdentifier String productId, String newProductId,
-                                   String newProductName, ProductEnum.ProductForm newForm,
-                                   InsuranceType newInsuranceType, InsureCondition newInsureCondition,
-                                   List<ProductClauseRel> newClauseRels, PricingBasicRule newPricingBasicRule) {
+public record ReviseProductCommand(
+        @TargetAggregateIdentifier String productId,
+        String newProductId,
+        String newProductName,
+        String newProductDesc,
+        ProductEnum.ProductForm newForm,
+        InsuranceType newInsuranceType,
+        ProductEnum.ProductCategory newCategory,
+        InsureCondition newInsureCondition,
+        CoveragePeriodConfig newCoveragePeriod,
+        PaymentConfig newPaymentConfig,
+        List<ProductClauseRel> newClauseRels,
+        PricingBasicRule newPricingBasicRule,
+        List<SalesChannelConfig> newSalesChannels,
+        IssuanceProcessConfig newIssuanceProcessConfig,
+        PolicyFormConfig newPolicyFormConfig,
+        UnderwritingConfig newUnderwritingConfig
+) {
 }

@@ -8,23 +8,12 @@ import lombok.Data;
  */
 @Data
 public class AuditProductRequest {
-    /**
-     * 产品ID
-     */
-    private String productId;
-    
-    /**
-     * 审核结果（通过/拒绝）
-     */
-    private boolean approved;
-    
-    /**
-     * 审核备注
-     */
-    private String auditRemark;
-    
-    /**
-     * 审核人
-     */
-    private String auditedBy;
+    /** 审核结果（PASS/REJECT/RETURN） */
+    private String auditResult;
+    /** 审核备注/意见 */
+    private String auditOpinion;
+    /** 审核人ID */
+    private String auditorId;
+    /** 审核人姓名 */
+    private String auditorName;
 }
