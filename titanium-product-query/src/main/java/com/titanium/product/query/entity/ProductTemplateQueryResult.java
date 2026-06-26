@@ -2,6 +2,9 @@ package com.titanium.product.query.entity;
 
 import java.util.List;
 
+import com.titanium.metadata.enums.CommonStatus;
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.domain.valueobject.*;
 
 import lombok.AllArgsConstructor;
@@ -23,8 +26,8 @@ public class ProductTemplateQueryResult {
     private String templateId;
     private String templateCode;
     private String templateName;
-    private String insuranceCategory;
-    private String insuranceType;
+    private ProductEnum.ProductCategory insuranceCategory;
+    private InsuranceType insuranceType;
     private String productId;
     private String issuanceMode;
     private List<PolicyStage> policyStages;
@@ -34,6 +37,6 @@ public class ProductTemplateQueryResult {
     private ClaimConfig claimConfig;
     private BillingConfig billingConfig;
     private ReinsuranceConfig reinsuranceConfig;
-    private String status;
+    private CommonStatus status;
     private String tenantId;
 }

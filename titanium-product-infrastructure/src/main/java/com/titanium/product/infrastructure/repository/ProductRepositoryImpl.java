@@ -45,11 +45,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     public List<InsuranceProduct> findByCondition(ProductEnum.ProductForm form, InsuranceType type,
                                                    ProductEnum.ProductStatus status) {
         String formStr = form != null ? form.name() : null;
-        String typeStr = type != null ? type.name() : null;
-        String statusStr = status != null ? status.name() : null;
         // 使用第一页、大量数据的简单查询
         Page<ProductEntity> page = productJpaRepository.findByCondition(
-                formStr, typeStr, statusStr, "default", PageRequest.of(0, 1000));
+                formStr, type, status, "default", PageRequest.of(0, 1000));
         return page.getContent().stream()
                 .map(this::toInsuranceProduct)
                 .collect(Collectors.toList());
@@ -94,11 +92,11 @@ public class ProductRepositoryImpl implements ProductRepository {
                 .productCode(entity.getProductCode())
                 .productName(entity.getProductName())
                 .productDesc(entity.getProductDesc())
-                .form(mapper.stringToProductForm(entity.getForm()))
-                .insuranceType(mapper.stringToInsuranceType(entity.getInsuranceType()))
-                .category(mapper.stringToProductCategory(entity.getCategory()))
+                .form(entity.getForm())
+                .insuranceType(entity.getInsuranceType())
+                .category(entity.getCategory())
                 .version(entity.getVersion())
-                .status(mapper.stringToProductStatus(entity.getStatus()))
+                .status(entity.getStatus())
                 .originalProductId(entity.getOriginalProductId())
                 .effectiveTime(entity.getEffectiveTime())
                 .invalidTime(entity.getInvalidTime())
@@ -116,7 +114,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 .auditInfo(entity.getAuditResult() != null ? new AuditInfo(
                         entity.getAuditorId(), entity.getAuditorName(),
                         entity.getAuditOpinion(), entity.getAuditTime(),
-                        ProductEnum.AuditResult.valueOf(entity.getAuditResult())
+                        entity.getAuditResult()
                 ) : null)
                 .tenantId(entity.getTenantId())
                 .build();
@@ -129,11 +127,11 @@ public class ProductRepositoryImpl implements ProductRepository {
         entity.setProductCode(product.getProductCode());
         entity.setProductName(product.getProductName());
         entity.setProductDesc(product.getProductDesc());
-        entity.setForm(mapper.productFormToString(product.getForm()));
-        entity.setInsuranceType(mapper.insuranceTypeToString(product.getInsuranceType()));
-        entity.setCategory(mapper.productCategoryToString(product.getCategory()));
+        entity.setForm(product.getForm());
+        entity.setInsuranceType(product.getInsuranceType());
+        entity.setCategory(product.getCategory());
         entity.setVersion(product.getVersion());
-        entity.setStatus(mapper.productStatusToString(product.getStatus()));
+        entity.setStatus(product.getStatus());
         entity.setOriginalProductId(product.getOriginalProductId());
         entity.setEffectiveTime(product.getEffectiveTime());
         entity.setInvalidTime(product.getInvalidTime());
@@ -155,7 +153,7 @@ public class ProductRepositoryImpl implements ProductRepository {
             entity.setAuditorName(product.getAuditInfo().auditorName());
             entity.setAuditOpinion(product.getAuditInfo().auditOpinion());
             entity.setAuditTime(product.getAuditInfo().auditTime());
-            entity.setAuditResult(product.getAuditInfo().auditResult().name());
+            entity.setAuditResult(product.getAuditInfo().auditResult());
         }
         return entity;
     }

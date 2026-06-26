@@ -4,8 +4,15 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
+import com.titanium.metadata.enums.CommonStatus;
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,11 +36,13 @@ public class ProductTemplateDO {
     @Column(name = "template_name", length = 100, nullable = false)
     private String templateName;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "insurance_category", length = 20)
-    private String insuranceCategory;
+    private ProductEnum.ProductCategory insuranceCategory;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "insurance_type", length = 30, nullable = false)
-    private String insuranceType;
+    private InsuranceType insuranceType;
 
     @Column(name = "product_id", length = 36)
     private String productId;
@@ -62,8 +71,9 @@ public class ProductTemplateDO {
     @Column(name = "reinsurance_config_json", columnDefinition = "TEXT")
     private String reinsuranceConfigJson;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
-    private String status;
+    private CommonStatus status;
 
     @Column(name = "tenant_id", length = 36, nullable = false)
     private String tenantId;

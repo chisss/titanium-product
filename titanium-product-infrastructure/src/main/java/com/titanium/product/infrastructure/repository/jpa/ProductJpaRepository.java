@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.infrastructure.entity.ProductEntity;
 
 /**
@@ -36,8 +38,8 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Strin
             "p.tenantId = :tenantId")
     Page<ProductEntity> findByCondition(
             @Param("form") String form,
-            @Param("insuranceType") String insuranceType,
-            @Param("status") String status,
+            @Param("insuranceType") InsuranceType insuranceType,
+            @Param("status") ProductEnum.ProductStatus status,
             @Param("tenantId") String tenantId,
             Pageable pageable);
 
@@ -45,10 +47,10 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Strin
      * 查询指定状态和险种类型的产品列表
      */
     List<ProductEntity> findByStatusAndInsuranceTypeAndTenantId(
-            String status, String insuranceType, String tenantId);
+            ProductEnum.ProductStatus status, InsuranceType insuranceType, String tenantId);
 
     /**
      * 查询指定租户下的所有生效产品
      */
-    List<ProductEntity> findByStatusAndTenantId(String status, String tenantId);
+    List<ProductEntity> findByStatusAndTenantId(ProductEnum.ProductStatus status, String tenantId);
 }

@@ -50,4 +50,12 @@ public class ApiResponse<T> {
         response.setMessage(message);
         return response;
     }
+
+    /**
+     * 是否成功响应（code==200）
+     * @return 成功返回 true
+     */
+    public boolean isSuccess() {
+        return this.code == 200;
+    }
 }

@@ -3,6 +3,10 @@ package com.titanium.product.api.request;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
+import com.titanium.product.domain.valueobject.IssuanceMode;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,16 +32,16 @@ public class CreateProductTemplateRequest {
     private String templateName;
 
     @Schema(description = "险种大类")
-    private String insuranceCategory;
+    private ProductEnum.ProductCategory insuranceCategory;
 
     @Schema(description = "险种类型编码", required = true)
-    private String insuranceType;
+    private InsuranceType insuranceType;
 
     @Schema(description = "关联产品ID")
     private String productId;
 
     @Schema(description = "出单模式", required = true)
-    private String issuanceMode;
+    private IssuanceMode issuanceMode;
 
     @Schema(description = "出单阶段定义")
     private List<PolicyStageRequest> policyStages;

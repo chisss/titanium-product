@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson2.JSON;
+import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.product.domain.event.ProductTemplateActivatedEvent;
 import com.titanium.product.domain.event.ProductTemplateCreatedEvent;
 import com.titanium.product.domain.event.ProductTemplateDeactivatedEvent;
@@ -30,18 +31,16 @@ public class ProductTemplateProjection {
         entity.setTemplateId(event.templateId());
         entity.setTemplateCode(event.templateCode());
         entity.setTemplateName(event.templateName());
-        entity.setInsuranceCategory(event.insuranceCategory());
-        entity.setInsuranceType(event.insuranceType().getCode());
-        entity.setProductId(event.productId());
-        entity.setIssuanceMode(event.issuanceMode().getCode());
-        entity.setPolicyStagesJson(JSON.toJSONString(event.policyStages()));
+        entity.setInsuranceType(event.insuranceType());
+        // 出单流程配置整体序列化存入 issuance_mode 列（创建事件携带的是 IssuanceProcessConfig）
+        entity.setIssuanceMode(event.issuanceProcessConfig() != null
+                ? JSON.toJSONString(event.issuanceProcessConfig()) : "DEFAULT");
         entity.setUnderwritingConfigJson(JSON.toJSONString(event.underwritingConfig()));
-        entity.setPolicyStructureJson(JSON.toJSONString(event.policyStructure()));
         entity.setMaintenanceConfigJson(JSON.toJSONString(event.maintenanceConfig()));
-        entity.setClaimConfigJson(JSON.toJSONString(event.claimConfig()));
-        entity.setBillingConfigJson(JSON.toJSONString(event.billingConfig()));
-        entity.setReinsuranceConfigJson(event.reinsuranceConfig() != null
-                ? JSON.toJSONString(event.reinsuranceConfig()) : null);
+        entity.setClaimConfigJson(JSON.toJSONString(event.claimsConfig()));
+        // 保单形态/定价规则序列化存入 policy_structure 列
+        entity.setPolicyStructureJson(event.policyFormConfig() != null
+                ? JSON.toJSONString(event.policyFormConfig()) : null);
         entity.setStatus(event.status());
         entity.setTenantId(event.tenantId());
         entity.setCreatedAt(LocalDateTime.now());
@@ -70,7 +69,7 @@ public class ProductTemplateProjection {
     @EventHandler
     public void on(ProductTemplateActivatedEvent event) {
         jpaRepository.findById(event.templateId()).ifPresent(entity -> {
-            entity.setStatus("ACTIVE");
+            entity.setStatus(CommonStatus.ACTIVE);
             entity.setUpdatedAt(LocalDateTime.now());
             jpaRepository.save(entity);
         });
@@ -79,7 +78,7 @@ public class ProductTemplateProjection {
     @EventHandler
     public void on(ProductTemplateDeactivatedEvent event) {
         jpaRepository.findById(event.templateId()).ifPresent(entity -> {
-            entity.setStatus("INACTIVE");
+            entity.setStatus(CommonStatus.INACTIVE);
             entity.setUpdatedAt(LocalDateTime.now());
             jpaRepository.save(entity);
         });

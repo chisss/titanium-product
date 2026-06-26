@@ -49,7 +49,7 @@ public class ProductTemplateQueryHandler {
 
     @QueryHandler
     public List<ProductTemplateQueryResult> handle(GetTemplatesByInsuranceTypeQuery query) {
-        return jpaRepository.findByInsuranceTypeAndTenantId(query.insuranceType().getCode(), query.tenantId())
+        return jpaRepository.findByInsuranceTypeAndTenantId(query.insuranceType(), query.tenantId())
                 .stream()
                 .map(this::toQueryResult)
                 .toList();

@@ -49,7 +49,7 @@ public class ProductTemplateRepositoryImpl implements ProductTemplateRepository 
     @Override
     public List<ProductTemplate> findByInsuranceType(InsuranceType insuranceType) {
         return jpaRepository.findAll().stream()
-                .filter(d -> insuranceType.getCode().equals(d.getInsuranceType()))
+                .filter(d -> insuranceType == d.getInsuranceType())
                 .map(this::toDomain)
                 .toList();
     }
@@ -67,31 +67,24 @@ public class ProductTemplateRepositoryImpl implements ProductTemplateRepository 
     }
 
     private ProductTemplate toDomain(ProductTemplateDO entity) {
-        return ProductTemplate.builder()
-                .templateId(entity.getTemplateId())
-                .templateCode(entity.getTemplateCode())
-                .templateName(entity.getTemplateName())
-                .insuranceCategory(entity.getInsuranceCategory())
-                .insuranceType(InsuranceType.fromCode(entity.getInsuranceType()))
-                .productId(entity.getProductId())
-                .issuanceMode(IssuanceMode.fromCode(entity.getIssuanceMode()))
-                .policyStages(JSON.parseObject(entity.getPolicyStagesJson(),
-                        new TypeReference<List<PolicyStage>>() {}))
-                .underwritingConfig(JSON.parseObject(entity.getUnderwritingConfigJson(),
-                        UnderwritingConfig.class))
-                .policyStructure(JSON.parseObject(entity.getPolicyStructureJson(),
-                        PolicyStructureConfig.class))
-                .maintenanceConfig(JSON.parseObject(entity.getMaintenanceConfigJson(),
-                        MaintenanceConfig.class))
-                .claimConfig(JSON.parseObject(entity.getClaimConfigJson(),
-                        ClaimConfig.class))
-                .billingConfig(JSON.parseObject(entity.getBillingConfigJson(),
-                        BillingConfig.class))
-                .reinsuranceConfig(entity.getReinsuranceConfigJson() != null
-                        ? JSON.parseObject(entity.getReinsuranceConfigJson(), ReinsuranceConfig.class)
-                        : null)
-                .status(entity.getStatus())
-                .tenantId(entity.getTenantId())
-                .build();
+        IssuanceProcessConfig issuanceProcessConfig = entity.getIssuanceMode() != null
+                && entity.getIssuanceMode().startsWith("{")
+                        ? JSON.parseObject(entity.getIssuanceMode(), IssuanceProcessConfig.class)
+                        : null;
+        PolicyFormConfig policyFormConfig = entity.getPolicyStructureJson() != null
+                ? JSON.parseObject(entity.getPolicyStructureJson(), PolicyFormConfig.class)
+                : null;
+        return ProductTemplate.reconstruct(
+                entity.getTemplateId(),
+                entity.getTemplateCode(),
+                entity.getTemplateName(),
+                entity.getInsuranceType(),
+                issuanceProcessConfig,
+                JSON.parseObject(entity.getUnderwritingConfigJson(), UnderwritingConfig.class),
+                JSON.parseObject(entity.getClaimConfigJson(), ClaimConfig.class),
+                JSON.parseObject(entity.getMaintenanceConfigJson(), MaintenanceConfig.class),
+                policyFormConfig,
+                entity.getStatus(),
+                entity.getTenantId());
     }
 }

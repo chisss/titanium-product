@@ -29,69 +29,57 @@ public interface ProductTemplateWebMapper {
 
     /**
      * 将请求转换为创建命令
+     *
+     * <p>命令已枚举化重构，仅承载新版字段。请求中可直接映射的部分（核保/理赔/保全配置）按
+     * record 真实组件构造，其余复杂配置（出单流程、保单形态、定价规则）请求暂未承载，置 null。
      */
     default CreateProductTemplateCommand toCreateCommand(CreateProductTemplateRequest request, String tenantId) {
         String templateId = "TPL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+        UnderwritingConfig underwritingConfig = request.getUnderwritingConfig() != null
+                ? new UnderwritingConfig(
+                        null,
+                        request.getUnderwritingConfig().getAutoUnderwritingRuleSet(),
+                        request.getUnderwritingConfig().getMaxAutoApproveAmount(),
+                        List.of(),
+                        null,
+                        false,
+                        false)
+                : null;
+
+        ClaimConfig claimConfig = request.getClaimConfig() != null
+                ? new ClaimConfig(
+                        request.getClaimConfig().getClaimStages(),
+                        request.getClaimConfig().getReportDeadlineDays(),
+                        request.getClaimConfig().getWaitingPeriodDays(),
+                        request.getClaimConfig().getClaimRuleSet(),
+                        request.getClaimConfig().getRequiredDocuments())
+                : null;
+
+        MaintenanceConfig maintenanceConfig = request.getMaintenanceConfig() != null
+                ? new MaintenanceConfig(
+                        request.getMaintenanceConfig().getAllowedTypes(),
+                        request.getMaintenanceConfig().getFreeLookPeriodDays(),
+                        request.getMaintenanceConfig().getSurrenderRuleSet(),
+                        request.getMaintenanceConfig().getEndorsementRuleSet())
+                : null;
 
         return new CreateProductTemplateCommand(
                 templateId,
                 request.getTemplateCode(),
                 request.getTemplateName(),
-                request.getInsuranceCategory(),
-                InsuranceType.fromCode(request.getInsuranceType()),
-                request.getProductId(),
-                IssuanceMode.fromCode(request.getIssuanceMode()),
-                request.getPolicyStages() != null
-                        ? request.getPolicyStages().stream().map(s -> new PolicyStage(
-                                s.getStageCode(), s.getStageName(), s.getRequiredComponents(),
-                                s.getValidationRuleSet(), s.getNextStageTransition(), s.isAutoTransition()
-                        )).toList()
-                        : List.of(),
-                request.getUnderwritingConfig() != null
-                        ? new UnderwritingConfig(
-                                request.getUnderwritingConfig().isRequired(),
-                                request.getUnderwritingConfig().getAutoUnderwritingRuleSet(),
-                                request.getUnderwritingConfig().getManualThresholdRuleSet(),
-                                request.getUnderwritingConfig().getMaxAutoApproveAmount())
-                        : new UnderwritingConfig(false, null, null, null),
-                request.getPolicyStructure() != null
-                        ? new PolicyStructureConfig(
-                                SubjectType.fromCode(request.getPolicyStructure().getSubjectType()),
-                                request.getPolicyStructure().getSubjectFieldsSchema(),
-                                request.getPolicyStructure().isAllowMultipleSubjects(),
-                                request.getPolicyStructure().getPartyRoles(),
-                                request.getPolicyStructure().getRequiredPartyRoles(),
-                                LiabilityStructure.fromCode(request.getPolicyStructure().getLiabilityStructure()))
-                        : null,
-                request.getMaintenanceConfig() != null
-                        ? new MaintenanceConfig(
-                                request.getMaintenanceConfig().getAllowedTypes(),
-                                request.getMaintenanceConfig().getFreeLookPeriodDays(),
-                                request.getMaintenanceConfig().getSurrenderRuleSet(),
-                                request.getMaintenanceConfig().getEndorsementRuleSet())
-                        : null,
-                request.getClaimConfig() != null
-                        ? new ClaimConfig(
-                                request.getClaimConfig().getClaimStages(),
-                                request.getClaimConfig().getReportDeadlineDays(),
-                                request.getClaimConfig().getWaitingPeriodDays(),
-                                request.getClaimConfig().getClaimRuleSet(),
-                                request.getClaimConfig().getRequiredDocuments())
-                        : null,
-                request.getBillingConfig() != null
-                        ? new BillingConfig(
-                                request.getBillingConfig().getAllowedPaymentModes(),
-                                request.getBillingConfig().getGracePeriodDays(),
-                                request.getBillingConfig().getLapseAfterDays(),
-                                request.getBillingConfig().isAutoDeductEnabled())
-                        : null,
-                request.getReinsuranceConfig() != null
-                        ? new ReinsuranceConfig(
-                                request.getReinsuranceConfig().isAutoReinsurance(),
-                                request.getReinsuranceConfig().getRetentionLimit(),
-                                request.getReinsuranceConfig().getDefaultContractCode())
-                        : null,
-                tenantId
+                request.getInsuranceType(),
+                null,
+                null,
+                underwritingConfig,
+                claimConfig,
+                maintenanceConfig,
+                null,
+                null,
+                List.of(),
+                List.of(),
+                tenantId,
+                null
         );
     }
 }

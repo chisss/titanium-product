@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
+
 import lombok.Data;
 
 /**
@@ -21,11 +24,11 @@ public class CreateProductRequest {
     /** 产品描述 */
     private String productDesc;
     /** 产品形态（INDIVIDUAL/GROUP） */
-    private String form;
+    private ProductEnum.ProductForm form;
     /** 险种类型 */
-    private String insuranceType;
+    private InsuranceType insuranceType;
     /** 产品类别（MAIN/RIDER） */
-    private String category;
+    private ProductEnum.ProductCategory category;
     /** 销售开始时间 */
     private LocalDateTime saleStartTime;
     /** 销售截止时间 */

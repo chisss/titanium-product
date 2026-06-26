@@ -3,6 +3,13 @@ package com.titanium.product.api.dto;
 import java.util.List;
 import java.util.Map;
 
+import com.titanium.metadata.enums.CommonStatus;
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
+import com.titanium.product.domain.valueobject.IssuanceMode;
+import com.titanium.product.domain.valueobject.LiabilityStructure;
+import com.titanium.product.domain.valueobject.SubjectType;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,17 +37,17 @@ public class ProductTemplateDTO {
     @Schema(description = "模板名称")
     private String templateName;
 
-    @Schema(description = "险种大类: LIFE/PROPERTY/HEALTH/ACCIDENT")
-    private String insuranceCategory;
+    @Schema(description = "险种大类: MAIN/RIDER")
+    private ProductEnum.ProductCategory insuranceCategory;
 
     @Schema(description = "险种类型")
-    private String insuranceType;
+    private InsuranceType insuranceType;
 
     @Schema(description = "关联产品ID")
     private String productId;
 
     @Schema(description = "出单模式: ONE_STEP/TWO_STEP/THREE_STEP")
-    private String issuanceMode;
+    private IssuanceMode issuanceMode;
 
     @Schema(description = "出单阶段定义")
     private List<PolicyStageDTO> policyStages;
@@ -63,8 +70,8 @@ public class ProductTemplateDTO {
     @Schema(description = "再保险配置")
     private ReinsuranceConfigDTO reinsuranceConfig;
 
-    @Schema(description = "模板状态: DRAFT/ACTIVE/INACTIVE")
-    private String status;
+    @Schema(description = "模板状态: ACTIVE/INACTIVE")
+    private CommonStatus status;
 
     @Schema(description = "租户ID")
     private String tenantId;
@@ -105,7 +112,7 @@ public class ProductTemplateDTO {
     @Schema(description = "保单结构配置DTO")
     public static class PolicyStructureConfigDTO {
         @Schema(description = "标的类型")
-        private String subjectType;
+        private SubjectType subjectType;
         @Schema(description = "标的必填字段Schema")
         private String subjectFieldsSchema;
         @Schema(description = "是否允许多标的")
@@ -115,7 +122,7 @@ public class ProductTemplateDTO {
         @Schema(description = "必需参与方角色")
         private List<String> requiredPartyRoles;
         @Schema(description = "责任结构类型")
-        private String liabilityStructure;
+        private LiabilityStructure liabilityStructure;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

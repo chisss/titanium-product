@@ -2,6 +2,8 @@ package com.titanium.product.query.entity;
 
 import java.time.LocalDateTime;
 
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.domain.valueobject.*;
 
 import lombok.Getter;
@@ -22,13 +24,13 @@ public class ProductQueryResult {
     private String productDesc;
 
     // ====== 分类 ======
-    private String form;
-    private String insuranceType;
-    private String category;
+    private ProductEnum.ProductForm form;
+    private InsuranceType insuranceType;
+    private ProductEnum.ProductCategory category;
 
     // ====== 版本与状态 ======
     private String version;
-    private String status;
+    private ProductEnum.ProductStatus status;
     private String originalProductId;
 
     // ====== 时间 ======

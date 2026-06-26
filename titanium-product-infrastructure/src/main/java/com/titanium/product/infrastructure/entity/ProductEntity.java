@@ -4,9 +4,15 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,20 +46,24 @@ public class ProductEntity {
     @Column(name = "product_desc", columnDefinition = "TEXT")
     private String productDesc;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "form", length = 20, nullable = false)
-    private String form;
+    private ProductEnum.ProductForm form;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "insurance_type", length = 20, nullable = false)
-    private String insuranceType;
+    private InsuranceType insuranceType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "category", length = 20, nullable = false)
-    private String category;
+    private ProductEnum.ProductCategory category;
 
     @Column(name = "version", length = 10, nullable = false)
     private String version;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
-    private String status;
+    private ProductEnum.ProductStatus status;
 
     @Column(name = "original_product_id", length = 36)
     private String originalProductId;
@@ -113,8 +123,9 @@ public class ProductEntity {
     @Column(name = "audit_time")
     private LocalDateTime auditTime;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "audit_result", length = 20)
-    private String auditResult;
+    private ProductEnum.AuditResult auditResult;
 
     // ====== 规则引擎预留 ======
 

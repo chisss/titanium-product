@@ -5,11 +5,16 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+
+import com.titanium.metadata.enums.product.ProductEnum;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,8 +38,9 @@ public class ProductSalesChannelEntity {
     @Column(name = "product_id", length = 36, nullable = false)
     private String productId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "channel_type", length = 30, nullable = false)
-    private String channelType;
+    private ProductEnum.SalesChannel channelType;
 
     @Column(name = "enabled", nullable = false)
     private Boolean enabled;

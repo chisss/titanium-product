@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Component;
 
+import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.domain.event.*;
 import com.titanium.product.infrastructure.entity.ProductClauseRelDO;
 import com.titanium.product.infrastructure.entity.ProductEntity;
@@ -37,11 +38,11 @@ public class ProductProjection {
         entity.setProductCode(event.productCode());
         entity.setProductName(event.productName());
         entity.setProductDesc(event.productDesc());
-        entity.setForm(event.form() != null ? event.form().name() : null);
-        entity.setInsuranceType(event.insuranceType() != null ? event.insuranceType().name() : null);
-        entity.setCategory(event.category() != null ? event.category().name() : null);
+        entity.setForm(event.form());
+        entity.setInsuranceType(event.insuranceType());
+        entity.setCategory(event.category());
         entity.setVersion(event.version());
-        entity.setStatus(event.status() != null ? event.status().name() : null);
+        entity.setStatus(event.status());
         entity.setSaleStartTime(event.saleStartTime());
         entity.setSaleEndTime(event.saleEndTime());
         entity.setInsureCondition(mapper.insureConditionToJson(event.insureCondition()));
@@ -79,7 +80,7 @@ public class ProductProjection {
     @EventHandler
     public void on(ProductSubmittedForAuditEvent event) {
         productJpaRepository.findById(event.productId()).ifPresent(entity -> {
-            entity.setStatus("AUDITING");
+            entity.setStatus(ProductEnum.ProductStatus.AUDITING);
             entity.setUpdatedAt(event.submittedAt());
             entity.setUpdatedBy(event.submitterName());
             productJpaRepository.save(entity);
@@ -89,14 +90,14 @@ public class ProductProjection {
     @EventHandler
     public void on(ProductAuditedEvent event) {
         productJpaRepository.findById(event.productId()).ifPresent(entity -> {
-            entity.setStatus(event.status().name());
+            entity.setStatus(event.status());
             entity.setEffectiveTime(event.effectiveTime());
             if (event.auditInfo() != null) {
                 entity.setAuditorId(event.auditInfo().auditorId());
                 entity.setAuditorName(event.auditInfo().auditorName());
                 entity.setAuditOpinion(event.auditInfo().auditOpinion());
                 entity.setAuditTime(event.auditInfo().auditTime());
-                entity.setAuditResult(event.auditInfo().auditResult().name());
+                entity.setAuditResult(event.auditInfo().auditResult());
             }
             entity.setUpdatedAt(LocalDateTime.now());
             entity.setUpdatedBy("system");
@@ -107,13 +108,13 @@ public class ProductProjection {
     @EventHandler
     public void on(ProductAuditRejectedEvent event) {
         productJpaRepository.findById(event.productId()).ifPresent(entity -> {
-            entity.setStatus(event.status().name());
+            entity.setStatus(event.status());
             if (event.auditInfo() != null) {
                 entity.setAuditorId(event.auditInfo().auditorId());
                 entity.setAuditorName(event.auditInfo().auditorName());
                 entity.setAuditOpinion(event.auditInfo().auditOpinion());
                 entity.setAuditTime(event.auditInfo().auditTime());
-                entity.setAuditResult(event.auditInfo().auditResult().name());
+                entity.setAuditResult(event.auditInfo().auditResult());
             }
             entity.setUpdatedAt(event.rejectedAt());
             entity.setUpdatedBy("system");
@@ -124,7 +125,7 @@ public class ProductProjection {
     @EventHandler
     public void on(ProductInvalidatedEvent event) {
         productJpaRepository.findById(event.productId()).ifPresent(entity -> {
-            entity.setStatus(event.status().name());
+            entity.setStatus(event.status());
             entity.setInvalidTime(event.invalidTime());
             entity.setUpdatedAt(LocalDateTime.now());
             entity.setUpdatedBy("system");

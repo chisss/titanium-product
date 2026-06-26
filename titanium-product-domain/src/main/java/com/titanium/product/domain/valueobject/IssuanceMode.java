@@ -28,6 +28,6 @@ public enum IssuanceMode {
                 return mode;
             }
         }
-        throw new IllegalArgumentException("未知的出单模式: " + code);
+        return null;
     }
 }

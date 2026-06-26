@@ -6,8 +6,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.api.dto.ProductDTO;
 import com.titanium.product.api.request.CreateProductRequest;
 import com.titanium.product.api.request.InsureConditionRequest;
@@ -35,9 +33,9 @@ public interface ProductWebMapper {
                 request.getProductCode(),
                 request.getProductName(),
                 request.getProductDesc(),
-                request.getForm() != null ? ProductEnum.ProductForm.valueOf(request.getForm()) : null,
-                request.getInsuranceType() != null ? InsuranceType.valueOf(request.getInsuranceType()) : null,
-                request.getCategory() != null ? ProductEnum.ProductCategory.valueOf(request.getCategory()) : null,
+                request.getForm(),
+                request.getInsuranceType(),
+                request.getCategory(),
                 null, // effectiveTime
                 request.getSaleStartTime(),
                 request.getSaleEndTime(),

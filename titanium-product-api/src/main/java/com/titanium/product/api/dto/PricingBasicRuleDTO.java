@@ -1,5 +1,7 @@
 package com.titanium.product.api.dto;
 
+import com.titanium.metadata.enums.product.ProductEnum;
+
 import lombok.Data;
 
 /**
@@ -9,9 +11,9 @@ import lombok.Data;
 @Data
 public class PricingBasicRuleDTO {
     /**
-     * 定价类型（FIXED-固定定价/AGE-年龄定价/OCCUPATION-职业定价/COMBINED-组合定价）
+     * 定价类型（FIXED-固定费率/STEP-阶梯费率/FACTOR-因子定价）
      */
-    private String pricingType;
+    private ProductEnum.PricingType pricingType;
     
     /**
      * 定价系数（JSON格式）

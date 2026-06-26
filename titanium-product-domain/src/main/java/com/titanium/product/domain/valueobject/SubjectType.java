@@ -12,7 +12,13 @@ public enum SubjectType {
     VEHICLE("VEHICLE", "车辆"),
     PET("PET", "宠物"),
     PROPERTY("PROPERTY", "财产"),
-    CARGO("CARGO", "货物");
+    CARGO("CARGO", "货物"),
+    HOUSEHOLD("HOUSEHOLD", "家庭"),
+    ORGANIZATION("ORGANIZATION", "机构"),
+    AGRICULTURAL("AGRICULTURAL", "农业"),
+    VESSEL("VESSEL", "船舶"),
+    AIRCRAFT("AIRCRAFT", "航空"),
+    PERSON_OR_ORGANIZATION("PERSON_OR_ORGANIZATION", "个人或机构");
 
     private final String code;
     private final String name;
@@ -28,6 +34,6 @@ public enum SubjectType {
                 return type;
             }
         }
-        throw new IllegalArgumentException("未知的标的类型: " + code);
+        return null;
     }
 }

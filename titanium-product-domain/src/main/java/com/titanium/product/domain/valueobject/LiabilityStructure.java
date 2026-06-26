@@ -27,6 +27,6 @@ public enum LiabilityStructure {
                 return structure;
             }
         }
-        throw new IllegalArgumentException("未知的责任结构类型: " + code);
+        return null;
     }
 }

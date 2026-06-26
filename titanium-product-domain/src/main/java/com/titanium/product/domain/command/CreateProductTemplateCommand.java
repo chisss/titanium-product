@@ -10,20 +10,21 @@ import java.util.List;
  * 创建产品模板命令
  */
 public record CreateProductTemplateCommand(
-        @TargetAggregateIdentifier String templateId,
+        @TargetAggregateIdentifier
+        String templateId,
         String templateCode,
         String templateName,
-        String insuranceCategory,
         InsuranceType insuranceType,
-        String productId,
-        IssuanceMode issuanceMode,
-        List<PolicyStage> policyStages,
+        String description,
+        IssuanceProcessConfig issuanceProcessConfig,
         UnderwritingConfig underwritingConfig,
-        PolicyStructureConfig policyStructure,
+        ClaimConfig claimsConfig,
         MaintenanceConfig maintenanceConfig,
-        ClaimConfig claimConfig,
-        BillingConfig billingConfig,
-        ReinsuranceConfig reinsuranceConfig,
-        String tenantId
+        PolicyFormConfig policyFormConfig,
+        PricingBasicRule pricingBasicRule,
+        List<String> supportedCoverages,
+        List<String> supportedExclusions,
+        String tenantId,
+        String createdBy
 ) {
 }

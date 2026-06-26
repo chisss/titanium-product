@@ -2,6 +2,9 @@ package com.titanium.product.api.dto;
 
 import java.time.LocalDateTime;
 
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
+
 import lombok.Data;
 
 /**
@@ -14,11 +17,11 @@ public class ProductDTO {
     private String productCode;
     private String productName;
     private String productDesc;
-    private String form;
-    private String insuranceType;
-    private String category;
+    private ProductEnum.ProductForm form;
+    private InsuranceType insuranceType;
+    private ProductEnum.ProductCategory category;
     private String version;
-    private String status;
+    private ProductEnum.ProductStatus status;
     private String originalProductId;
     private LocalDateTime effectiveTime;
     private LocalDateTime invalidTime;

@@ -3,6 +3,8 @@ package com.titanium.product.domain.valueobject;
 import java.io.Serializable;
 import java.util.List;
 
+import com.titanium.metadata.enums.product.ProductEnum;
+
 /**
  * 缴费配置值对象
  * 定义产品允许的缴费方式、宽限期、失效规则
@@ -13,7 +15,7 @@ import java.util.List;
  * @param autoDeductEnabled   是否支持自动扣款
  */
 public record BillingConfig(
-        List<String> allowedPaymentModes,
+        List<ProductEnum.PaymentFrequency> allowedPaymentModes,
         int gracePeriodDays,
         int lapseAfterDays,
         boolean autoDeductEnabled

@@ -12,10 +12,36 @@ import org.axonframework.spring.stereotype.Aggregate;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.domain.command.*;
+import com.titanium.metadata.exception.CommandValidationException;
+import com.titanium.product.domain.command.AuditProductCommand;
+import com.titanium.product.domain.command.CreateProductCommand;
+import com.titanium.product.domain.command.InvalidateProductCommand;
+import com.titanium.product.domain.command.RejectProductAuditCommand;
+import com.titanium.product.domain.command.ReviseProductCommand;
+import com.titanium.product.domain.command.SubmitProductForAuditCommand;
+import com.titanium.product.domain.command.UpdateAttachProductCommand;
+import com.titanium.product.domain.command.UpdateProductClauseRelCommand;
+import com.titanium.product.domain.command.UpdateSalesChannelCommand;
 import com.titanium.product.domain.entity.ProductClauseRel;
-import com.titanium.product.domain.event.*;
-import com.titanium.product.domain.valueobject.*;
+import com.titanium.product.domain.event.ProductAuditRejectedEvent;
+import com.titanium.product.domain.event.ProductAuditedEvent;
+import com.titanium.product.domain.event.ProductClauseRelUpdatedEvent;
+import com.titanium.product.domain.event.ProductCreatedEvent;
+import com.titanium.product.domain.event.ProductInvalidatedEvent;
+import com.titanium.product.domain.event.ProductRevisedEvent;
+import com.titanium.product.domain.event.ProductSalesChannelUpdatedEvent;
+import com.titanium.product.domain.event.ProductSubmittedForAuditEvent;
+import com.titanium.product.domain.exception.ProductAuditException;
+import com.titanium.product.domain.exception.ProductStatusPreconditionException;
+import com.titanium.product.domain.valueobject.AuditInfo;
+import com.titanium.product.domain.valueobject.CoveragePeriodConfig;
+import com.titanium.product.domain.valueobject.InsureCondition;
+import com.titanium.product.domain.valueobject.IssuanceProcessConfig;
+import com.titanium.product.domain.valueobject.PaymentConfig;
+import com.titanium.product.domain.valueobject.PolicyFormConfig;
+import com.titanium.product.domain.valueobject.PricingBasicRule;
+import com.titanium.product.domain.valueobject.SalesChannelConfig;
+import com.titanium.product.domain.valueobject.UnderwritingConfig;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -23,12 +49,10 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * 保险产品聚合根
- * 核心聚合根，封装产品的基础信息、形态、险种、绑定条款、定价基础规则、
- * 出单流程配置、保单形态配置、核保配置等核心业务配置
+ * 保险产品聚合根 核心聚合根，封装产品的基础信息、形态、险种、绑定条款、定价基础规则、 出单流程配置、保单形态配置、核保配置等核心业务配置
  */
 @Getter
-@Builder(builderMethodName = "builder")
+@Builder()
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Aggregate
 public class InsuranceProduct {
@@ -36,81 +60,81 @@ public class InsuranceProduct {
     // ====== 基础标识 ======
     /** 产品编号（聚合根ID） */
     @AggregateIdentifier
-    private String productId;
+    private String                      productId;
     /** 产品代码（简短唯一标识） */
-    private String productCode;
+    private String                      productCode;
     /** 产品名称 */
-    private String productName;
+    private String                      productName;
     /** 产品描述 */
-    private String productDesc;
+    private String                      productDesc;
 
     // ====== 产品分类与形态 ======
     /** 产品形态（团险/个险） */
-    private ProductEnum.ProductForm form;
+    private ProductEnum.ProductForm     form;
     /** 险种类型 */
-    private InsuranceType insuranceType;
+    private InsuranceType               insuranceType;
     /** 产品类别（MAIN-主险/RIDER-附加险） */
     private ProductEnum.ProductCategory category;
 
     // ====== 版本与状态 ======
     /** 产品版本（如 V1.0/V2.0） */
-    private String version;
+    private String                      version;
     /** 产品状态（DRAFT/AUDITING/EFFECTIVE/INVALID） */
-    private ProductEnum.ProductStatus status;
+    private ProductEnum.ProductStatus   status;
     /** 原始产品ID（修订溯源） */
-    private String originalProductId;
+    private String                      originalProductId;
 
     // ====== 时间管理 ======
     /** 产品生效时间 */
-    private LocalDateTime effectiveTime;
+    private LocalDateTime               effectiveTime;
     /** 下架时间 */
-    private LocalDateTime invalidTime;
+    private LocalDateTime               invalidTime;
     /** 销售开始时间 */
-    private LocalDateTime saleStartTime;
+    private LocalDateTime               saleStartTime;
     /** 销售截止时间 */
-    private LocalDateTime saleEndTime;
+    private LocalDateTime               saleEndTime;
 
     // ====== 核心配置（值对象） ======
     /** 投保条件 */
-    private InsureCondition insureCondition;
+    private InsureCondition             insureCondition;
     /** 保障期间配置 */
-    private CoveragePeriodConfig coveragePeriod;
+    private CoveragePeriodConfig        coveragePeriod;
     /** 缴费方式配置 */
-    private PaymentConfig paymentConfig;
+    private PaymentConfig               paymentConfig;
     /** 定价基础规则 */
-    private PricingBasicRule pricingBasicRule;
+    private PricingBasicRule            pricingBasicRule;
 
     // ====== 关联 ======
     /** 条款关联列表 */
-    private List<ProductClauseRel> clauseRels;
+    private List<ProductClauseRel>      clauseRels;
     /** 销售渠道配置 */
-    private List<SalesChannelConfig> salesChannels;
+    private List<SalesChannelConfig>    salesChannels;
     /** 可搭配的附加险产品ID */
-    private List<String> attachProductIds;
+    private List<String>                attachProductIds;
 
     // ====== 出单流程编排（核心新增） ======
     /** 出单流程配置 */
-    private IssuanceProcessConfig issuanceProcessConfig;
+    private IssuanceProcessConfig       issuanceProcessConfig;
     /** 保单形态配置 */
-    private PolicyFormConfig policyFormConfig;
+    private PolicyFormConfig            policyFormConfig;
     /** 核保配置 */
-    private UnderwritingConfig underwritingConfig;
+    private UnderwritingConfig          underwritingConfig;
 
     // ====== 审核 ======
     /** 审核信息 */
-    private AuditInfo auditInfo;
+    private AuditInfo                   auditInfo;
 
     // ====== 规则引擎预留 ======
     /** 定价规则集ID（接入规则引擎后使用） */
-    private String pricingRuleSetId;
+    private String                      pricingRuleSetId;
     /** 投保条件规则集ID（接入规则引擎后使用） */
-    private String insureConditionRuleSetId;
+    private String                      insureConditionRuleSetId;
     /** 核保规则集ID（接入规则引擎后使用） */
-    private String underwritingRuleSetId;
+    private String                      underwritingRuleSetId;
 
     // ====== 租户 ======
     /** 租户ID */
-    private String tenantId;
+    private String                      tenantId;
 
     /** 无参构造器（Axon反射必备） */
     public InsuranceProduct() {
@@ -140,10 +164,9 @@ public class InsuranceProduct {
         this.coveragePeriod = command.coveragePeriod();
         this.paymentConfig = command.paymentConfig();
         this.pricingBasicRule = command.pricingBasicRule();
-        this.clauseRels = command.clauseIds().stream()
-                .map(clauseId -> new ProductClauseRel(clauseId,
-                        command.clauseVersionMap().get(clauseId),
-                        clauseId.equals(command.mainClauseId())))
+        this.clauseRels = command
+                .clauseIds().stream().map(clauseId -> new ProductClauseRel(clauseId,
+                        command.clauseVersionMap().get(clauseId), clauseId.equals(command.mainClauseId())))
                 .collect(Collectors.toList());
         this.salesChannels = command.salesChannels();
         this.attachProductIds = command.attachProductIds();
@@ -152,16 +175,11 @@ public class InsuranceProduct {
         this.underwritingConfig = command.underwritingConfig();
         this.tenantId = command.tenantId();
 
-        AggregateLifecycle.apply(new ProductCreatedEvent(
-                productId, productCode, productName, productDesc,
-                form, insuranceType, category, version,
-                ProductEnum.ProductStatus.DRAFT, LocalDateTime.now(),
-                saleStartTime, saleEndTime,
-                insureCondition, coveragePeriod, paymentConfig, pricingBasicRule,
-                clauseRels, salesChannels, attachProductIds,
-                issuanceProcessConfig, policyFormConfig, underwritingConfig,
-                tenantId
-        ));
+        AggregateLifecycle.apply(
+                new ProductCreatedEvent(productId, productCode, productName, productDesc, form, insuranceType, category,
+                        version, ProductEnum.ProductStatus.DRAFT, LocalDateTime.now(), saleStartTime, saleEndTime,
+                        insureCondition, coveragePeriod, paymentConfig, pricingBasicRule, clauseRels, salesChannels,
+                        attachProductIds, issuanceProcessConfig, policyFormConfig, underwritingConfig, tenantId));
     }
 
     /**
@@ -170,12 +188,11 @@ public class InsuranceProduct {
     @CommandHandler
     public void handle(SubmitProductForAuditCommand command) {
         if (!ProductEnum.ProductStatus.DRAFT.equals(this.status)) {
-            throw new IllegalStateException("仅草稿状态的产品可提交审核");
+            throw new ProductStatusPreconditionException(this.productId, statusName(), "提交审核");
         }
         this.status = ProductEnum.ProductStatus.AUDITING;
-        AggregateLifecycle.apply(new ProductSubmittedForAuditEvent(
-                productId, command.submitterId(), command.submitterName(), LocalDateTime.now()
-        ));
+        AggregateLifecycle.apply(new ProductSubmittedForAuditEvent(productId, command.submitterId(),
+                command.submitterName(), LocalDateTime.now()));
     }
 
     /**
@@ -184,22 +201,18 @@ public class InsuranceProduct {
     @CommandHandler
     public void handle(AuditProductCommand command) {
         if (!ProductEnum.ProductStatus.AUDITING.equals(this.status)) {
-            throw new IllegalStateException("仅审核中的产品可进行审核");
+            throw new ProductStatusPreconditionException(this.productId, statusName(), "审核");
         }
         if (ProductEnum.AuditResult.PASS.equals(command.auditResult())) {
             this.status = ProductEnum.ProductStatus.EFFECTIVE;
             this.effectiveTime = LocalDateTime.now();
-            this.auditInfo = new AuditInfo(
-                    command.auditorId(), command.auditorName(),
-                    command.auditOpinion(), LocalDateTime.now(),
-                    ProductEnum.AuditResult.PASS
-            );
-            AggregateLifecycle.apply(new ProductAuditedEvent(
-                    productId, ProductEnum.ProductStatus.EFFECTIVE, effectiveTime, auditInfo
-            ));
+            this.auditInfo = new AuditInfo(command.auditorId(), command.auditorName(), command.auditOpinion(),
+                    LocalDateTime.now(), ProductEnum.AuditResult.PASS);
+            AggregateLifecycle.apply(
+                    new ProductAuditedEvent(productId, ProductEnum.ProductStatus.EFFECTIVE, effectiveTime, auditInfo));
         } else {
             // 审核驳回走RejectProductAuditCommand
-            throw new IllegalArgumentException("审核不通过请使用驳回命令");
+            throw new ProductAuditException(this.productId, "审核不通过请使用驳回命令");
         }
     }
 
@@ -209,17 +222,13 @@ public class InsuranceProduct {
     @CommandHandler
     public void handle(RejectProductAuditCommand command) {
         if (!ProductEnum.ProductStatus.AUDITING.equals(this.status)) {
-            throw new IllegalStateException("仅审核中的产品可驳回");
+            throw new ProductStatusPreconditionException(this.productId, statusName(), "驳回审核");
         }
         this.status = ProductEnum.ProductStatus.DRAFT;
-        this.auditInfo = new AuditInfo(
-                command.auditorId(), command.auditorName(),
-                command.rejectReason(), LocalDateTime.now(),
-                ProductEnum.AuditResult.REJECT
-        );
-        AggregateLifecycle.apply(new ProductAuditRejectedEvent(
-                productId, ProductEnum.ProductStatus.DRAFT, auditInfo, LocalDateTime.now()
-        ));
+        this.auditInfo = new AuditInfo(command.auditorId(), command.auditorName(), command.rejectReason(),
+                LocalDateTime.now(), ProductEnum.AuditResult.REJECT);
+        AggregateLifecycle.apply(new ProductAuditRejectedEvent(productId, ProductEnum.ProductStatus.DRAFT, auditInfo,
+                LocalDateTime.now()));
     }
 
     /**
@@ -228,17 +237,15 @@ public class InsuranceProduct {
     @CommandHandler
     public void handle(ReviseProductCommand command) {
         if (!ProductEnum.ProductStatus.EFFECTIVE.equals(this.status)) {
-            throw new IllegalStateException("仅生效产品可修订");
+            throw new ProductStatusPreconditionException(this.productId, statusName(), "修订");
         }
         String newVersion = generateNewVersion(this.version);
-        AggregateLifecycle.apply(new ProductRevisedEvent(
-                command.newProductId(), this.productId, newVersion,
-                command.newProductName(), command.newProductDesc(),
-                command.newForm(), command.newInsuranceType(), command.newCategory(),
-                command.newInsureCondition(), command.newCoveragePeriod(), command.newPaymentConfig(),
-                command.newClauseRels(), command.newPricingBasicRule(), command.newSalesChannels(),
-                command.newIssuanceProcessConfig(), command.newPolicyFormConfig(), command.newUnderwritingConfig()
-        ));
+        AggregateLifecycle.apply(new ProductRevisedEvent(command.newProductId(), this.productId, newVersion,
+                command.newProductName(), command.newProductDesc(), command.newForm(), command.newInsuranceType(),
+                command.newCategory(), command.newInsureCondition(), command.newCoveragePeriod(),
+                command.newPaymentConfig(), command.newClauseRels(), command.newPricingBasicRule(),
+                command.newSalesChannels(), command.newIssuanceProcessConfig(), command.newPolicyFormConfig(),
+                command.newUnderwritingConfig()));
     }
 
     /**
@@ -247,13 +254,12 @@ public class InsuranceProduct {
     @CommandHandler
     public void handle(InvalidateProductCommand command) {
         if (!ProductEnum.ProductStatus.EFFECTIVE.equals(this.status)) {
-            throw new IllegalStateException("仅生效产品可下架");
+            throw new ProductStatusPreconditionException(this.productId, statusName(), "下架");
         }
         this.status = ProductEnum.ProductStatus.INVALID;
         this.invalidTime = LocalDateTime.now();
-        AggregateLifecycle.apply(new ProductInvalidatedEvent(
-                productId, ProductEnum.ProductStatus.INVALID, invalidTime
-        ));
+        AggregateLifecycle
+                .apply(new ProductInvalidatedEvent(productId, ProductEnum.ProductStatus.INVALID, invalidTime));
     }
 
     /**
@@ -262,12 +268,10 @@ public class InsuranceProduct {
     @CommandHandler
     public void handle(UpdateProductClauseRelCommand command) {
         if (!ProductEnum.ProductStatus.DRAFT.equals(this.status)) {
-            throw new IllegalStateException("仅草稿状态的产品可更新条款关联");
+            throw new ProductStatusPreconditionException(this.productId, statusName(), "更新条款关联");
         }
         this.clauseRels = command.newClauseRels();
-        AggregateLifecycle.apply(new ProductClauseRelUpdatedEvent(
-                productId, clauseRels
-        ));
+        AggregateLifecycle.apply(new ProductClauseRelUpdatedEvent(productId, clauseRels));
     }
 
     /**
@@ -276,12 +280,10 @@ public class InsuranceProduct {
     @CommandHandler
     public void handle(UpdateSalesChannelCommand command) {
         if (!ProductEnum.ProductStatus.DRAFT.equals(this.status)) {
-            throw new IllegalStateException("仅草稿状态的产品可更新销售渠道");
+            throw new ProductStatusPreconditionException(this.productId, statusName(), "更新销售渠道");
         }
         this.salesChannels = command.salesChannels();
-        AggregateLifecycle.apply(new ProductSalesChannelUpdatedEvent(
-                productId, salesChannels
-        ));
+        AggregateLifecycle.apply(new ProductSalesChannelUpdatedEvent(productId, salesChannels));
     }
 
     /**
@@ -291,7 +293,7 @@ public class InsuranceProduct {
     public void handle(UpdateAttachProductCommand command) {
         if (!ProductEnum.ProductStatus.DRAFT.equals(this.status)
                 && !ProductEnum.ProductStatus.EFFECTIVE.equals(this.status)) {
-            throw new IllegalStateException("仅草稿或生效状态的产品可更新附加险关联");
+            throw new ProductStatusPreconditionException(this.productId, statusName(), "更新附加险关联");
         }
         this.attachProductIds = command.attachProductIds();
     }
@@ -382,21 +384,27 @@ public class InsuranceProduct {
     // ==================== 私有方法 ====================
 
     private void validateCreateCommand(CreateProductCommand command) {
+        String commandName = CreateProductCommand.class.getSimpleName();
         if (command.productId() == null || command.productName() == null) {
-            throw new IllegalArgumentException("产品编号、名称不能为空");
+            throw new CommandValidationException(commandName, "productId/productName", "产品编号、名称不能为空");
         }
         if (command.productCode() == null || command.productCode().isBlank()) {
-            throw new IllegalArgumentException("产品代码不能为空");
+            throw new CommandValidationException(commandName, "productCode", "产品代码不能为空");
         }
         if (command.clauseIds() == null || command.clauseIds().isEmpty()) {
-            throw new IllegalArgumentException("产品必须绑定至少一条条款");
+            throw new CommandValidationException(commandName, "clauseIds", "产品必须绑定至少一条条款");
         }
         if (command.insureCondition() == null) {
-            throw new IllegalArgumentException("投保条件不能为空");
+            throw new CommandValidationException(commandName, "insureCondition", "投保条件不能为空");
         }
         if (command.tenantId() == null || command.tenantId().isBlank()) {
-            throw new IllegalArgumentException("租户ID不能为空");
+            throw new CommandValidationException(commandName, "tenantId", "租户ID不能为空");
         }
+    }
+
+    /** 返回当前状态名称（状态为空时返回NULL占位，用于异常上下文） */
+    private String statusName() {
+        return this.status == null ? "NULL" : this.status.name();
     }
 
     private String generateNewVersion(String currentVersion) {

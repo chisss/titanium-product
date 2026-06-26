@@ -16,22 +16,6 @@ import com.titanium.product.domain.valueobject.IssuanceProcessConfig;
 public class ProductDomainService {
 
     /**
-     * 生成新版本号
-     */
-    public String generateNewVersion(String currentVersion) {
-        if (currentVersion == null || currentVersion.isBlank()) {
-            return "V1.0";
-        }
-        int dotIndex = currentVersion.indexOf('.');
-        if (dotIndex > 0) {
-            int majorVersion = Integer.parseInt(currentVersion.substring(1, dotIndex));
-            return "V" + (majorVersion + 1) + ".0";
-        }
-        int currentMajorVersion = Integer.parseInt(currentVersion.substring(1));
-        return "V" + (currentMajorVersion + 1) + ".0";
-    }
-
-    /**
      * 校验条款列表是否包含主条款
      */
     public boolean validateMainClause(List<String> clauseIds, String mainClauseId) {

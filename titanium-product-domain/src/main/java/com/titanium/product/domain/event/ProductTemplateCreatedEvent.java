@@ -1,8 +1,10 @@
 package com.titanium.product.domain.event;
 
+import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.product.domain.valueobject.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -12,18 +14,55 @@ public record ProductTemplateCreatedEvent(
         String templateId,
         String templateCode,
         String templateName,
-        String insuranceCategory,
         InsuranceType insuranceType,
-        String productId,
-        IssuanceMode issuanceMode,
-        List<PolicyStage> policyStages,
+        String description,
+        IssuanceProcessConfig issuanceProcessConfig,
         UnderwritingConfig underwritingConfig,
-        PolicyStructureConfig policyStructure,
+        ClaimConfig claimsConfig,
         MaintenanceConfig maintenanceConfig,
-        ClaimConfig claimConfig,
-        BillingConfig billingConfig,
-        ReinsuranceConfig reinsuranceConfig,
-        String status,
-        String tenantId
+        PolicyFormConfig policyFormConfig,
+        PricingBasicRule pricingBasicRule,
+        List<String> supportedCoverages,
+        List<String> supportedExclusions,
+        CommonStatus status,
+        String tenantId,
+        String createdBy
 ) {
+    // 可以添加静态工厂方法
+    public static ProductTemplateCreatedEvent of(
+            String templateId,
+            String templateCode,
+            String templateName,
+            InsuranceType insuranceType,
+            String description,
+            IssuanceProcessConfig issuanceProcessConfig,
+            UnderwritingConfig underwritingConfig,
+            ClaimConfig claimsConfig,
+            MaintenanceConfig maintenanceConfig,
+            PolicyFormConfig policyFormConfig,
+            PricingBasicRule pricingBasicRule,
+            List<String> supportedCoverages,
+            List<String> supportedExclusions,
+            String tenantId,
+            String createdBy
+    ) {
+        return new ProductTemplateCreatedEvent(
+                templateId,
+                templateCode,
+                templateName,
+                insuranceType,
+                description,
+                issuanceProcessConfig,
+                underwritingConfig,
+                claimsConfig,
+                maintenanceConfig,
+                policyFormConfig,
+                pricingBasicRule,
+                supportedCoverages,
+                supportedExclusions,
+                CommonStatus.ACTIVE,
+                tenantId,
+                createdBy
+        );
+    }
 }
