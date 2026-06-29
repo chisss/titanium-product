@@ -1,30 +1,39 @@
 package com.titanium.product.query.handler;
 
+
 import java.util.List;
 
 import org.axonframework.queryhandling.QueryHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
+
 import com.titanium.product.domain.query.GetTemplateByCodeQuery;
 import com.titanium.product.domain.query.GetTemplateByIdQuery;
 import com.titanium.product.domain.query.GetTemplateByProductIdQuery;
 import com.titanium.product.domain.query.GetTemplatesByInsuranceTypeQuery;
-import com.titanium.product.domain.valueobject.*;
-import com.titanium.product.infrastructure.entity.ProductTemplateDO;
+import com.titanium.product.domain.valueobject.BillingConfig;
+import com.titanium.product.domain.valueobject.ClaimConfig;
+import com.titanium.product.domain.valueobject.MaintenanceConfig;
+import com.titanium.product.domain.valueobject.PolicyStage;
+import com.titanium.product.domain.valueobject.PolicyStructureConfig;
+import com.titanium.product.domain.valueobject.ReinsuranceConfig;
+import com.titanium.product.domain.valueobject.UnderwritingConfig;
+import com.titanium.product.infrastructure.entity.ProductTemplateEntity;
 import com.titanium.product.infrastructure.repository.jpa.ProductTemplateJpaRepository;
 import com.titanium.product.query.entity.ProductTemplateQueryResult;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * 产品模板查询处理器
  */
 @Component
+@RequiredArgsConstructor
 public class ProductTemplateQueryHandler {
 
-    @Autowired
-    private ProductTemplateJpaRepository jpaRepository;
+    private final ProductTemplateJpaRepository jpaRepository;
 
     @QueryHandler
     public ProductTemplateQueryResult handle(GetTemplateByIdQuery query) {
@@ -55,7 +64,7 @@ public class ProductTemplateQueryHandler {
                 .toList();
     }
 
-    private ProductTemplateQueryResult toQueryResult(ProductTemplateDO entity) {
+    private ProductTemplateQueryResult toQueryResult(ProductTemplateEntity entity) {
         return ProductTemplateQueryResult.builder()
                 .templateId(entity.getTemplateId())
                 .templateCode(entity.getTemplateCode())

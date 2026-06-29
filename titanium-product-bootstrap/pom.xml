@@ -39,6 +39,18 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- 架构守护：共享 ArchUnit 基类（版本由 titanium-parent 管理） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-build-tools</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Liquibase -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -51,7 +63,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
                 <configuration>
                     <mainClass>com.titanium.product.ProductApplication</mainClass>
                 </configuration>

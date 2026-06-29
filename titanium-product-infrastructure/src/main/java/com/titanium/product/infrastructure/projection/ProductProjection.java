@@ -6,8 +6,14 @@ import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Component;
 
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.domain.event.*;
-import com.titanium.product.infrastructure.entity.ProductClauseRelDO;
+import com.titanium.product.domain.event.ProductAuditRejectedEvent;
+import com.titanium.product.domain.event.ProductAuditedEvent;
+import com.titanium.product.domain.event.ProductClauseRelUpdatedEvent;
+import com.titanium.product.domain.event.ProductCreatedEvent;
+import com.titanium.product.domain.event.ProductInvalidatedEvent;
+import com.titanium.product.domain.event.ProductSalesChannelUpdatedEvent;
+import com.titanium.product.domain.event.ProductSubmittedForAuditEvent;
+import com.titanium.product.infrastructure.entity.ProductClauseRelEntity;
 import com.titanium.product.infrastructure.entity.ProductEntity;
 import com.titanium.product.infrastructure.mapper.ProductInfraMapper;
 import com.titanium.product.infrastructure.repository.jpa.ProductClauseRelJpaRepository;
@@ -64,7 +70,7 @@ public class ProductProjection {
         // 保存条款关联
         if (event.clauseRels() != null) {
             event.clauseRels().forEach(clauseRel -> {
-                ProductClauseRelDO relDO = new ProductClauseRelDO();
+                ProductClauseRelEntity relDO = new ProductClauseRelEntity();
                 relDO.setProductId(event.productId());
                 relDO.setClauseId(clauseRel.getClauseId());
                 relDO.setClauseVersion(clauseRel.getClauseVersion());
@@ -140,7 +146,7 @@ public class ProductProjection {
         // 再保存新的关联
         if (event.clauseRels() != null) {
             event.clauseRels().forEach(clauseRel -> {
-                ProductClauseRelDO relDO = new ProductClauseRelDO();
+                ProductClauseRelEntity relDO = new ProductClauseRelEntity();
                 relDO.setProductId(event.productId());
                 relDO.setClauseId(clauseRel.getClauseId());
                 relDO.setClauseVersion(clauseRel.getClauseVersion());

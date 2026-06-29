@@ -22,7 +22,7 @@ public class ProductClauseRel {
 
     /**
      * 构造函数
-     * 
+     *
      * @param clauseId 条款ID
      * @param clauseVersion 条款版本
      * @param isMainClause 是否为主条款

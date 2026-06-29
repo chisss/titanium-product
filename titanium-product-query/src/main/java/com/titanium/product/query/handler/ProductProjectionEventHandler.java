@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
+
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.domain.event.ProductAuditRejectedEvent;
 import com.titanium.product.domain.event.ProductAuditedEvent;

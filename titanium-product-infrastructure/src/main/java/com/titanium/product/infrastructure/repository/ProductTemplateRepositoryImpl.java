@@ -1,28 +1,34 @@
 package com.titanium.product.infrastructure.repository;
 
+
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.TypeReference;
+
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.product.domain.aggregate.ProductTemplate;
 import com.titanium.product.domain.repository.ProductTemplateRepository;
-import com.titanium.product.domain.valueobject.*;
-import com.titanium.product.infrastructure.entity.ProductTemplateDO;
+import com.titanium.product.domain.valueobject.ClaimConfig;
+import com.titanium.product.domain.valueobject.IssuanceProcessConfig;
+import com.titanium.product.domain.valueobject.MaintenanceConfig;
+import com.titanium.product.domain.valueobject.PolicyFormConfig;
+import com.titanium.product.domain.valueobject.UnderwritingConfig;
+import com.titanium.product.infrastructure.entity.ProductTemplateEntity;
 import com.titanium.product.infrastructure.repository.jpa.ProductTemplateJpaRepository;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * 产品模板仓储实现
  */
 @Component
+@RequiredArgsConstructor
 public class ProductTemplateRepositoryImpl implements ProductTemplateRepository {
 
-    @Autowired
-    private ProductTemplateJpaRepository jpaRepository;
+    private final ProductTemplateJpaRepository jpaRepository;
 
     @Override
     public Optional<ProductTemplate> findById(String templateId) {
@@ -66,7 +72,7 @@ public class ProductTemplateRepositoryImpl implements ProductTemplateRepository 
         return jpaRepository.existsByTemplateCode(templateCode);
     }
 
-    private ProductTemplate toDomain(ProductTemplateDO entity) {
+    private ProductTemplate toDomain(ProductTemplateEntity entity) {
         IssuanceProcessConfig issuanceProcessConfig = entity.getIssuanceMode() != null
                 && entity.getIssuanceMode().startsWith("{")
                         ? JSON.parseObject(entity.getIssuanceMode(), IssuanceProcessConfig.class)

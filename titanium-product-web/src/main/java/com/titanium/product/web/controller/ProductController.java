@@ -1,6 +1,6 @@
 package com.titanium.product.web.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.enums.product.ProductEnum;
@@ -18,20 +18,20 @@ import com.titanium.product.domain.command.RejectProductAuditCommand;
 import com.titanium.product.domain.command.SubmitProductForAuditCommand;
 import com.titanium.product.web.mapper.ProductWebMapper;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * 产品控制器 处理产品相关的HTTP请求，实现ProductApi接口
  */
 @RestController
+@RequiredArgsConstructor
 public class ProductController implements ProductApi {
 
-    @Autowired
-    private ProductCommandAppService productCommandAppService;
+    private final ProductCommandAppService productCommandAppService;
 
-    @Autowired
-    private ProductQueryAppService   productQueryAppService;
+    private final ProductQueryAppService productQueryAppService;
 
-    @Autowired
-    private ProductWebMapper         productWebMapper;
+    private final ProductWebMapper productWebMapper;
 
     @Override
     public ApiResponse<String> createProduct(CreateProductRequest request, String tenantId) {

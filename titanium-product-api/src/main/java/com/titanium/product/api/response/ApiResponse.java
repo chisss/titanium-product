@@ -12,17 +12,17 @@ public class ApiResponse<T> {
      * 响应码（200-成功，其他-失败）
      */
     private int code;
-    
+
     /**
      * 响应消息
      */
     private String message;
-    
+
     /**
      * 响应数据
      */
     private T data;
-    
+
     /**
      * 成功响应
      * @param data 响应数据
@@ -36,7 +36,7 @@ public class ApiResponse<T> {
         response.setData(data);
         return response;
     }
-    
+
     /**
      * 失败响应
      * @param code 响应码

@@ -1,10 +1,16 @@
 package com.titanium.product.web.controller;
 
-import java.util.List;
-import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.product.api.ProductTemplateApi;
@@ -16,25 +22,24 @@ import com.titanium.product.application.query.ProductTemplateQueryAppService;
 import com.titanium.product.domain.command.ActivateProductTemplateCommand;
 import com.titanium.product.domain.command.CreateProductTemplateCommand;
 import com.titanium.product.domain.command.DeactivateProductTemplateCommand;
-import com.titanium.product.domain.valueobject.*;
 import com.titanium.product.query.entity.ProductTemplateQueryResult;
 import com.titanium.product.web.mapper.ProductTemplateWebMapper;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * 产品模板控制器
  */
 @RestController
 @RequestMapping("/api/product-templates")
+@RequiredArgsConstructor
 public class ProductTemplateController implements ProductTemplateApi {
 
-    @Autowired
-    private ProductTemplateCommandAppService commandAppService;
+    private final ProductTemplateCommandAppService commandAppService;
 
-    @Autowired
-    private ProductTemplateQueryAppService queryAppService;
+    private final ProductTemplateQueryAppService queryAppService;
 
-    @Autowired
-    private ProductTemplateWebMapper webMapper;
+    private final ProductTemplateWebMapper webMapper;
 
     @Override
     public ApiResponse<ProductTemplateDTO> getByProductId(@PathVariable String productId,

@@ -59,7 +59,9 @@ public interface ProductWebMapper {
      * 将ProductQueryResult转换为ProductDTO
      */
     default ProductDTO toProductDTO(ProductQueryResult result) {
-        if (result == null) return null;
+        if (result == null) {
+            return null;
+        }
         ProductDTO dto = new ProductDTO();
         dto.setProductId(result.getProductId());
         dto.setProductCode(result.getProductCode());
@@ -92,7 +94,9 @@ public interface ProductWebMapper {
 
     @Named("toInsureCondition")
     default InsureCondition toInsureCondition(InsureConditionRequest req) {
-        if (req == null) return null;
+        if (req == null) {
+            return null;
+        }
         return new InsureCondition(
                 req.getMinAge(), req.getMaxAge(),
                 req.getForbiddenOccupations(), null,
@@ -104,7 +108,9 @@ public interface ProductWebMapper {
 
     @Named("toPricingBasicRule")
     default PricingBasicRule toPricingBasicRule(PricingBasicRuleRequest req) {
-        if (req == null) return null;
+        if (req == null) {
+            return null;
+        }
         return new PricingBasicRule(
                 req.getPricingType(), req.getBaseRate(),
                 req.getFactors(), req.getRateFormula(),

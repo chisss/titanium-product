@@ -7,7 +7,14 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.domain.entity.ProductClauseRel;
-import com.titanium.product.domain.valueobject.*;
+import com.titanium.product.domain.valueobject.CoveragePeriodConfig;
+import com.titanium.product.domain.valueobject.InsureCondition;
+import com.titanium.product.domain.valueobject.IssuanceProcessConfig;
+import com.titanium.product.domain.valueobject.PaymentConfig;
+import com.titanium.product.domain.valueobject.PolicyFormConfig;
+import com.titanium.product.domain.valueobject.PricingBasicRule;
+import com.titanium.product.domain.valueobject.SalesChannelConfig;
+import com.titanium.product.domain.valueobject.UnderwritingConfig;
 
 /**
  * 修订产品命令

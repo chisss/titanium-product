@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.domain.valueobject.IssuanceMode;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -41,7 +40,7 @@ public class CreateProductTemplateRequest {
     private String productId;
 
     @Schema(description = "出单模式", required = true)
-    private IssuanceMode issuanceMode;
+    private ProductEnum.IssuanceMode issuanceMode;
 
     @Schema(description = "出单阶段定义")
     private List<PolicyStageRequest> policyStages;

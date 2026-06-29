@@ -3,6 +3,8 @@ package com.titanium.product.infrastructure.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.titanium.metadata.enums.product.ProductEnum;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,9 +14,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-
-import com.titanium.metadata.enums.product.ProductEnum;
-
 import lombok.Getter;
 import lombok.Setter;
 

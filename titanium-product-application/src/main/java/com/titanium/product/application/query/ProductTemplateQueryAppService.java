@@ -1,10 +1,10 @@
 package com.titanium.product.application.query;
 
+
 import java.util.List;
 
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.titanium.metadata.enums.InsuranceType;
@@ -14,14 +14,16 @@ import com.titanium.product.domain.query.GetTemplateByProductIdQuery;
 import com.titanium.product.domain.query.GetTemplatesByInsuranceTypeQuery;
 import com.titanium.product.query.entity.ProductTemplateQueryResult;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * 产品模板查询应用服务
  */
 @Service
+@RequiredArgsConstructor
 public class ProductTemplateQueryAppService {
 
-    @Autowired
-    private QueryGateway queryGateway;
+    private final QueryGateway queryGateway;
 
     /**
      * 根据ID查询产品模板

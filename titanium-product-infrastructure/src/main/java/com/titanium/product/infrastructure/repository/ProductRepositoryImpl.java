@@ -13,7 +13,7 @@ import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.domain.aggregate.InsuranceProduct;
 import com.titanium.product.domain.repository.ProductRepository;
 import com.titanium.product.domain.valueobject.AuditInfo;
-import com.titanium.product.infrastructure.entity.ProductClauseRelDO;
+import com.titanium.product.infrastructure.entity.ProductClauseRelEntity;
 import com.titanium.product.infrastructure.entity.ProductEntity;
 import com.titanium.product.infrastructure.mapper.ProductInfraMapper;
 import com.titanium.product.infrastructure.repository.jpa.ProductClauseRelJpaRepository;
@@ -71,8 +71,8 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         // 保存产品条款关联
         if (product.getClauseRels() != null) {
-            List<ProductClauseRelDO> clauseRelDOs = ProductInfraMapper.INSTANCE
-                    .toProductClauseRelDOs(product.getClauseRels());
+            List<ProductClauseRelEntity> clauseRelDOs = ProductInfraMapper.INSTANCE
+                    .toProductClauseRelEntitys(product.getClauseRels());
             clauseRelDOs.forEach(clauseRelDO -> {
                 clauseRelDO.setProductId(product.getProductId());
                 clauseRelDO.setTenantId(product.getTenantId() != null ? product.getTenantId() : "default");

@@ -3,7 +3,6 @@ package com.titanium.product.domain.valueobject;
 import java.math.BigDecimal;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
 
 /**
  * 定价因子值对象 表示定价过程中的各种因子，如年龄因子、车型因子等

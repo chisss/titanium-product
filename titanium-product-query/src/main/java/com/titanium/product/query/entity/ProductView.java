@@ -2,6 +2,9 @@ package com.titanium.product.query.entity;
 
 import java.time.LocalDateTime;
 
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,10 +13,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-
-import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.metadata.enums.product.ProductEnum;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,7 +24,7 @@ import lombok.Setter;
  * </p>
  * <p>
  * <b>设计说明</b>：可查询的标量字段（编码/名称/状态/险种/时间）独立建列以支持索引与条件查询； 复杂值对象配置（投保条件/保障期间/缴费/定价规则等）以 JSON
- * 形式整体存储，查询时反序列化， 与现有 {@code ProductTemplateDO} 的 JSON 列模式保持一致。
+ * 形式整体存储，查询时反序列化， 与现有 {@code ProductTemplateEntity} 的 JSON 列模式保持一致。
  * </p>
  */
 @Entity

@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.UUID;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.product.api.dto.ProductTemplateDTO;
 import com.titanium.product.api.request.CreateProductTemplateRequest;
 import com.titanium.product.domain.command.CreateProductTemplateCommand;
-import com.titanium.product.domain.valueobject.*;
+import com.titanium.product.domain.valueobject.ClaimConfig;
+import com.titanium.product.domain.valueobject.MaintenanceConfig;
+import com.titanium.product.domain.valueobject.PolicyStage;
+import com.titanium.product.domain.valueobject.UnderwritingConfig;
 import com.titanium.product.query.entity.ProductTemplateQueryResult;
 
 /**

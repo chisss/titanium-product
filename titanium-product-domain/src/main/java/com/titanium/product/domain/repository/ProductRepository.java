@@ -12,7 +12,7 @@ import com.titanium.product.domain.aggregate.InsuranceProduct;
 public interface ProductRepository {
     /**
      * 根据ID查询产品
-     * 
+     *
      * @param productId 产品ID
      * @return 产品聚合根
      */
@@ -20,7 +20,7 @@ public interface ProductRepository {
 
     /**
      * 根据条件查询产品列表
-     * 
+     *
      * @param form 产品形态
      * @param type 险种类型
      * @param status 产品状态
@@ -30,7 +30,7 @@ public interface ProductRepository {
 
     /**
      * 根据原始产品ID查询历史版本
-     * 
+     *
      * @param originalProductId 原始产品ID
      * @return 产品聚合根列表
      */
@@ -38,7 +38,7 @@ public interface ProductRepository {
 
     /**
      * 保存产品聚合根
-     * 
+     *
      * @param product 产品聚合根
      */
     void save(InsuranceProduct product);

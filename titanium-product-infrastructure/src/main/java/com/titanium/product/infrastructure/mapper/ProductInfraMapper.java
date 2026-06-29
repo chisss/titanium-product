@@ -9,12 +9,19 @@ import org.mapstruct.factory.Mappers;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
+
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.domain.entity.ProductClauseRel;
-import com.titanium.product.domain.valueobject.*;
-import com.titanium.product.infrastructure.entity.ProductClauseRelDO;
-import com.titanium.product.infrastructure.entity.ProductEntity;
+import com.titanium.product.domain.valueobject.CoveragePeriodConfig;
+import com.titanium.product.domain.valueobject.InsureCondition;
+import com.titanium.product.domain.valueobject.IssuanceProcessConfig;
+import com.titanium.product.domain.valueobject.PaymentConfig;
+import com.titanium.product.domain.valueobject.PolicyFormConfig;
+import com.titanium.product.domain.valueobject.PricingBasicRule;
+import com.titanium.product.domain.valueobject.SalesChannelConfig;
+import com.titanium.product.domain.valueobject.UnderwritingConfig;
+import com.titanium.product.infrastructure.entity.ProductClauseRelEntity;
 
 /**
  * 产品基础设施层映射器
@@ -164,14 +171,14 @@ public interface ProductInfraMapper {
     @Mapping(source = "clauseId", target = "clauseId")
     @Mapping(source = "clauseVersion", target = "clauseVersion")
     @Mapping(source = "isMainClause", target = "isMainClause")
-    ProductClauseRel toProductClauseRel(ProductClauseRelDO productClauseRelDO);
+    ProductClauseRel toProductClauseRel(ProductClauseRelEntity productClauseRelDO);
 
     @Mapping(source = "clauseId", target = "clauseId")
     @Mapping(source = "clauseVersion", target = "clauseVersion")
     @Mapping(source = "isMainClause", target = "isMainClause")
-    ProductClauseRelDO toProductClauseRelDO(ProductClauseRel productClauseRel);
+    ProductClauseRelEntity toProductClauseRelEntity(ProductClauseRel productClauseRel);
 
-    List<ProductClauseRel> toProductClauseRels(List<ProductClauseRelDO> productClauseRelDOs);
+    List<ProductClauseRel> toProductClauseRels(List<ProductClauseRelEntity> productClauseRelDOs);
 
-    List<ProductClauseRelDO> toProductClauseRelDOs(List<ProductClauseRel> productClauseRels);
+    List<ProductClauseRelEntity> toProductClauseRelEntitys(List<ProductClauseRel> productClauseRels);
 }

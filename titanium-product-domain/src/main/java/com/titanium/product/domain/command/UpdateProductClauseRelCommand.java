@@ -1,9 +1,10 @@
 package com.titanium.product.domain.command;
 
-import com.titanium.product.domain.entity.ProductClauseRel;
+import java.util.List;
+
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
-import java.util.List;
+import com.titanium.product.domain.entity.ProductClauseRel;
 
 /**
  * 更新产品条款关联命令

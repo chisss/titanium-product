@@ -1,10 +1,10 @@
 package com.titanium.product.domain.repository;
 
-import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.product.domain.aggregate.ProductTemplate;
-
 import java.util.List;
 import java.util.Optional;
+
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.product.domain.aggregate.ProductTemplate;
 
 /**
  * 产品模板仓储接口

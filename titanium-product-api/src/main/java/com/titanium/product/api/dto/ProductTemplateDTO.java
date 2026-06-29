@@ -1,12 +1,10 @@
 package com.titanium.product.api.dto;
 
 import java.util.List;
-import java.util.Map;
 
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.domain.valueobject.IssuanceMode;
 import com.titanium.product.domain.valueobject.LiabilityStructure;
 import com.titanium.product.domain.valueobject.SubjectType;
 
@@ -46,8 +44,8 @@ public class ProductTemplateDTO {
     @Schema(description = "关联产品ID")
     private String productId;
 
-    @Schema(description = "出单模式: ONE_STEP/TWO_STEP/THREE_STEP")
-    private IssuanceMode issuanceMode;
+    @Schema(description = "出单模式: ONE_STEP/TWO_STEP/THREE_STEP/CUSTOM")
+    private ProductEnum.IssuanceMode issuanceMode;
 
     @Schema(description = "出单阶段定义")
     private List<PolicyStageDTO> policyStages;

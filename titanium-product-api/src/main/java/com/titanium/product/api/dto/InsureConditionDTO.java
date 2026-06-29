@@ -12,22 +12,22 @@ public class InsureConditionDTO {
      * 最小年龄
      */
     private Integer minAge;
-    
+
     /**
      * 最大年龄
      */
     private Integer maxAge;
-    
+
     /**
      * 职业限制（JSON格式）
      */
     private String occupationRestrictions;
-    
+
     /**
      * 健康告知要求（JSON格式）
      */
     private String healthDeclaration;
-    
+
     /**
      * 地域限制（JSON格式）
      */

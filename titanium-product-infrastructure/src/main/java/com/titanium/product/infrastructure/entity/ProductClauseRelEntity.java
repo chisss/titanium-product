@@ -25,7 +25,7 @@ import lombok.Setter;
         @Index(name = "idx_product_type_status_index",columnList = "insurance_type,status")})
 @Getter
 @Setter
-public class ProductClauseRelDO {
+public class ProductClauseRelEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long          id;

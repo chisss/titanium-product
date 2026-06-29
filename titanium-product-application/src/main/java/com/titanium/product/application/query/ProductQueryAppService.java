@@ -24,7 +24,7 @@ public class ProductQueryAppService {
 
     /**
      * 构造函数
-     * 
+     *
      * @param queryGateway 查询网关
      */
     public ProductQueryAppService(QueryGateway queryGateway) {
@@ -33,7 +33,7 @@ public class ProductQueryAppService {
 
     /**
      * 查询产品详情
-     * 
+     *
      * @param productId 产品ID
      * @return 产品查询结果
      */
@@ -43,7 +43,7 @@ public class ProductQueryAppService {
 
     /**
      * 根据条件查询产品列表
-     * 
+     *
      * @param form 产品形态
      * @param type 险种类型
      * @param status 产品状态
@@ -60,7 +60,7 @@ public class ProductQueryAppService {
 
     /**
      * 查询产品绑定的条款
-     * 
+     *
      * @param productId 产品ID
      * @return 条款查询结果列表
      */

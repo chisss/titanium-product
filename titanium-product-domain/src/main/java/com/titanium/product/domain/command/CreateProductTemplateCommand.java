@@ -1,10 +1,16 @@
 package com.titanium.product.domain.command;
 
-import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.product.domain.valueobject.*;
+import java.util.List;
+
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
-import java.util.List;
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.product.domain.valueobject.ClaimConfig;
+import com.titanium.product.domain.valueobject.IssuanceProcessConfig;
+import com.titanium.product.domain.valueobject.MaintenanceConfig;
+import com.titanium.product.domain.valueobject.PolicyFormConfig;
+import com.titanium.product.domain.valueobject.PricingBasicRule;
+import com.titanium.product.domain.valueobject.UnderwritingConfig;
 
 /**
  * 创建产品模板命令

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
+
 import com.titanium.product.domain.query.FindProductByIdQuery;
 import com.titanium.product.domain.valueobject.CoveragePeriodConfig;
 import com.titanium.product.domain.valueobject.InsureCondition;
@@ -13,9 +14,9 @@ import com.titanium.product.domain.valueobject.PaymentConfig;
 import com.titanium.product.domain.valueobject.PolicyFormConfig;
 import com.titanium.product.domain.valueobject.PricingBasicRule;
 import com.titanium.product.domain.valueobject.UnderwritingConfig;
+import com.titanium.product.query.entity.ProductQueryResult;
 import com.titanium.product.query.entity.ProductView;
 import com.titanium.product.query.repository.ProductViewRepository;
-import com.titanium.product.query.entity.ProductQueryResult;
 
 import lombok.RequiredArgsConstructor;
 

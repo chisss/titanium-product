@@ -2,17 +2,16 @@ package com.titanium.product.infrastructure.entity;
 
 import java.time.LocalDateTime;
 
+import com.titanium.metadata.enums.CommonStatus;
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.product.ProductEnum;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import com.titanium.metadata.enums.CommonStatus;
-import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.metadata.enums.product.ProductEnum;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,7 +23,7 @@ import lombok.Setter;
 @Table(name = "t_product_template")
 @Getter
 @Setter
-public class ProductTemplateDO {
+public class ProductTemplateEntity {
 
     @Id
     @Column(name = "template_id", length = 36, nullable = false)
