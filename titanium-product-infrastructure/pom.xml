@@ -23,6 +23,13 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
+        <!-- 通用内核(实体基类BaseEntity) -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Spring Boot Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

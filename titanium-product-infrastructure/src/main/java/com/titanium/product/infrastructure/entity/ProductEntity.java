@@ -2,6 +2,7 @@ package com.titanium.product.infrastructure.entity;
 
 import java.time.LocalDateTime;
 
+import com.titanium.common.jpa.BaseEntity;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
 
@@ -18,6 +19,10 @@ import lombok.Setter;
 /**
  * 产品数据库实体
  * 映射产品表，包含产品的基本信息、状态、版本及各种配置JSON字段
+ * <p>
+ * 继承 {@link BaseEntity}，复用租户ID、创建/更新时间、创建/更新人、逻辑删除等公共审计字段
+ * （列 create_time/update_time/created_by/updated_by/is_deleted）。
+ * </p>
  */
 @Entity
 @Table(name = "t_product", indexes = {
@@ -30,7 +35,7 @@ import lombok.Setter;
 })
 @Getter
 @Setter
-public class ProductEntity {
+public class ProductEntity extends BaseEntity {
 
     @Id
     @Column(name = "product_id", length = 36, nullable = false)
@@ -136,21 +141,4 @@ public class ProductEntity {
 
     @Column(name = "underwriting_rule_set_id", length = 50)
     private String underwritingRuleSetId;
-
-    // ====== 租户与审计 ======
-
-    @Column(name = "tenant_id", length = 36, nullable = false)
-    private String tenantId;
-
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "created_by", length = 50, nullable = false)
-    private String createdBy;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
-    @Column(name = "updated_by", length = 50, nullable = false)
-    private String updatedBy;
 }

@@ -10,6 +10,7 @@ import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.spring.stereotype.Aggregate;
 
+import com.titanium.common.domain.BaseAggregate;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.exception.CommandValidationException;
@@ -43,19 +44,16 @@ import com.titanium.product.domain.valueobject.PricingBasicRule;
 import com.titanium.product.domain.valueobject.SalesChannelConfig;
 import com.titanium.product.domain.valueobject.UnderwritingConfig;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 /**
  * 保险产品聚合根 核心聚合根，封装产品的基础信息、形态、险种、绑定条款、定价基础规则、 出单流程配置、保单形态配置、核保配置等核心业务配置
  */
 @Getter
-@Builder()
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@SuperBuilder(toBuilder = true)
 @Aggregate
-public class InsuranceProduct {
+public class InsuranceProduct extends BaseAggregate {
 
     // ====== 基础标识 ======
     /** 产品编号（聚合根ID） */
@@ -133,8 +131,7 @@ public class InsuranceProduct {
     private String                      underwritingRuleSetId;
 
     // ====== 租户 ======
-    /** 租户ID */
-    private String                      tenantId;
+    // 租户ID（tenantId）由基类 BaseAggregate 提供
 
     /** 无参构造器（Axon反射必备） */
     public InsuranceProduct() {
@@ -324,6 +321,8 @@ public class InsuranceProduct {
         this.policyFormConfig = event.policyFormConfig();
         this.underwritingConfig = event.underwritingConfig();
         this.tenantId = event.tenantId();
+        this.createTime = event.createdAt();
+        this.updateTime = event.createdAt();
     }
 
     @EventSourcingHandler

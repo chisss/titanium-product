@@ -1,7 +1,6 @@
 package com.titanium.product.infrastructure.entity;
 
-import java.time.LocalDateTime;
-
+import com.titanium.common.jpa.BaseEntity;
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
@@ -18,12 +17,16 @@ import lombok.Setter;
 /**
  * 产品模板数据库实体
  * 复杂值对象使用 JSON 字符串存储
+ * <p>
+ * 继承 {@link BaseEntity}，复用租户ID、创建/更新时间、创建/更新人、逻辑删除等公共审计字段
+ * （列 create_time/update_time/created_by/updated_by/is_deleted）。
+ * </p>
  */
 @Entity
 @Table(name = "t_product_template")
 @Getter
 @Setter
-public class ProductTemplateEntity {
+public class ProductTemplateEntity extends BaseEntity {
 
     @Id
     @Column(name = "template_id", length = 36, nullable = false)
@@ -73,13 +76,4 @@ public class ProductTemplateEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
     private CommonStatus status;
-
-    @Column(name = "tenant_id", length = 36, nullable = false)
-    private String tenantId;
-
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }

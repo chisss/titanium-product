@@ -61,9 +61,9 @@ public class ProductProjection {
         entity.setSalesChannels(mapper.salesChannelsToJson(event.salesChannels()));
         entity.setAttachProductIds(mapper.attachProductIdsToJson(event.attachProductIds()));
         entity.setTenantId(event.tenantId());
-        entity.setCreatedAt(event.createdAt());
+        entity.setCreateTime(event.createdAt());
         entity.setCreatedBy("system");
-        entity.setUpdatedAt(event.createdAt());
+        entity.setUpdateTime(event.createdAt());
         entity.setUpdatedBy("system");
         productJpaRepository.save(entity);
 
@@ -87,7 +87,7 @@ public class ProductProjection {
     public void on(ProductSubmittedForAuditEvent event) {
         productJpaRepository.findById(event.productId()).ifPresent(entity -> {
             entity.setStatus(ProductEnum.ProductStatus.AUDITING);
-            entity.setUpdatedAt(event.submittedAt());
+            entity.setUpdateTime(event.submittedAt());
             entity.setUpdatedBy(event.submitterName());
             productJpaRepository.save(entity);
         });
@@ -105,7 +105,7 @@ public class ProductProjection {
                 entity.setAuditTime(event.auditInfo().auditTime());
                 entity.setAuditResult(event.auditInfo().auditResult());
             }
-            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setUpdateTime(LocalDateTime.now());
             entity.setUpdatedBy("system");
             productJpaRepository.save(entity);
         });
@@ -122,7 +122,7 @@ public class ProductProjection {
                 entity.setAuditTime(event.auditInfo().auditTime());
                 entity.setAuditResult(event.auditInfo().auditResult());
             }
-            entity.setUpdatedAt(event.rejectedAt());
+            entity.setUpdateTime(event.rejectedAt());
             entity.setUpdatedBy("system");
             productJpaRepository.save(entity);
         });
@@ -133,7 +133,7 @@ public class ProductProjection {
         productJpaRepository.findById(event.productId()).ifPresent(entity -> {
             entity.setStatus(event.status());
             entity.setInvalidTime(event.invalidTime());
-            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setUpdateTime(LocalDateTime.now());
             entity.setUpdatedBy("system");
             productJpaRepository.save(entity);
         });
@@ -164,7 +164,7 @@ public class ProductProjection {
         ProductInfraMapper mapper = ProductInfraMapper.INSTANCE;
         productJpaRepository.findById(event.productId()).ifPresent(entity -> {
             entity.setSalesChannels(mapper.salesChannelsToJson(event.salesChannels()));
-            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setUpdateTime(LocalDateTime.now());
             entity.setUpdatedBy("system");
             productJpaRepository.save(entity);
         });

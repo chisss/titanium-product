@@ -63,9 +63,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public void save(InsuranceProduct product) {
         ProductEntity entity = toProductEntity(product);
-        entity.setCreatedAt(LocalDateTime.now());
+        entity.setCreateTime(LocalDateTime.now());
         entity.setCreatedBy("system");
-        entity.setUpdatedAt(LocalDateTime.now());
+        entity.setUpdateTime(LocalDateTime.now());
         entity.setUpdatedBy("system");
         productJpaRepository.save(entity);
 

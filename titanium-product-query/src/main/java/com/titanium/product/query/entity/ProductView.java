@@ -2,6 +2,7 @@ package com.titanium.product.query.entity;
 
 import java.time.LocalDateTime;
 
+import com.titanium.common.jpa.BaseView;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
 
@@ -12,7 +13,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,12 +26,15 @@ import lombok.Setter;
  * <b>设计说明</b>：可查询的标量字段（编码/名称/状态/险种/时间）独立建列以支持索引与条件查询； 复杂值对象配置（投保条件/保障期间/缴费/定价规则等）以 JSON
  * 形式整体存储，查询时反序列化， 与现有 {@code ProductTemplateEntity} 的 JSON 列模式保持一致。
  * </p>
+ * <p>
+ * 继承 {@link BaseView}，复用租户ID、创建/更新时间、乐观锁版本等读模型公共字段。
+ * </p>
  */
 @Entity
 @Table(name = "t_product_view")
 @Getter
 @Setter
-public class ProductView {
+public class ProductView extends BaseView {
 
     /** 产品ID（聚合根ID，读模型主键） */
     @Id
@@ -134,24 +137,7 @@ public class ProductView {
     @Column(name = "audit_info_json", columnDefinition = "TEXT")
     private String        auditInfoJson;
 
-    /** 租户ID（多租户隔离） */
-    @Column(name = "tenant_id", nullable = false, length = 36)
-    private String        tenantId;
-
     /** 业务创建时间（来源事件） */
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    /** 读模型创建时间 */
-    @Column(name = "create_time", nullable = false)
-    private LocalDateTime createTime;
-
-    /** 读模型更新时间 */
-    @Column(name = "update_time", nullable = false)
-    private LocalDateTime updateTime;
-
-    /** 乐观锁版本 */
-    @Version
-    @Column(name = "version")
-    private Long          version;
 }

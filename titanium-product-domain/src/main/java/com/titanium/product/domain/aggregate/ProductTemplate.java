@@ -1,5 +1,6 @@
 package com.titanium.product.domain.aggregate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.axonframework.commandhandling.CommandHandler;
@@ -8,6 +9,7 @@ import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.spring.stereotype.Aggregate;
 
+import com.titanium.common.domain.BaseAggregate;
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.exception.CommandValidationException;
@@ -21,6 +23,7 @@ import com.titanium.product.domain.valueobject.PricingBasicRule;
 import com.titanium.product.domain.valueobject.UnderwritingConfig;
 
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 /**
  * 产品模板聚合根
@@ -29,8 +32,9 @@ import lombok.Getter;
  * 模板决定：出单模式、核保策略、理赔流程、保全规则等。
  */
 @Getter
+@SuperBuilder(toBuilder = true)
 @Aggregate
-public class ProductTemplate {
+public class ProductTemplate extends BaseAggregate {
 
     @AggregateIdentifier
     private String                templateId;
@@ -47,7 +51,6 @@ public class ProductTemplate {
     private List<String>          supportedCoverages;
     private List<String>          supportedExclusions;
     private CommonStatus          status;
-    private String                tenantId;
 
     public ProductTemplate() {
     }
@@ -94,7 +97,8 @@ public class ProductTemplate {
                 command.templateName(), command.insuranceType(), command.description(), command.issuanceProcessConfig(),
                 command.underwritingConfig(), command.claimsConfig(), command.maintenanceConfig(),
                 command.policyFormConfig(), command.pricingBasicRule(), command.supportedCoverages(),
-                command.supportedExclusions(), CommonStatus.ACTIVE, command.tenantId(), command.createdBy()));
+                command.supportedExclusions(), CommonStatus.ACTIVE, command.tenantId(), command.createdBy(),
+                LocalDateTime.now()));
     }
 
     @EventSourcingHandler
@@ -114,5 +118,7 @@ public class ProductTemplate {
         this.supportedExclusions = event.supportedExclusions();
         this.status = event.status();
         this.tenantId = event.tenantId();
+        this.createTime = event.occurredAt();
+        this.updateTime = event.occurredAt();
     }
 }

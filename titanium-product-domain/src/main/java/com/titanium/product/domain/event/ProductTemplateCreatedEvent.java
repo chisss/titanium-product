@@ -1,5 +1,6 @@
 package com.titanium.product.domain.event;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.titanium.metadata.enums.CommonStatus;
@@ -30,7 +31,8 @@ public record ProductTemplateCreatedEvent(
         List<String> supportedExclusions,
         CommonStatus status,
         String tenantId,
-        String createdBy
+        String createdBy,
+        LocalDateTime occurredAt
 ) {
     // 可以添加静态工厂方法
     public static ProductTemplateCreatedEvent of(
@@ -66,7 +68,8 @@ public record ProductTemplateCreatedEvent(
                 supportedExclusions,
                 CommonStatus.ACTIVE,
                 tenantId,
-                createdBy
+                createdBy,
+                LocalDateTime.now()
         );
     }
 }

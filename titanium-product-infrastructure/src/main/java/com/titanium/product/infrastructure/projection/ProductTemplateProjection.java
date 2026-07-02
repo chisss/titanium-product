@@ -46,8 +46,8 @@ public class ProductTemplateProjection {
                 ? JSON.toJSONString(event.policyFormConfig()) : null);
         entity.setStatus(event.status());
         entity.setTenantId(event.tenantId());
-        entity.setCreatedAt(LocalDateTime.now());
-        entity.setUpdatedAt(LocalDateTime.now());
+        entity.setCreateTime(LocalDateTime.now());
+        entity.setUpdateTime(LocalDateTime.now());
         jpaRepository.save(entity);
     }
 
@@ -64,7 +64,7 @@ public class ProductTemplateProjection {
             entity.setBillingConfigJson(JSON.toJSONString(event.billingConfig()));
             entity.setReinsuranceConfigJson(event.reinsuranceConfig() != null
                     ? JSON.toJSONString(event.reinsuranceConfig()) : null);
-            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setUpdateTime(LocalDateTime.now());
             jpaRepository.save(entity);
         });
     }
@@ -73,7 +73,7 @@ public class ProductTemplateProjection {
     public void on(ProductTemplateActivatedEvent event) {
         jpaRepository.findById(event.templateId()).ifPresent(entity -> {
             entity.setStatus(CommonStatus.ACTIVE);
-            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setUpdateTime(LocalDateTime.now());
             jpaRepository.save(entity);
         });
     }
@@ -82,7 +82,7 @@ public class ProductTemplateProjection {
     public void on(ProductTemplateDeactivatedEvent event) {
         jpaRepository.findById(event.templateId()).ifPresent(entity -> {
             entity.setStatus(CommonStatus.INACTIVE);
-            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setUpdateTime(LocalDateTime.now());
             jpaRepository.save(entity);
         });
     }
