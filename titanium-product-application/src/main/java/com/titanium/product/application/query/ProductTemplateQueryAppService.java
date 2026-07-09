@@ -8,11 +8,11 @@ import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.stereotype.Service;
 
 import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.product.domain.query.GetTemplateByCodeQuery;
-import com.titanium.product.domain.query.GetTemplateByIdQuery;
-import com.titanium.product.domain.query.GetTemplateByProductIdQuery;
-import com.titanium.product.domain.query.GetTemplatesByInsuranceTypeQuery;
-import com.titanium.product.query.entity.ProductTemplateQueryResult;
+import com.titanium.product.query.query.GetTemplateByCodeQuery;
+import com.titanium.product.query.query.GetTemplateByIdQuery;
+import com.titanium.product.query.query.GetTemplateByProductIdQuery;
+import com.titanium.product.query.query.GetTemplatesByInsuranceTypeQuery;
+import com.titanium.product.query.result.ProductTemplateQueryResult;
 
 import lombok.RequiredArgsConstructor;
 

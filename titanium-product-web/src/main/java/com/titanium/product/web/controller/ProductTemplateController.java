@@ -1,6 +1,5 @@
 package com.titanium.product.web.controller;
 
-
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,51 +12,64 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.product.api.ProductTemplateApi;
 import com.titanium.product.api.dto.ProductTemplateDTO;
-import com.titanium.product.api.request.CreateProductTemplateRequest;
 import com.titanium.product.api.response.ApiResponse;
 import com.titanium.product.application.command.ProductTemplateCommandAppService;
 import com.titanium.product.application.query.ProductTemplateQueryAppService;
-import com.titanium.product.domain.command.ActivateProductTemplateCommand;
-import com.titanium.product.domain.command.CreateProductTemplateCommand;
-import com.titanium.product.domain.command.DeactivateProductTemplateCommand;
-import com.titanium.product.query.entity.ProductTemplateQueryResult;
+import com.titanium.product.command.CreateProductTemplateCommand;
+import com.titanium.product.query.result.ProductTemplateQueryResult;
 import com.titanium.product.web.mapper.ProductTemplateWebMapper;
+import com.titanium.product.web.request.CreateProductTemplateRequest;
 
 import lombok.RequiredArgsConstructor;
 
 /**
- * 产品模板控制器
+ * 产品模板控制器（后台/端上 HTTP 入口）
+ * <p>
+ * 面向管理后台/端上，路径 {@code /web/v1/product-templates}，入参 web Request、出参对外 DTO，
+ * <b>不再 implements ProductTemplateApi</b>（远程只读契约由
+ * {@link com.titanium.product.web.provider.ProductTemplateApiProvider} 承接）。表现层经
+ * {@link ProductTemplateWebMapper} 把 Request 转成 {@link CreateProductTemplateCommand} 交
+ * {@link ProductTemplateCommandAppService}，读入口查读模型交 {@link ProductTemplateQueryAppService}。
+ * </p>
  */
 @RestController
-@RequestMapping("/api/product-templates")
+@RequestMapping("/web/v1/product-templates")
 @RequiredArgsConstructor
-public class ProductTemplateController implements ProductTemplateApi {
+public class ProductTemplateController {
 
     private final ProductTemplateCommandAppService commandAppService;
 
-    private final ProductTemplateQueryAppService queryAppService;
+    private final ProductTemplateQueryAppService   queryAppService;
 
-    private final ProductTemplateWebMapper webMapper;
+    private final ProductTemplateWebMapper         webMapper;
 
-    @Override
+    /**
+     * 根据产品ID查询产品模板
+     */
+    @GetMapping("/by-product/{productId}")
     public ApiResponse<ProductTemplateDTO> getByProductId(@PathVariable String productId,
-                                                           @RequestHeader("X-Tenant-ID") String tenantId) {
+                                                          @RequestHeader("X-Tenant-ID") String tenantId) {
         ProductTemplateQueryResult result = queryAppService.getTemplateByProductId(productId, tenantId);
         return ApiResponse.success(webMapper.toDTO(result));
     }
 
-    @Override
+    /**
+     * 根据模板编码查询产品模板
+     */
+    @GetMapping("/by-code/{templateCode}")
     public ApiResponse<ProductTemplateDTO> getByCode(@PathVariable String templateCode,
-                                                      @RequestHeader("X-Tenant-ID") String tenantId) {
+                                                     @RequestHeader("X-Tenant-ID") String tenantId) {
         ProductTemplateQueryResult result = queryAppService.getTemplateByCode(templateCode, tenantId);
         return ApiResponse.success(webMapper.toDTO(result));
     }
 
-    @Override
+    /**
+     * 根据模板ID查询产品模板
+     */
+    @GetMapping("/{templateId}")
     public ApiResponse<ProductTemplateDTO> getById(@PathVariable String templateId,
-                                                    @RequestHeader("X-Tenant-ID") String tenantId) {
+                                                   @RequestHeader("X-Tenant-ID") String tenantId) {
         ProductTemplateQueryResult result = queryAppService.getTemplateById(templateId, tenantId);
         return ApiResponse.success(webMapper.toDTO(result));
     }
@@ -67,8 +79,9 @@ public class ProductTemplateController implements ProductTemplateApi {
      */
     @PostMapping
     public ApiResponse<String> createTemplate(@RequestBody CreateProductTemplateRequest request,
-                                               @RequestHeader("X-Tenant-ID") String tenantId) {
-        CreateProductTemplateCommand command = webMapper.toCreateCommand(request, tenantId);
+                                              @RequestHeader("X-Tenant-ID") String tenantId) {
+        // 协议转换：HTTP Request → 领域命令，收敛到应用层门面
+        CreateProductTemplateCommand command = webMapper.toCommand(request, tenantId);
         String templateId = commandAppService.createTemplate(command);
         return ApiResponse.success(templateId);
     }
@@ -78,8 +91,8 @@ public class ProductTemplateController implements ProductTemplateApi {
      */
     @PutMapping("/{templateId}/activate")
     public ApiResponse<Void> activateTemplate(@PathVariable String templateId,
-                                               @RequestHeader("X-Tenant-ID") String tenantId) {
-        commandAppService.activateTemplate(new ActivateProductTemplateCommand(templateId, tenantId));
+                                              @RequestHeader("X-Tenant-ID") String tenantId) {
+        commandAppService.activateTemplate(templateId, tenantId);
         return ApiResponse.success(null);
     }
 
@@ -88,8 +101,8 @@ public class ProductTemplateController implements ProductTemplateApi {
      */
     @PutMapping("/{templateId}/deactivate")
     public ApiResponse<Void> deactivateTemplate(@PathVariable String templateId,
-                                                 @RequestHeader("X-Tenant-ID") String tenantId) {
-        commandAppService.deactivateTemplate(new DeactivateProductTemplateCommand(templateId, tenantId));
+                                                @RequestHeader("X-Tenant-ID") String tenantId) {
+        commandAppService.deactivateTemplate(templateId, tenantId);
         return ApiResponse.success(null);
     }
 
@@ -98,7 +111,7 @@ public class ProductTemplateController implements ProductTemplateApi {
      */
     @GetMapping("/by-type/{insuranceTypeCode}")
     public ApiResponse<List<ProductTemplateDTO>> getByInsuranceType(@PathVariable String insuranceTypeCode,
-                                                                     @RequestHeader("X-Tenant-ID") String tenantId) {
+                                                                    @RequestHeader("X-Tenant-ID") String tenantId) {
         InsuranceType type = InsuranceType.fromCode(insuranceTypeCode);
         List<ProductTemplateQueryResult> results = queryAppService.getTemplatesByInsuranceType(type, tenantId);
         return ApiResponse.success(results.stream().map(webMapper::toDTO).toList());

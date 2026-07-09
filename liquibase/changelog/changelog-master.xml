@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- 产品模块初始化脚本 -->
+    <include file="classpath:liquibase/changelog/20260122_init_product_tables.xml" relativeToChangelogFile="false"/>
+
+    <!-- 产品模块V2重构迁移脚本 -->
+    <include file="classpath:liquibase/changelog/20260211_product_v2_refactor.sql" relativeToChangelogFile="false"/>
+
+    <!-- CQRS 读模型投影表（事件投影维护，读写分离） -->
+    <include file="classpath:liquibase/changelog/20260623_product_view_projection.xml" relativeToChangelogFile="false"/>
+
+    <!-- CQRS 产品模板读模型投影表 -->
+    <include file="classpath:liquibase/changelog/20260702_product_template_view_projection.xml" relativeToChangelogFile="false"/>
+
+    <!-- CQRS 产品条款关联读模型投影表 -->
+    <include file="classpath:liquibase/changelog/20260703_product_clause_rel_view_projection.xml" relativeToChangelogFile="false"/>
+
+    <!-- 阶段四 4.8：产品模板分红配置列 -->
+    <include file="classpath:liquibase/changelog/20260704_product_template_dividend_config.sql" relativeToChangelogFile="false"/>
+</databaseChangeLog>

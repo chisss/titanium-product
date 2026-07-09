@@ -16,11 +16,24 @@
     <description>Product Service API Module</description>
 
     <dependencies>
-        <!-- Application Module -->
+        <!-- Domain Module（对外 DTO 复用领域值对象 PricingFactor 等） -->
         <dependency>
             <groupId>com.titanium</groupId>
-            <artifactId>titanium-product-application</artifactId>
+            <artifactId>titanium-product-domain</artifactId>
             <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Common Module（本域专属枚举 SubjectType/LiabilityStructure） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-product-common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Metadata（共享枚举） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-metadata</artifactId>
         </dependency>
 
         <!-- Spring Boot Dependencies -->

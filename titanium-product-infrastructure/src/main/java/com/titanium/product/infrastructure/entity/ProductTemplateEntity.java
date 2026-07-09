@@ -73,6 +73,9 @@ public class ProductTemplateEntity extends BaseEntity {
     @Column(name = "reinsurance_config_json", columnDefinition = "TEXT")
     private String reinsuranceConfigJson;
 
+    @Column(name = "dividend_config_json", columnDefinition = "TEXT")
+    private String dividendConfigJson;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
     private CommonStatus status;

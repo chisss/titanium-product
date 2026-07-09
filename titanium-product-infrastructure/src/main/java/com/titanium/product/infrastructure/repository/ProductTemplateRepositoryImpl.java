@@ -9,15 +9,21 @@ import org.springframework.stereotype.Component;
 import com.alibaba.fastjson2.JSON;
 
 import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.product.domain.aggregate.ProductTemplate;
-import com.titanium.product.domain.repository.ProductTemplateRepository;
-import com.titanium.product.domain.valueobject.ClaimConfig;
-import com.titanium.product.domain.valueobject.IssuanceProcessConfig;
-import com.titanium.product.domain.valueobject.MaintenanceConfig;
-import com.titanium.product.domain.valueobject.PolicyFormConfig;
-import com.titanium.product.domain.valueobject.UnderwritingConfig;
+import com.titanium.metadata.enums.product.ProductEnum;
+import com.titanium.product.aggregate.ProductTemplate;
 import com.titanium.product.infrastructure.entity.ProductTemplateEntity;
 import com.titanium.product.infrastructure.repository.jpa.ProductTemplateJpaRepository;
+import com.titanium.product.repository.ProductTemplateRepository;
+import com.titanium.product.valueobject.BillingConfig;
+import com.titanium.product.valueobject.ClaimConfig;
+import com.titanium.product.valueobject.DividendConfig;
+import com.titanium.product.valueobject.IssuanceProcessConfig;
+import com.titanium.product.valueobject.MaintenanceConfig;
+import com.titanium.product.valueobject.PolicyFormConfig;
+import com.titanium.product.valueobject.PolicyStage;
+import com.titanium.product.valueobject.PolicyStructureConfig;
+import com.titanium.product.valueobject.ReinsuranceConfig;
+import com.titanium.product.valueobject.UnderwritingConfig;
 
 import lombok.RequiredArgsConstructor;
 
@@ -80,6 +86,23 @@ public class ProductTemplateRepositoryImpl implements ProductTemplateRepository 
         PolicyFormConfig policyFormConfig = entity.getPolicyStructureJson() != null
                 ? JSON.parseObject(entity.getPolicyStructureJson(), PolicyFormConfig.class)
                 : null;
+        // 行为配置字段恢复：出单模式为字符串枚举，其余为 JSON 值对象
+        ProductEnum.IssuanceMode issuanceMode = resolveIssuanceMode(entity.getIssuanceMode());
+        List<PolicyStage> policyStages = entity.getPolicyStagesJson() != null
+                ? JSON.parseArray(entity.getPolicyStagesJson(), PolicyStage.class)
+                : null;
+        PolicyStructureConfig policyStructureConfig = entity.getPolicyStructureJson() != null
+                ? JSON.parseObject(entity.getPolicyStructureJson(), PolicyStructureConfig.class)
+                : null;
+        BillingConfig billingConfig = entity.getBillingConfigJson() != null
+                ? JSON.parseObject(entity.getBillingConfigJson(), BillingConfig.class)
+                : null;
+        ReinsuranceConfig reinsuranceConfig = entity.getReinsuranceConfigJson() != null
+                ? JSON.parseObject(entity.getReinsuranceConfigJson(), ReinsuranceConfig.class)
+                : null;
+        DividendConfig dividendConfig = entity.getDividendConfigJson() != null
+                ? JSON.parseObject(entity.getDividendConfigJson(), DividendConfig.class)
+                : null;
         return ProductTemplate.reconstruct(
                 entity.getTemplateId(),
                 entity.getTemplateCode(),
@@ -90,7 +113,27 @@ public class ProductTemplateRepositoryImpl implements ProductTemplateRepository 
                 JSON.parseObject(entity.getClaimConfigJson(), ClaimConfig.class),
                 JSON.parseObject(entity.getMaintenanceConfigJson(), MaintenanceConfig.class),
                 policyFormConfig,
+                issuanceMode,
+                policyStages,
+                policyStructureConfig,
+                billingConfig,
+                reinsuranceConfig,
+                dividendConfig,
                 entity.getStatus(),
                 entity.getTenantId());
+    }
+
+    /**
+     * 解析出单模式：仅当值为合法枚举名时返回，JSON 或空值返回 null（兼容旧数据）。
+     */
+    private ProductEnum.IssuanceMode resolveIssuanceMode(String rawIssuanceMode) {
+        if (rawIssuanceMode == null || rawIssuanceMode.startsWith("{")) {
+            return null;
+        }
+        try {
+            return ProductEnum.IssuanceMode.valueOf(rawIssuanceMode);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 }

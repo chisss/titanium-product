@@ -12,7 +12,7 @@ import com.titanium.product.api.response.ApiResponse;
  * 产品模板 Feign 客户端
  * 供其他微服务调用
  */
-@FeignClient(name = "titanium-product-service", path = "/api/product-templates")
+@FeignClient(name = "titanium-product-service", contextId = "productTemplateApi", path = "/api/v1/product-templates")
 public interface ProductTemplateApi {
 
     /**

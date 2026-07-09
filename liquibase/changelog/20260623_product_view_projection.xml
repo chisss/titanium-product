@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- CQRS 读模型表：由领域事件投影维护，与写侧 t_product 物理隔离 -->
+    <changeSet id="20260623-product-view-projection" author="titanium-cqrs">
+        <createTable tableName="t_product_view" remarks="产品读模型表（CQRS Projection）">
+            <column name="product_id" type="VARCHAR(36)" remarks="产品ID（读模型主键）">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_t_product_view"/>
+            </column>
+            <column name="product_code" type="VARCHAR(64)" remarks="产品编码"/>
+            <column name="product_name" type="VARCHAR(128)" remarks="产品名称"/>
+            <column name="product_desc" type="VARCHAR(512)" remarks="产品描述"/>
+            <column name="form" type="VARCHAR(32)" remarks="产品形态"/>
+            <column name="insurance_type" type="VARCHAR(32)" remarks="险种类型"/>
+            <column name="category" type="VARCHAR(32)" remarks="产品类别"/>
+            <column name="version_no" type="VARCHAR(32)" remarks="版本号"/>
+            <column name="status" type="VARCHAR(32)" remarks="产品状态">
+                <constraints nullable="false"/>
+            </column>
+            <column name="original_product_id" type="VARCHAR(36)" remarks="修订溯源：原始产品ID"/>
+            <column name="effective_time" type="DATETIME" remarks="生效时间"/>
+            <column name="invalid_time" type="DATETIME" remarks="下架时间"/>
+            <column name="sale_start_time" type="DATETIME" remarks="销售起期"/>
+            <column name="sale_end_time" type="DATETIME" remarks="销售止期"/>
+            <column name="insure_condition_json" type="TEXT" remarks="投保条件配置（JSON）"/>
+            <column name="coverage_period_json" type="TEXT" remarks="保障期间配置（JSON）"/>
+            <column name="payment_config_json" type="TEXT" remarks="缴费配置（JSON）"/>
+            <column name="pricing_basic_rule_json" type="TEXT" remarks="定价基础规则（JSON）"/>
+            <column name="issuance_process_config_json" type="TEXT" remarks="出单流程配置（JSON）"/>
+            <column name="policy_form_config_json" type="TEXT" remarks="保单形态配置（JSON）"/>
+            <column name="underwriting_config_json" type="TEXT" remarks="核保配置（JSON）"/>
+            <column name="audit_info_json" type="TEXT" remarks="审核信息（JSON）"/>
+            <column name="tenant_id" type="VARCHAR(36)" remarks="租户ID（多租户隔离）">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" remarks="业务创建时间"/>
+            <column name="create_time" type="DATETIME" remarks="读模型创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="DATETIME" remarks="读模型更新时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0" remarks="乐观锁版本">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="t_product_view" constraintName="uk_product_view_code_tenant"
+                             columnNames="product_code, tenant_id"/>
+        <createIndex tableName="t_product_view" indexName="idx_product_view_tenant_status">
+            <column name="tenant_id"/>
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="t_product_view" indexName="idx_product_view_insurance_type">
+            <column name="insurance_type"/>
+        </createIndex>
+        <createIndex tableName="t_product_view" indexName="idx_product_view_original">
+            <column name="original_product_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

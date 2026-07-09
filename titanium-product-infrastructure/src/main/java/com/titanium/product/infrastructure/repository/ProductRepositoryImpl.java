@@ -10,14 +10,14 @@ import org.springframework.stereotype.Repository;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.domain.aggregate.InsuranceProduct;
-import com.titanium.product.domain.repository.ProductRepository;
-import com.titanium.product.domain.valueobject.AuditInfo;
+import com.titanium.product.aggregate.InsuranceProduct;
 import com.titanium.product.infrastructure.entity.ProductClauseRelEntity;
 import com.titanium.product.infrastructure.entity.ProductEntity;
 import com.titanium.product.infrastructure.mapper.ProductInfraMapper;
 import com.titanium.product.infrastructure.repository.jpa.ProductClauseRelJpaRepository;
 import com.titanium.product.infrastructure.repository.jpa.ProductJpaRepository;
+import com.titanium.product.repository.ProductRepository;
+import com.titanium.product.valueobject.AuditInfo;
 
 /**
  * 产品仓储实现类

@@ -1,55 +1,42 @@
-# 构建输出目录
+# ===== Maven / 构建产物（关键：target 绝不入库）=====
 target/
-*/target/
-**/target/
-*/maven-compiler/
+build/
+*.class
+jacoco.exec
 
-# IDE相关文件
+# ===== 日志 =====
+logs/
+*.log
+*.log.*
+
+# ===== IDE - IntelliJ IDEA =====
 .idea/
-.idea
 *.iml
 *.ipr
 *.iws
-.settings/
-.classpath
-.project
-.metadata/
 
-# 系统文件
+# ===== IDE - Eclipse =====
+.project
+.classpath
+.settings/
+.factorypath
+
+# ===== IDE - VS Code =====
+.vscode/
+
+# ===== 操作系统 =====
 .DS_Store
 Thumbs.db
+._*
+
+# ===== 临时文件 =====
+*.bak
+*.tmp
 *.swp
 *.swo
 *~
 
-# 日志文件
-*.log
-logs/
-**/logs/
-
-# 配置文件
-*.properties
-*.xml
-*.yml
-*.yaml
-!src/main/resources/**/*.properties
-!src/main/resources/**/*.xml
-!src/main/resources/**/*.yml
-!src/main/resources/**/*.yaml
-!**/pom.xml
-
-# Maven相关
-.mvn/
-mvnw
-sqldialect.xml
-setting.xml
-Project_default.xml
-mvnw.cmd
-vcs.xml
-pom.properties
-misc.xml
-MarsCodeWorkspaceAppSettings.xml
-
-# 测试覆盖率报告
-coverage/
-jacoco.exec
+# ===== 环境变量（敏感，不入库）=====
+.env
+.env.local
+.env.*.local

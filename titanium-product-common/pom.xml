@@ -16,6 +16,12 @@
     <description>Product Service Common Module</description>
 
     <dependencies>
+        <!-- 元数据共享库（BaseEnum 等） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-metadata</artifactId>
+        </dependency>
+
         <!-- Spring Boot Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

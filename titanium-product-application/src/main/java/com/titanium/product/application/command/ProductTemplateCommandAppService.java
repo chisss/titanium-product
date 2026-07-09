@@ -1,21 +1,23 @@
 package com.titanium.product.application.command;
 
-
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
 
-import com.titanium.product.domain.command.ActivateProductTemplateCommand;
-import com.titanium.product.domain.command.CreateProductTemplateCommand;
-import com.titanium.product.domain.command.DeactivateProductTemplateCommand;
-import com.titanium.product.domain.command.UpdateProductTemplateCommand;
+import com.titanium.product.command.ActivateProductTemplateCommand;
+import com.titanium.product.command.CreateProductTemplateCommand;
+import com.titanium.product.command.DeactivateProductTemplateCommand;
+import com.titanium.product.command.UpdateProductTemplateCommand;
 
 import lombok.RequiredArgsConstructor;
 
 /**
- * 产品模板命令应用服务
+ * 产品模板命令应用服务（写用例入口门面）
+ *
+ * <p>入参统一为 domain 领域命令：Request → Command 的翻译由 web 层
+ * {@code ProductTemplateWebMapper} 承担，本层只做 {@code commandGateway} 派发，
+ * 不依赖 api 契约细节、不写业务规则（项目规约 3.4.8/六边形隔离）。</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -24,7 +26,10 @@ public class ProductTemplateCommandAppService {
     private final CommandGateway commandGateway;
 
     /**
-     * 创建产品模板
+     * 创建产品模板：派发创建命令。
+     *
+     * @param command 创建产品模板命令
+     * @return 模板ID
      */
     public String createTemplate(CreateProductTemplateCommand command) {
         CompletableFuture<String> future = commandGateway.send(command);
@@ -32,30 +37,31 @@ public class ProductTemplateCommandAppService {
     }
 
     /**
-     * 更新产品模板
+     * 更新产品模板。
+     *
+     * @param command 更新命令
      */
     public void updateTemplate(UpdateProductTemplateCommand command) {
         commandGateway.sendAndWait(command);
     }
 
     /**
-     * 激活产品模板
+     * 激活产品模板。
+     *
+     * @param templateId 模板ID
+     * @param tenantId   租户ID
      */
-    public void activateTemplate(ActivateProductTemplateCommand command) {
-        commandGateway.sendAndWait(command);
+    public void activateTemplate(String templateId, String tenantId) {
+        commandGateway.sendAndWait(new ActivateProductTemplateCommand(templateId, tenantId));
     }
 
     /**
-     * 停用产品模板
+     * 停用产品模板。
+     *
+     * @param templateId 模板ID
+     * @param tenantId   租户ID
      */
-    public void deactivateTemplate(DeactivateProductTemplateCommand command) {
-        commandGateway.sendAndWait(command);
-    }
-
-    /**
-     * 生成模板ID
-     */
-    public static String generateTemplateId() {
-        return "TPL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    public void deactivateTemplate(String templateId, String tenantId) {
+        commandGateway.sendAndWait(new DeactivateProductTemplateCommand(templateId, tenantId));
     }
 }

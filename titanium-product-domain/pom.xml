@@ -59,5 +59,23 @@
             <groupId>org.axonframework</groupId>
             <artifactId>axon-spring</artifactId>
         </dependency>
+
+        <!-- 测试依赖（版本由 parent 管理） -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.axonframework</groupId>
+            <artifactId>axon-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- axon-test 将 hamcrest 声明为 optional，需显式引入供事件比对使用 -->
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

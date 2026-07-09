@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.query.entity.ProductView;
+import com.titanium.product.query.view.ProductView;
 
 /**
  * 产品读模型仓储

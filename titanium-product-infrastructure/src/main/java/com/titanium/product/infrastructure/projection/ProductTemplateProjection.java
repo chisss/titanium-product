@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 import com.alibaba.fastjson2.JSON;
 
 import com.titanium.metadata.enums.CommonStatus;
-import com.titanium.product.domain.event.ProductTemplateActivatedEvent;
-import com.titanium.product.domain.event.ProductTemplateCreatedEvent;
-import com.titanium.product.domain.event.ProductTemplateDeactivatedEvent;
-import com.titanium.product.domain.event.ProductTemplateUpdatedEvent;
+import com.titanium.product.event.ProductTemplateActivatedEvent;
+import com.titanium.product.event.ProductTemplateCreatedEvent;
+import com.titanium.product.event.ProductTemplateDeactivatedEvent;
+import com.titanium.product.event.ProductTemplateUpdatedEvent;
 import com.titanium.product.infrastructure.entity.ProductTemplateEntity;
 import com.titanium.product.infrastructure.repository.jpa.ProductTemplateJpaRepository;
 
@@ -64,6 +64,8 @@ public class ProductTemplateProjection {
             entity.setBillingConfigJson(JSON.toJSONString(event.billingConfig()));
             entity.setReinsuranceConfigJson(event.reinsuranceConfig() != null
                     ? JSON.toJSONString(event.reinsuranceConfig()) : null);
+            entity.setDividendConfigJson(event.dividendConfig() != null
+                    ? JSON.toJSONString(event.dividendConfig()) : null);
             entity.setUpdateTime(LocalDateTime.now());
             jpaRepository.save(entity);
         });

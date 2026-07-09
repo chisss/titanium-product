@@ -6,34 +6,39 @@ import java.util.UUID;
 import org.mapstruct.Mapper;
 
 import com.titanium.product.api.dto.ProductTemplateDTO;
-import com.titanium.product.api.request.CreateProductTemplateRequest;
-import com.titanium.product.domain.command.CreateProductTemplateCommand;
-import com.titanium.product.domain.valueobject.ClaimConfig;
-import com.titanium.product.domain.valueobject.MaintenanceConfig;
-import com.titanium.product.domain.valueobject.PolicyStage;
-import com.titanium.product.domain.valueobject.UnderwritingConfig;
-import com.titanium.product.query.entity.ProductTemplateQueryResult;
+import com.titanium.product.command.CreateProductTemplateCommand;
+import com.titanium.product.query.result.ProductTemplateQueryResult;
+import com.titanium.product.valueobject.ClaimConfig;
+import com.titanium.product.valueobject.MaintenanceConfig;
+import com.titanium.product.valueobject.PolicyStage;
+import com.titanium.product.valueobject.UnderwritingConfig;
+import com.titanium.product.web.request.CreateProductTemplateRequest;
 
 /**
- * 产品模板 Web 层 Mapper
+ * 产品模板 Web 层对象映射器（MapStruct）
+ * <p>
+ * 边界输入 → CQRS 命令/查询的翻译枢纽：HTTP {@code Request} → 领域命令
+ * {@code CreateProductTemplateCommand}（Controller 用）、读模型结果 → 对外 {@code DTO}（Controller/Provider 用）。
+ * 创建命令的构造从 application 下沉本层，application 门面入参即领域命令。请求可映射的部分
+ * （核保/理赔/保全配置）按 record 组件组装，其余复杂配置（出单流程、保单形态、定价规则）请求暂未承载，置空由聚合根兜底。
+ * </p>
  */
 @Mapper(componentModel = "spring")
 public interface ProductTemplateWebMapper {
 
-    /**
-     * QueryResult -> DTO
-     */
-    ProductTemplateDTO toDTO(ProductTemplateQueryResult result);
-
-    ProductTemplateDTO.PolicyStageDTO toDTO(PolicyStage stage);
+    // ==================== 写：Request → 领域命令 ====================
 
     /**
-     * 将请求转换为创建命令
+     * HTTP Request → 创建产品模板命令（Controller 用）
      *
-     * <p>命令已枚举化重构，仅承载新版字段。请求中可直接映射的部分（核保/理赔/保全配置）按
-     * record 真实组件构造，其余复杂配置（出单流程、保单形态、定价规则）请求暂未承载，置 null。
+     * @param request 创建产品模板请求
+     * @param tenantId 租户ID（请求头）
+     * @return 创建产品模板命令
      */
-    default CreateProductTemplateCommand toCreateCommand(CreateProductTemplateRequest request, String tenantId) {
+    default CreateProductTemplateCommand toCommand(CreateProductTemplateRequest request, String tenantId) {
+        if (request == null) {
+            return null;
+        }
         String templateId = "TPL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         UnderwritingConfig underwritingConfig = request.getUnderwritingConfig() != null
@@ -79,7 +84,18 @@ public interface ProductTemplateWebMapper {
                 List.of(),
                 List.of(),
                 tenantId,
-                null
-        );
+                null);
     }
+
+    // ==================== 读：QueryResult → 对外 DTO ====================
+
+    /**
+     * 读模型结果 → 产品模板 DTO（Controller/Provider 用）
+     */
+    ProductTemplateDTO toDTO(ProductTemplateQueryResult result);
+
+    /**
+     * 出单阶段值对象 → DTO（供上面列表映射复用）。
+     */
+    ProductTemplateDTO.PolicyStageDTO toDTO(PolicyStage stage);
 }

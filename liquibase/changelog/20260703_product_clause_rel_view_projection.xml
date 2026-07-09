@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- CQRS 读模型表：产品条款关联，由 ProductClauseRelUpdatedEvent 投影维护，与写侧物理隔离 -->
+    <changeSet id="20260703-product-clause-rel-view-projection" author="titanium-cqrs">
+        <createTable tableName="t_product_clause_rel_view" remarks="产品条款关联读模型表（CQRS Projection）">
+            <column name="product_id" type="VARCHAR(36)" remarks="产品ID（读模型主键）">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_t_product_clause_rel_view"/>
+            </column>
+            <column name="clause_rels_json" type="TEXT" remarks="条款关联清单（JSON）"/>
+            <column name="tenant_id" type="VARCHAR(36)" remarks="租户ID（多租户隔离）"/>
+            <column name="create_time" type="DATETIME" remarks="读模型创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="DATETIME" remarks="读模型更新时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0" remarks="乐观锁版本">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

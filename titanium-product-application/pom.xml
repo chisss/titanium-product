@@ -29,6 +29,13 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
+        <!-- API Module：承接 web 层下沉的 Request/DTO → command 翻译 -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-product-api</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Axon Framework -->
         <dependency>
             <groupId>org.axonframework</groupId>

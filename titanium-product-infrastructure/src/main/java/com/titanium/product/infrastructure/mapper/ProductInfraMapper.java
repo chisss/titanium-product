@@ -12,16 +12,16 @@ import com.alibaba.fastjson2.TypeReference;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.domain.entity.ProductClauseRel;
-import com.titanium.product.domain.valueobject.CoveragePeriodConfig;
-import com.titanium.product.domain.valueobject.InsureCondition;
-import com.titanium.product.domain.valueobject.IssuanceProcessConfig;
-import com.titanium.product.domain.valueobject.PaymentConfig;
-import com.titanium.product.domain.valueobject.PolicyFormConfig;
-import com.titanium.product.domain.valueobject.PricingBasicRule;
-import com.titanium.product.domain.valueobject.SalesChannelConfig;
-import com.titanium.product.domain.valueobject.UnderwritingConfig;
+import com.titanium.product.entity.ProductClauseRel;
 import com.titanium.product.infrastructure.entity.ProductClauseRelEntity;
+import com.titanium.product.valueobject.CoveragePeriodConfig;
+import com.titanium.product.valueobject.InsureCondition;
+import com.titanium.product.valueobject.IssuanceProcessConfig;
+import com.titanium.product.valueobject.PaymentConfig;
+import com.titanium.product.valueobject.PolicyFormConfig;
+import com.titanium.product.valueobject.PricingBasicRule;
+import com.titanium.product.valueobject.SalesChannelConfig;
+import com.titanium.product.valueobject.UnderwritingConfig;
 
 /**
  * 产品基础设施层映射器

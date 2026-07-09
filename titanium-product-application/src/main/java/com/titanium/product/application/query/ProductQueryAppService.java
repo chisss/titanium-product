@@ -2,6 +2,7 @@ package com.titanium.product.application.query;
 
 import java.util.List;
 
+import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -9,10 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.domain.query.FindProductByConditionQuery;
-import com.titanium.product.domain.query.FindProductByIdQuery;
-import com.titanium.product.domain.query.FindProductClauseByProductIdQuery;
-import com.titanium.product.query.entity.ProductQueryResult;
+import com.titanium.product.query.query.FindProductByConditionQuery;
+import com.titanium.product.query.query.FindProductByIdQuery;
+import com.titanium.product.query.query.FindProductClauseByProductIdQuery;
+import com.titanium.product.query.result.ProductClauseQueryResult;
+import com.titanium.product.query.result.ProductQueryResult;
 
 /**
  * 产品查询应用服务 处理产品相关的查询操作
@@ -64,7 +66,8 @@ public class ProductQueryAppService {
      * @param productId 产品ID
      * @return 条款查询结果列表
      */
-    public List<Object> queryProductClauses(String productId) {
-        return queryGateway.query(new FindProductClauseByProductIdQuery(productId), List.class).join();
+    public List<ProductClauseQueryResult> queryProductClauses(String productId) {
+        return queryGateway.query(new FindProductClauseByProductIdQuery(productId),
+                ResponseTypes.multipleInstancesOf(ProductClauseQueryResult.class)).join();
     }
 }

@@ -23,6 +23,34 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
+        <!-- Application Module（Controller 编排入口：command/query 应用服务） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-product-application</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Query Module（读入口返回 XxxQueryResult DTO） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-product-query</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Domain Module（WebMapper Request→Command/值对象 转换） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-product-domain</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Common Module（本域专属枚举） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-product-common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Spring Boot Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

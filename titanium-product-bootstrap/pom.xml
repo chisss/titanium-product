@@ -24,6 +24,20 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
+        <!-- Infrastructure Module（组合根装配仓储实现/写侧投影/JPA 实体） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-product-infrastructure</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Query Module（组合根装配读模型投影/读侧仓储/DLQ 定时任务） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-product-query</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Spring Boot Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

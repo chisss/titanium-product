@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: titanium-product-service
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/titanium_insurance?useSSL=false&serverTimezone=UTC
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  liquibase:
+    enabled: true
+    change-log: classpath:liquibase/changelog/changelog-master.xml
+    default-schema: titanium_insurance
+    liquibase-schema: titanium_insurance
+    username: root
+    password: password
+  # Kafka 跨域事件外发(与 customer 域一致：String 序列化 + 应用侧 fastjson2 JSON)
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+
+server:
+  port: 8082
+
+axon:
+  serializer:
+    general: jackson
+  eventhandling:
+    processors:
+      product-group:
+        mode: subscribing
+        source: productEventBus
+      # 跨域 Kafka 外发处理组（与写侧 product-group、读侧 product-query-group 隔离）
+      product-kafka-group:
+        mode: subscribing
+      # CQRS 读侧投影处理组（与写侧 product-group 隔离）；开启 DLQ 保障读模型投影最终一致
+      product-query-group:
+        dlq:
+          enabled: true
+          max-size: 1000
+          cache:
+            enabled: true
+            size: 2048
+        batchSize: 10
+  eventbus:
+    type: simple
+  commandhandling:
+    shutdown-timeout: 5000
+
+logging:
+  level:
+    com.titanium: info
+    org.axonframework: info
+    org.springframework.data.jpa: info
