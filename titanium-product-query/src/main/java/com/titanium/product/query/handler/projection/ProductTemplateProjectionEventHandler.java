@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.alibaba.fastjson2.JSON;
 
 import com.titanium.metadata.enums.CommonStatus;
+import com.titanium.product.event.LifeProductConfiguredEvent;
 import com.titanium.product.event.ProductTemplateActivatedEvent;
 import com.titanium.product.event.ProductTemplateCreatedEvent;
 import com.titanium.product.event.ProductTemplateDeactivatedEvent;
@@ -89,6 +90,20 @@ public class ProductTemplateProjectionEventHandler {
             view.setUpdateTime(LocalDateTime.now());
             templateViewRepository.save(view);
         }, () -> log.warn("[读模型投影] 模板更新失败：未找到读模型记录 templateId={}（可能事件乱序，将由DLQ重试）",
+                event.templateId()));
+    }
+
+    /**
+     * 投影寿险产品规格配置事件：将寿险规格（投保年龄/保额/缴费期/保障期）以 JSON 写入读模型
+     */
+    @EventHandler
+    @Transactional
+    public void on(LifeProductConfiguredEvent event) {
+        templateViewRepository.findById(event.templateId()).ifPresentOrElse(view -> {
+            view.setLifeProductSpecJson(toJson(event.lifeProductSpec()));
+            view.setUpdateTime(LocalDateTime.now());
+            templateViewRepository.save(view);
+        }, () -> log.warn("[读模型投影] 寿险规格配置失败：未找到读模型记录 templateId={}（可能事件乱序，将由DLQ重试）",
                 event.templateId()));
     }
 

@@ -137,6 +137,11 @@ public class ProductView extends BaseView {
     @Column(name = "audit_info_json", columnDefinition = "TEXT")
     private String        auditInfoJson;
 
+    /** 销售渠道配置（JSON，序列化的 SalesChannelConfig 列表） */
+    @Lob
+    @Column(name = "sales_channels_json", columnDefinition = "TEXT")
+    private String        salesChannelsJson;
+
     /** 业务创建时间（来源事件） */
     @Column(name = "created_at")
     private LocalDateTime createdAt;

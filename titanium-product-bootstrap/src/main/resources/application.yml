@@ -17,7 +17,7 @@ spring:
         format_sql: true
   liquibase:
     enabled: true
-    change-log: classpath:liquibase/changelog/changelog-master.xml
+    change-log: classpath:liquibase/changelog-master.xml
     default-schema: titanium_insurance
     liquibase-schema: titanium_insurance
     username: root

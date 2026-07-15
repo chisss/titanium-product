@@ -98,6 +98,11 @@ public class ProductTemplateView extends BaseView {
     @Column(name = "reinsurance_config_json", columnDefinition = "TEXT")
     private String                      reinsuranceConfigJson;
 
+    /** 寿险产品规格（JSON，寿险模板专属：投保年龄/保额范围/缴费期/保障期） */
+    @Lob
+    @Column(name = "life_product_spec_json", columnDefinition = "TEXT")
+    private String                      lifeProductSpecJson;
+
     /** 模板状态 */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 32)

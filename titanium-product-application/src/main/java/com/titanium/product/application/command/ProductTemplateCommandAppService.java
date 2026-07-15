@@ -6,6 +6,7 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
 
 import com.titanium.product.command.ActivateProductTemplateCommand;
+import com.titanium.product.command.ConfigureLifeProductCommand;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.command.DeactivateProductTemplateCommand;
 import com.titanium.product.command.UpdateProductTemplateCommand;
@@ -42,6 +43,15 @@ public class ProductTemplateCommandAppService {
      * @param command 更新命令
      */
     public void updateTemplate(UpdateProductTemplateCommand command) {
+        commandGateway.sendAndWait(command);
+    }
+
+    /**
+     * 配置寿险产品规格（投保年龄/保额范围/缴费期/保障期）。
+     *
+     * @param command 寿险产品规格配置命令
+     */
+    public void configureLifeProduct(ConfigureLifeProductCommand command) {
         commandGateway.sendAndWait(command);
     }
 

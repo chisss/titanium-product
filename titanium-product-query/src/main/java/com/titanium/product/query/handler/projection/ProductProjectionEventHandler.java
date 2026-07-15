@@ -16,6 +16,7 @@ import com.titanium.product.event.ProductAuditedEvent;
 import com.titanium.product.event.ProductCreatedEvent;
 import com.titanium.product.event.ProductInvalidatedEvent;
 import com.titanium.product.event.ProductRevisedEvent;
+import com.titanium.product.event.ProductSalesChannelUpdatedEvent;
 import com.titanium.product.event.ProductSubmittedForAuditEvent;
 import com.titanium.product.query.repository.ProductViewRepository;
 import com.titanium.product.query.view.ProductView;
@@ -170,6 +171,20 @@ public class ProductProjectionEventHandler {
             view.setStatus(event.status() != null ? event.status() : ProductEnum.ProductStatus.INVALID);
             view.setInvalidTime(event.invalidTime());
         });
+    }
+
+    /**
+     * 投影产品销售渠道更新事件：整列覆盖 sales_channels_json（更新语义）
+     * <p>
+     * 该事件此前唯一消费者为已删除的 legacy 投影，导致销售渠道变更无法反映到读模型。 此处按 productId
+     * 加载存量读模型，将销售渠道配置列表整体序列化为 JSON 覆盖写入；缺失读模型时告警跳过。
+     * </p>
+     */
+    @EventHandler
+    @Transactional
+    public void on(ProductSalesChannelUpdatedEvent event) {
+        applyUpdate(event.productId(), "销售渠道更新",
+                view -> view.setSalesChannelsJson(toJson(event.salesChannels())));
     }
 
     /**

@@ -11,11 +11,14 @@ import org.junit.jupiter.api.Test;
 
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.command.ActivateProductTemplateCommand;
+import com.titanium.product.command.ConfigureLifeProductCommand;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.command.DeactivateProductTemplateCommand;
 import com.titanium.product.command.UpdateProductTemplateCommand;
+import com.titanium.product.event.LifeProductConfiguredEvent;
 import com.titanium.product.event.ProductTemplateActivatedEvent;
 import com.titanium.product.event.ProductTemplateCreatedEvent;
 import com.titanium.product.event.ProductTemplateDeactivatedEvent;
@@ -23,6 +26,7 @@ import com.titanium.product.event.ProductTemplateUpdatedEvent;
 import com.titanium.product.exception.ProductStatusPreconditionException;
 import com.titanium.product.valueobject.DividendConfig;
 import com.titanium.product.valueobject.IssuanceProcessConfig;
+import com.titanium.product.valueobject.LifeProductSpec;
 
 /**
  * 产品模板聚合根测试
@@ -158,5 +162,42 @@ class ProductTemplateTest {
                 .expectEvents(new ProductTemplateUpdatedEvent(TEMPLATE_ID, "停用后改名",
                         ProductEnum.IssuanceMode.ONE_STEP, List.of(), null, null, null, null, null, null, null,
                         TENANT_ID, null));
+    }
+
+    @Test
+    @DisplayName("配置寿险产品规格：发布规格配置事件")
+    void shouldConfigureLifeProductSpec() {
+        LifeProductSpec spec = LifeProductSpec.of(InsuranceProductType.TERM_LIFE, 18, 60,
+                new BigDecimal("100000"), new BigDecimal("3000000"));
+        fixture.given(createdEvent())
+                .when(new ConfigureLifeProductCommand(TEMPLATE_ID, spec, TENANT_ID))
+                .expectSuccessfulHandlerExecution()
+                .expectEventsMatching(org.axonframework.test.matchers.Matchers
+                        .payloadsMatching(org.axonframework.test.matchers.Matchers.exactSequenceOf(
+                                org.hamcrest.CoreMatchers.instanceOf(LifeProductConfiguredEvent.class))));
+    }
+
+    @Test
+    @DisplayName("寿险规格为空被拒绝")
+    void shouldRejectNullLifeProductSpec() {
+        fixture.given(createdEvent())
+                .when(new ConfigureLifeProductCommand(TEMPLATE_ID, null, TENANT_ID))
+                .expectException(com.titanium.metadata.exception.CommandValidationException.class);
+    }
+
+    @Test
+    @DisplayName("寿险规格重建：事件重放后 lifeProductSpec 字段完整")
+    void shouldReplayLifeProductSpec() {
+        LifeProductSpec spec = LifeProductSpec.of(InsuranceProductType.WHOLE_LIFE, 0, 70,
+                new BigDecimal("50000"), new BigDecimal("5000000"));
+        fixture.given(createdEvent(), new LifeProductConfiguredEvent(TEMPLATE_ID, spec, TENANT_ID, null))
+                .when(new ActivateProductTemplateCommand(TEMPLATE_ID, TENANT_ID))
+                .expectSuccessfulHandlerExecution()
+                .expectState(t -> {
+                    if (t.getLifeProductSpec() == null
+                            || t.getLifeProductSpec().productType() != InsuranceProductType.WHOLE_LIFE) {
+                        throw new AssertionError("事件重放后寿险规格应完整恢复");
+                    }
+                });
     }
 }

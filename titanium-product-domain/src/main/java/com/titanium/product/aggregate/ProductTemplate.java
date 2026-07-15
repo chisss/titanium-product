@@ -15,9 +15,11 @@ import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.exception.CommandValidationException;
 import com.titanium.product.command.ActivateProductTemplateCommand;
+import com.titanium.product.command.ConfigureLifeProductCommand;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.command.DeactivateProductTemplateCommand;
 import com.titanium.product.command.UpdateProductTemplateCommand;
+import com.titanium.product.event.LifeProductConfiguredEvent;
 import com.titanium.product.event.ProductTemplateActivatedEvent;
 import com.titanium.product.event.ProductTemplateCreatedEvent;
 import com.titanium.product.event.ProductTemplateDeactivatedEvent;
@@ -27,6 +29,7 @@ import com.titanium.product.valueobject.BillingConfig;
 import com.titanium.product.valueobject.ClaimConfig;
 import com.titanium.product.valueobject.DividendConfig;
 import com.titanium.product.valueobject.IssuanceProcessConfig;
+import com.titanium.product.valueobject.LifeProductSpec;
 import com.titanium.product.valueobject.MaintenanceConfig;
 import com.titanium.product.valueobject.PolicyFormConfig;
 import com.titanium.product.valueobject.PolicyStage;
@@ -71,6 +74,8 @@ public class ProductTemplate extends BaseAggregate {
     private ReinsuranceConfig     reinsuranceConfig;
     // 分红配置：分红险模板专属，红利分配方式 + 三档演示利率，经 UpdateProductTemplateCommand 写入
     private DividendConfig        dividendConfig;
+    // 寿险产品规格：寿险模板专属，投保年龄/保额范围/缴费期/保障期，经 ConfigureLifeProductCommand 写入
+    private LifeProductSpec       lifeProductSpec;
     private CommonStatus          status;
 
     public ProductTemplate() {
@@ -170,6 +175,28 @@ public class ProductTemplate extends BaseAggregate {
                 command.policyStructure(), command.maintenanceConfig(), command.claimConfig(),
                 command.billingConfig(), command.reinsuranceConfig(), command.dividendConfig(), command.tenantId(),
                 LocalDateTime.now()));
+    }
+
+    /**
+     * 配置寿险产品规格：仅非删除态可配置。校验寿险规格非空后写入投保年龄/保额范围/缴费期/保障期选项。
+     */
+    @CommandHandler
+    public void handle(ConfigureLifeProductCommand command) {
+        if (this.status == CommonStatus.DELETED) {
+            throw new ProductStatusPreconditionException(this.templateId, statusName(), "配置寿险规格");
+        }
+        if (command.lifeProductSpec() == null) {
+            throw new CommandValidationException(ConfigureLifeProductCommand.class.getSimpleName(), "lifeProductSpec",
+                    "寿险产品规格不能为空");
+        }
+        AggregateLifecycle.apply(new LifeProductConfiguredEvent(command.templateId(), command.lifeProductSpec(),
+                command.tenantId(), LocalDateTime.now()));
+    }
+
+    @EventSourcingHandler
+    public void on(LifeProductConfiguredEvent event) {
+        this.lifeProductSpec = event.lifeProductSpec();
+        this.updateTime = event.occurredAt();
     }
 
     /**
