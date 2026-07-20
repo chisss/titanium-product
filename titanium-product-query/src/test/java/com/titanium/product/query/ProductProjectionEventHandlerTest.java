@@ -21,6 +21,7 @@ import com.alibaba.fastjson2.JSON;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.event.ProductSalesChannelUpdatedEvent;
 import com.titanium.product.query.handler.projection.ProductProjectionEventHandler;
+import com.titanium.product.query.mapper.ProductViewMapper;
 import com.titanium.product.query.repository.ProductViewRepository;
 import com.titanium.product.query.view.ProductView;
 import com.titanium.product.valueobject.SalesChannelConfig;
@@ -43,7 +44,8 @@ class ProductProjectionEventHandlerTest {
         existing.setProductId("PROD_001");
         existing.setProductCode("CODE_001");
         when(repository.findById(eq("PROD_001"))).thenReturn(Optional.of(existing));
-        ProductProjectionEventHandler handler = new ProductProjectionEventHandler(repository);
+        ProductProjectionEventHandler handler =
+                new ProductProjectionEventHandler(repository, mock(ProductViewMapper.class));
 
         List<SalesChannelConfig> channels = List.of(
                 new SalesChannelConfig(ProductEnum.SalesChannel.AGENT, true, new BigDecimal("0.15")),
@@ -67,7 +69,8 @@ class ProductProjectionEventHandlerTest {
     void shouldSkipWhenViewMissing() {
         ProductViewRepository repository = mock(ProductViewRepository.class);
         when(repository.findById(eq("PROD_404"))).thenReturn(Optional.empty());
-        ProductProjectionEventHandler handler = new ProductProjectionEventHandler(repository);
+        ProductProjectionEventHandler handler =
+                new ProductProjectionEventHandler(repository, mock(ProductViewMapper.class));
 
         handler.on(new ProductSalesChannelUpdatedEvent("PROD_404",
                 List.of(new SalesChannelConfig(ProductEnum.SalesChannel.BROKER, true, BigDecimal.ONE))));

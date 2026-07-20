@@ -5,14 +5,14 @@ import java.util.UUID;
 
 import org.mapstruct.Mapper;
 
-import com.titanium.product.api.dto.ProductTemplateDTO;
+import com.titanium.product.api.response.ProductTemplateResponse;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
 import com.titanium.product.valueobject.ClaimConfig;
 import com.titanium.product.valueobject.MaintenanceConfig;
 import com.titanium.product.valueobject.PolicyStage;
 import com.titanium.product.valueobject.UnderwritingConfig;
-import com.titanium.product.web.request.CreateProductTemplateRequest;
+import com.titanium.product.web.dto.CreateProductTemplateDTO;
 
 /**
  * 产品模板 Web 层对象映射器（MapStruct）
@@ -35,7 +35,7 @@ public interface ProductTemplateWebMapper {
      * @param tenantId 租户ID（请求头）
      * @return 创建产品模板命令
      */
-    default CreateProductTemplateCommand toCommand(CreateProductTemplateRequest request, String tenantId) {
+    default CreateProductTemplateCommand toCommand(CreateProductTemplateDTO request, String tenantId) {
         if (request == null) {
             return null;
         }
@@ -92,10 +92,10 @@ public interface ProductTemplateWebMapper {
     /**
      * 读模型结果 → 产品模板 DTO（Controller/Provider 用）
      */
-    ProductTemplateDTO toDTO(ProductTemplateQueryResult result);
+    ProductTemplateResponse toResponse(ProductTemplateQueryResult result);
 
     /**
      * 出单阶段值对象 → DTO（供上面列表映射复用）。
      */
-    ProductTemplateDTO.PolicyStageDTO toDTO(PolicyStage stage);
+    ProductTemplateResponse.PolicyStageDTO toResponse(PolicyStage stage);
 }

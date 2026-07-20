@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.query.view.ProductView;
 
@@ -36,7 +36,8 @@ public interface ProductViewRepository
     /**
      * 按险种类型 + 租户ID分页查询
      */
-    List<ProductView> findByInsuranceTypeAndTenantId(InsuranceType insuranceType, String tenantId, Pageable pageable);
+    List<ProductView> findByInsuranceTypeAndTenantId(InsuranceProductType insuranceType, String tenantId,
+                                                     Pageable pageable);
 
     /**
      * 按状态 + 租户ID分页查询

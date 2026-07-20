@@ -1,4 +1,4 @@
-package com.titanium.product.api.dto;
+package com.titanium.product.api.request;
 
 import lombok.Data;
 
@@ -10,7 +10,7 @@ import lombok.Data;
  * </p>
  */
 @Data
-public class AuditProductDTO {
+public class AuditProductRequest {
 
     /** 审核意见/备注 */
     private String auditOpinion;

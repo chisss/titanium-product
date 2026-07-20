@@ -9,12 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
 
+import com.titanium.common.jpa.BasePersistable;
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.product.event.LifeProductConfiguredEvent;
 import com.titanium.product.event.ProductTemplateActivatedEvent;
 import com.titanium.product.event.ProductTemplateCreatedEvent;
 import com.titanium.product.event.ProductTemplateDeactivatedEvent;
 import com.titanium.product.event.ProductTemplateUpdatedEvent;
+import com.titanium.product.query.mapper.ProductViewMapper;
 import com.titanium.product.query.repository.ProductTemplateViewRepository;
 import com.titanium.product.query.view.ProductTemplateView;
 
@@ -38,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProductTemplateProjectionEventHandler {
 
     private final ProductTemplateViewRepository templateViewRepository;
+    private final ProductViewMapper             productViewMapper;
 
     /**
      * 投影产品模板创建事件：新建读模型记录
@@ -49,24 +52,13 @@ public class ProductTemplateProjectionEventHandler {
 
         ProductTemplateView view =
                 templateViewRepository.findById(event.templateId()).orElseGet(ProductTemplateView::new);
-        LocalDateTime now = LocalDateTime.now();
 
-        view.setTemplateId(event.templateId());
-        view.setTemplateCode(event.templateCode());
-        view.setTemplateName(event.templateName());
-        view.setInsuranceType(event.insuranceType());
+        // 事件字段 → 读模型的结构映射收敛到 MapStruct（含复杂值对象 JSON 序列化），消除逐字段 set
+        productViewMapper.applyTemplateCreated(view, event);
+        // 出单模式：值对象整体序列化，缺省回退 DEFAULT（含默认值语义，保留在投影处理器）
         view.setIssuanceMode(event.issuanceProcessConfig() != null
                 ? JSON.toJSONString(event.issuanceProcessConfig()) : "DEFAULT");
-        view.setUnderwritingConfigJson(toJson(event.underwritingConfig()));
-        view.setMaintenanceConfigJson(toJson(event.maintenanceConfig()));
-        view.setClaimConfigJson(toJson(event.claimsConfig()));
-        view.setPolicyStructureJson(toJson(event.policyFormConfig()));
-        view.setStatus(event.status());
-        view.setTenantId(event.tenantId());
-        if (view.getCreateTime() == null) {
-            view.setCreateTime(now);
-        }
-        view.setUpdateTime(now);
+        stampAuditTime(view);
 
         templateViewRepository.save(view);
     }
@@ -87,6 +79,7 @@ public class ProductTemplateProjectionEventHandler {
             view.setClaimConfigJson(toJson(event.claimConfig()));
             view.setBillingConfigJson(toJson(event.billingConfig()));
             view.setReinsuranceConfigJson(toJson(event.reinsuranceConfig()));
+            view.setDividendConfigJson(toJson(event.dividendConfig()));
             view.setUpdateTime(LocalDateTime.now());
             templateViewRepository.save(view);
         }, () -> log.warn("[读模型投影] 模板更新失败：未找到读模型记录 templateId={}（可能事件乱序，将由DLQ重试）",
@@ -142,5 +135,20 @@ public class ProductTemplateProjectionEventHandler {
      */
     private String toJson(Object value) {
         return value != null ? JSON.toJSONString(value) : null;
+    }
+
+    /**
+     * 统一填充读模型审计时间戳：createTime 仅首次创建时写入、updateTime 每次投影刷新。
+     * <p>
+     * 该逻辑含 {@code now()} 运行时副作用与"仅首次设置"语义，属投影处理器职责，不下沉 MapStruct 映射器。
+     * {@code ProductTemplateView} 继承 {@code BasePersistable}，统一以基类承接。
+     * </p>
+     */
+    private void stampAuditTime(BasePersistable view) {
+        LocalDateTime now = LocalDateTime.now();
+        if (view.getCreateTime() == null) {
+            view.setCreateTime(now);
+        }
+        view.setUpdateTime(now);
     }
 }

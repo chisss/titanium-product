@@ -1,4 +1,4 @@
-package com.titanium.product.web.request;
+package com.titanium.product.web.dto;
 
 import com.titanium.metadata.enums.product.ProductEnum;
 
@@ -11,7 +11,7 @@ import lombok.Data;
  * </p>
  */
 @Data
-public class AuditProductRequest {
+public class AuditProductDTO {
 
     /** 审核结果（PASS/REJECT/RETURN） */
     private ProductEnum.AuditResult auditResult;

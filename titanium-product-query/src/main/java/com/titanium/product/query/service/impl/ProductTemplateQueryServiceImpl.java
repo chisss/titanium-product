@@ -15,6 +15,8 @@ import com.titanium.product.query.service.ProductTemplateQueryService;
 import com.titanium.product.query.view.ProductTemplateView;
 import com.titanium.product.valueobject.BillingConfig;
 import com.titanium.product.valueobject.ClaimConfig;
+import com.titanium.product.valueobject.DividendConfig;
+import com.titanium.product.valueobject.LifeProductSpec;
 import com.titanium.product.valueobject.MaintenanceConfig;
 import com.titanium.product.valueobject.PolicyStage;
 import com.titanium.product.valueobject.PolicyStructureConfig;
@@ -89,6 +91,8 @@ public class ProductTemplateQueryServiceImpl implements ProductTemplateQueryServ
                 .claimConfig(parse(view.getClaimConfigJson(), ClaimConfig.class))
                 .billingConfig(parse(view.getBillingConfigJson(), BillingConfig.class))
                 .reinsuranceConfig(parse(view.getReinsuranceConfigJson(), ReinsuranceConfig.class))
+                .dividendConfig(parse(view.getDividendConfigJson(), DividendConfig.class))
+                .lifeProductSpec(parse(view.getLifeProductSpecJson(), LifeProductSpec.class))
                 .status(view.getStatus())
                 .tenantId(view.getTenantId())
                 .build();

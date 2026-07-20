@@ -1,4 +1,4 @@
-package com.titanium.product.web.request;
+package com.titanium.product.web.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,7 +17,7 @@ import lombok.Data;
  * </p>
  */
 @Data
-public class PricingBasicRuleRequest {
+public class PricingBasicRuleDTO {
 
     /** 定价类型（FIXED/AGE/OCCUPATION/COMBINED） */
     private ProductEnum.PricingType pricingType;

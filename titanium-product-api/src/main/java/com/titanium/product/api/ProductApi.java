@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-import com.titanium.product.api.dto.AuditProductDTO;
-import com.titanium.product.api.dto.CreateProductDTO;
-import com.titanium.product.api.dto.PricingBasicRuleDTO;
-import com.titanium.product.api.dto.ProductDTO;
+import com.titanium.product.api.request.AuditProductRequest;
+import com.titanium.product.api.request.CreateProductRequest;
 import com.titanium.product.api.response.ApiResponse;
+import com.titanium.product.api.response.PricingBasicRuleResponse;
+import com.titanium.product.api.response.ProductResponse;
 
 /**
  * 产品聚合对外契约（Feign）
@@ -27,12 +27,12 @@ public interface ProductApi {
 
     /** 创建产品 */
     @PostMapping
-    ApiResponse<String> createProduct(@RequestBody CreateProductDTO dto,
+    ApiResponse<String> createProduct(@RequestBody CreateProductRequest dto,
                                       @RequestHeader("X-Tenant-ID") String tenantId);
 
     /** 根据ID查询产品 */
     @GetMapping("/{productId}")
-    ApiResponse<ProductDTO> getProductById(@PathVariable("productId") String productId,
+    ApiResponse<ProductResponse> getProductById(@PathVariable("productId") String productId,
                                            @RequestHeader("X-Tenant-ID") String tenantId);
 
     /** 提交产品审核 */
@@ -43,13 +43,13 @@ public interface ProductApi {
     /** 审核产品 */
     @PutMapping("/{productId}/audit")
     ApiResponse<Void> auditProduct(@PathVariable("productId") String productId,
-                                    @RequestBody AuditProductDTO dto,
+                                    @RequestBody AuditProductRequest dto,
                                     @RequestHeader("X-Tenant-ID") String tenantId);
 
     /** 驳回产品审核 */
     @PutMapping("/{productId}/reject")
     ApiResponse<Void> rejectAudit(@PathVariable("productId") String productId,
-                                   @RequestBody AuditProductDTO dto,
+                                   @RequestBody AuditProductRequest dto,
                                    @RequestHeader("X-Tenant-ID") String tenantId);
 
     /** 下架产品 */
@@ -74,6 +74,6 @@ public interface ProductApi {
 
     /** 查询产品定价基础规则（供Billing域保费计算调用） */
     @GetMapping("/{productId}/pricing-rule")
-    ApiResponse<PricingBasicRuleDTO> getPricingRule(@PathVariable("productId") String productId,
+    ApiResponse<PricingBasicRuleResponse> getPricingRule(@PathVariable("productId") String productId,
                                                     @RequestHeader("X-Tenant-ID") String tenantId);
 }

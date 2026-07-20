@@ -1,10 +1,10 @@
-package com.titanium.product.web.request;
+package com.titanium.product.web.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 
 import lombok.Data;
@@ -17,10 +17,12 @@ import lombok.Data;
  * </p>
  */
 @Data
-public class CreateProductRequest {
+public class CreateProductDTO {
 
     /** 产品ID（可选，不传则自动生成） */
     private String productId;
+    /** 所属产品模板ID（必填，单向引用 ProductTemplate） */
+    private String templateId;
     /** 产品代码 */
     private String productCode;
     /** 产品名称 */
@@ -30,7 +32,7 @@ public class CreateProductRequest {
     /** 产品形态（INDIVIDUAL/GROUP） */
     private ProductEnum.ProductForm form;
     /** 险种类型 */
-    private InsuranceType insuranceType;
+    private InsuranceProductType insuranceType;
     /** 产品类别（MAIN/RIDER） */
     private ProductEnum.ProductCategory category;
     /** 销售开始时间 */
@@ -39,13 +41,13 @@ public class CreateProductRequest {
     private LocalDateTime saleEndTime;
 
     /** 投保条件 */
-    private InsureConditionRequest insureCondition;
+    private InsureConditionDTO insureCondition;
     /** 保障期间配置 */
     private Object coveragePeriod;
     /** 缴费方式配置 */
     private Object paymentConfig;
     /** 定价基础规则 */
-    private PricingBasicRuleRequest pricingBasicRule;
+    private PricingBasicRuleDTO pricingBasicRule;
 
     /** 绑定的条款ID列表 */
     private List<String> clauseIds;
@@ -65,6 +67,9 @@ public class CreateProductRequest {
     private Object policyFormConfig;
     /** 核保配置 */
     private Object underwritingConfig;
+
+    /** 定价模式编码（RATE_TABLE 费率表查询 / ACTUARIAL_FORMULA 精算公式），billing 出单按此分派保费计算路径 */
+    private String pricingMode;
 
     /** 创建人 */
     private String createdBy;

@@ -1,4 +1,4 @@
-package com.titanium.product.api.dto;
+package com.titanium.product.api.response;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "产品模板数据传输对象")
-public class ProductTemplateDTO {
+public class ProductTemplateResponse {
 
     @Schema(description = "模板ID")
     private String templateId;

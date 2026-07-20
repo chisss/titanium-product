@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
 
+import com.titanium.common.jpa.BasePersistable;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.event.ProductAuditRejectedEvent;
 import com.titanium.product.event.ProductAuditedEvent;
@@ -18,6 +19,7 @@ import com.titanium.product.event.ProductInvalidatedEvent;
 import com.titanium.product.event.ProductRevisedEvent;
 import com.titanium.product.event.ProductSalesChannelUpdatedEvent;
 import com.titanium.product.event.ProductSubmittedForAuditEvent;
+import com.titanium.product.query.mapper.ProductViewMapper;
 import com.titanium.product.query.repository.ProductViewRepository;
 import com.titanium.product.query.view.ProductView;
 
@@ -44,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProductProjectionEventHandler {
 
     private final ProductViewRepository productViewRepository;
+    private final ProductViewMapper     productViewMapper;
 
     /**
      * 投影产品创建事件：新建读模型记录
@@ -54,32 +57,10 @@ public class ProductProjectionEventHandler {
         log.info("[读模型投影] 产品创建: productId={}, tenantId={}", event.productId(), event.tenantId());
 
         ProductView view = productViewRepository.findById(event.productId()).orElseGet(ProductView::new);
-        LocalDateTime now = LocalDateTime.now();
 
-        view.setProductId(event.productId());
-        view.setProductCode(event.productCode());
-        view.setProductName(event.productName());
-        view.setProductDesc(event.productDesc());
-        view.setForm(event.form());
-        view.setInsuranceType(event.insuranceType());
-        view.setCategory(event.category());
-        view.setVersionNo(event.version());
-        view.setStatus(event.status());
-        view.setSaleStartTime(event.saleStartTime());
-        view.setSaleEndTime(event.saleEndTime());
-        view.setCreatedAt(event.createdAt());
-        view.setInsureConditionJson(toJson(event.insureCondition()));
-        view.setCoveragePeriodJson(toJson(event.coveragePeriod()));
-        view.setPaymentConfigJson(toJson(event.paymentConfig()));
-        view.setPricingBasicRuleJson(toJson(event.pricingBasicRule()));
-        view.setIssuanceProcessConfigJson(toJson(event.issuanceProcessConfig()));
-        view.setPolicyFormConfigJson(toJson(event.policyFormConfig()));
-        view.setUnderwritingConfigJson(toJson(event.underwritingConfig()));
-        view.setTenantId(event.tenantId());
-        if (view.getCreateTime() == null) {
-            view.setCreateTime(now);
-        }
-        view.setUpdateTime(now);
+        // 事件字段 → 读模型的结构映射收敛到 MapStruct（含复杂值对象 JSON 序列化），消除逐字段 set
+        productViewMapper.applyCreated(view, event);
+        stampAuditTime(view);
 
         productViewRepository.save(view);
     }
@@ -96,33 +77,16 @@ public class ProductProjectionEventHandler {
         // 复用原产品的租户与编码（修订事件未携带），从原始记录继承
         ProductView origin = productViewRepository.findById(event.originalProductId()).orElse(null);
         ProductView view = productViewRepository.findById(event.newProductId()).orElseGet(ProductView::new);
-        LocalDateTime now = LocalDateTime.now();
 
-        view.setProductId(event.newProductId());
-        view.setOriginalProductId(event.originalProductId());
-        view.setVersionNo(event.newVersion());
-        view.setProductName(event.newProductName());
-        view.setProductDesc(event.newProductDesc());
-        view.setForm(event.newForm());
-        view.setInsuranceType(event.newInsuranceType());
-        view.setCategory(event.newCategory());
-        view.setInsureConditionJson(toJson(event.newInsureCondition()));
-        view.setCoveragePeriodJson(toJson(event.newCoveragePeriod()));
-        view.setPaymentConfigJson(toJson(event.newPaymentConfig()));
-        view.setPricingBasicRuleJson(toJson(event.newPricingBasicRule()));
-        view.setIssuanceProcessConfigJson(toJson(event.newIssuanceProcessConfig()));
-        view.setPolicyFormConfigJson(toJson(event.newPolicyFormConfig()));
-        view.setUnderwritingConfigJson(toJson(event.newUnderwritingConfig()));
-        // 修订态默认为草稿，编码与租户从原记录继承
+        // 事件字段（newXxx）→ 读模型的结构映射收敛到 MapStruct（含复杂值对象 JSON 序列化），消除逐字段 set
+        productViewMapper.applyRevised(view, event);
+        // 修订态默认为草稿，编码与租户从原记录继承（运行时业务规则，保留在投影处理器）
         view.setStatus(ProductEnum.ProductStatus.DRAFT);
         if (origin != null) {
             view.setProductCode(origin.getProductCode());
             view.setTenantId(origin.getTenantId());
         }
-        if (view.getCreateTime() == null) {
-            view.setCreateTime(now);
-        }
-        view.setUpdateTime(now);
+        stampAuditTime(view);
 
         productViewRepository.save(view);
     }
@@ -203,5 +167,20 @@ public class ProductProjectionEventHandler {
      */
     private String toJson(Object value) {
         return value != null ? JSON.toJSONString(value) : null;
+    }
+
+    /**
+     * 统一填充读模型审计时间戳：createTime 仅首次创建时写入、updateTime 每次投影刷新。
+     * <p>
+     * 该逻辑含 {@code now()} 运行时副作用与"仅首次设置"语义，属投影处理器职责，不下沉 MapStruct 映射器。
+     * {@code ProductView} 继承 {@code BasePersistable}，统一以基类承接。
+     * </p>
+     */
+    private void stampAuditTime(BasePersistable view) {
+        LocalDateTime now = LocalDateTime.now();
+        if (view.getCreateTime() == null) {
+            view.setCreateTime(now);
+        }
+        view.setUpdateTime(now);
     }
 }

@@ -2,8 +2,10 @@ package com.titanium.product.query.result;
 
 import java.time.LocalDateTime;
 
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
+import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
+import com.titanium.product.valueobject.ActuarialBasis;
 import com.titanium.product.valueobject.AuditInfo;
 import com.titanium.product.valueobject.CoveragePeriodConfig;
 import com.titanium.product.valueobject.InsureCondition;
@@ -11,6 +13,7 @@ import com.titanium.product.valueobject.IssuanceProcessConfig;
 import com.titanium.product.valueobject.PaymentConfig;
 import com.titanium.product.valueobject.PolicyFormConfig;
 import com.titanium.product.valueobject.PricingBasicRule;
+import com.titanium.product.valueobject.RateTableRef;
 import com.titanium.product.valueobject.UnderwritingConfig;
 
 import lombok.Getter;
@@ -32,7 +35,7 @@ public class ProductQueryResult {
 
     // ====== 分类 ======
     private ProductEnum.ProductForm form;
-    private InsuranceType insuranceType;
+    private InsuranceProductType insuranceType;
     private ProductEnum.ProductCategory category;
 
     // ====== 版本与状态 ======
@@ -54,6 +57,14 @@ public class ProductQueryResult {
     private IssuanceProcessConfig issuanceProcessConfig;
     private PolicyFormConfig policyFormConfig;
     private UnderwritingConfig underwritingConfig;
+
+    // ====== 寿险双模式定价配置（PROD-3读侧） ======
+    /** 定价模式（RATE_TABLE/ACTUARIAL_FORMULA） */
+    private PricingMode pricingMode;
+    /** 费率表引用（pricingMode=RATE_TABLE 时有值） */
+    private RateTableRef rateTableRef;
+    /** 精算基础参数（pricingMode=ACTUARIAL_FORMULA 时有值） */
+    private ActuarialBasis actuarialBasis;
 
     // ====== 审核 ======
     private AuditInfo auditInfo;

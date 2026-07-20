@@ -1,4 +1,4 @@
-package com.titanium.product.web.request;
+package com.titanium.product.web.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -26,7 +26,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "创建产品模板请求")
-public class CreateProductTemplateRequest {
+public class CreateProductTemplateDTO {
 
     @Schema(description = "模板编码", required = true)
     private String templateCode;

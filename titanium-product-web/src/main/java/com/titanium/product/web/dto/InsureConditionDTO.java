@@ -1,4 +1,4 @@
-package com.titanium.product.web.request;
+package com.titanium.product.web.dto;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import lombok.Data;
  * </p>
  */
 @Data
-public class InsureConditionRequest {
+public class InsureConditionDTO {
 
     /** 最小年龄 */
     private Integer minAge;

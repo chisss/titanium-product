@@ -11,7 +11,8 @@ import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.spring.stereotype.Aggregate;
 
 import com.titanium.common.domain.BaseAggregate;
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
+import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.exception.CommandValidationException;
 import com.titanium.product.command.AuditProductCommand;
@@ -24,6 +25,7 @@ import com.titanium.product.command.UpdateAttachProductCommand;
 import com.titanium.product.command.UpdateProductClauseRelCommand;
 import com.titanium.product.command.UpdateSalesChannelCommand;
 import com.titanium.product.entity.ProductClauseRel;
+import com.titanium.product.event.ProductAttachUpdatedEvent;
 import com.titanium.product.event.ProductAuditRejectedEvent;
 import com.titanium.product.event.ProductAuditedEvent;
 import com.titanium.product.event.ProductClauseRelUpdatedEvent;
@@ -34,6 +36,7 @@ import com.titanium.product.event.ProductSalesChannelUpdatedEvent;
 import com.titanium.product.event.ProductSubmittedForAuditEvent;
 import com.titanium.product.exception.ProductAuditException;
 import com.titanium.product.exception.ProductStatusPreconditionException;
+import com.titanium.product.valueobject.ActuarialBasis;
 import com.titanium.product.valueobject.AuditInfo;
 import com.titanium.product.valueobject.CoveragePeriodConfig;
 import com.titanium.product.valueobject.InsureCondition;
@@ -41,6 +44,7 @@ import com.titanium.product.valueobject.IssuanceProcessConfig;
 import com.titanium.product.valueobject.PaymentConfig;
 import com.titanium.product.valueobject.PolicyFormConfig;
 import com.titanium.product.valueobject.PricingBasicRule;
+import com.titanium.product.valueobject.RateTableRef;
 import com.titanium.product.valueobject.SalesChannelConfig;
 import com.titanium.product.valueobject.UnderwritingConfig;
 
@@ -59,6 +63,8 @@ public class InsuranceProduct extends BaseAggregate {
     /** 产品编号（聚合根ID） */
     @AggregateIdentifier
     private String                      productId;
+    /** 所属产品模板ID（单向引用 ProductTemplate，一模板对多产品） */
+    private String                      templateId;
     /** 产品代码（简短唯一标识） */
     private String                      productCode;
     /** 产品名称 */
@@ -70,7 +76,7 @@ public class InsuranceProduct extends BaseAggregate {
     /** 产品形态（团险/个险） */
     private ProductEnum.ProductForm     form;
     /** 险种类型 */
-    private InsuranceType               insuranceType;
+    private InsuranceProductType        insuranceType;
     /** 产品类别（MAIN-主险/RIDER-附加险） */
     private ProductEnum.ProductCategory category;
 
@@ -118,6 +124,14 @@ public class InsuranceProduct extends BaseAggregate {
     /** 核保配置 */
     private UnderwritingConfig          underwritingConfig;
 
+    // ====== 定价模式（保费计算数据源与方法，billing 出单按此分派） ======
+    /** 定价模式（费率表查询/精算公式） */
+    private PricingMode                 pricingMode;
+    /** 费率表引用（pricingMode=RATE_TABLE 时使用） */
+    private RateTableRef                rateTableRef;
+    /** 精算基础参数（pricingMode=ACTUARIAL_FORMULA 时使用） */
+    private ActuarialBasis              actuarialBasis;
+
     // ====== 审核 ======
     /** 审核信息 */
     private AuditInfo                   auditInfo;
@@ -147,6 +161,7 @@ public class InsuranceProduct extends BaseAggregate {
         validateCreateCommand(command);
 
         this.productId = command.productId();
+        this.templateId = command.templateId();
         this.productCode = command.productCode();
         this.productName = command.productName();
         this.productDesc = command.productDesc();
@@ -170,13 +185,18 @@ public class InsuranceProduct extends BaseAggregate {
         this.issuanceProcessConfig = command.issuanceProcessConfig();
         this.policyFormConfig = command.policyFormConfig();
         this.underwritingConfig = command.underwritingConfig();
+        this.pricingMode = command.pricingMode();
+        this.rateTableRef = command.rateTableRef();
+        this.actuarialBasis = command.actuarialBasis();
         this.tenantId = command.tenantId();
 
         AggregateLifecycle.apply(
-                new ProductCreatedEvent(productId, productCode, productName, productDesc, form, insuranceType, category,
+                new ProductCreatedEvent(productId, templateId, productCode, productName, productDesc, form,
+                        insuranceType, category,
                         version, ProductEnum.ProductStatus.DRAFT, LocalDateTime.now(), saleStartTime, saleEndTime,
                         insureCondition, coveragePeriod, paymentConfig, pricingBasicRule, clauseRels, salesChannels,
-                        attachProductIds, issuanceProcessConfig, policyFormConfig, underwritingConfig, tenantId));
+                        attachProductIds, issuanceProcessConfig, policyFormConfig, underwritingConfig, tenantId,
+                        pricingMode, rateTableRef, actuarialBasis));
     }
 
     /**
@@ -237,12 +257,14 @@ public class InsuranceProduct extends BaseAggregate {
             throw new ProductStatusPreconditionException(this.productId, statusName(), "修订");
         }
         String newVersion = generateNewVersion(this.version);
-        AggregateLifecycle.apply(new ProductRevisedEvent(command.newProductId(), this.productId, newVersion,
-                command.newProductName(), command.newProductDesc(), command.newForm(), command.newInsuranceType(),
-                command.newCategory(), command.newInsureCondition(), command.newCoveragePeriod(),
-                command.newPaymentConfig(), command.newClauseRels(), command.newPricingBasicRule(),
-                command.newSalesChannels(), command.newIssuanceProcessConfig(), command.newPolicyFormConfig(),
-                command.newUnderwritingConfig()));
+        // 修订生成新版本：templateId 与 attachProductIds 继承原产品（修订主要变更定价/条款，模板与附加险搭配延续）
+        AggregateLifecycle.apply(new ProductRevisedEvent(command.newProductId(), this.templateId, this.productId,
+                newVersion, command.newProductName(), command.newProductDesc(), command.newForm(),
+                command.newInsuranceType(), command.newCategory(), command.newInsureCondition(),
+                command.newCoveragePeriod(), command.newPaymentConfig(), command.newClauseRels(),
+                command.newPricingBasicRule(), command.newSalesChannels(), command.newIssuanceProcessConfig(),
+                command.newPolicyFormConfig(), command.newUnderwritingConfig(), this.attachProductIds,
+                command.newPricingMode(), command.newRateTableRef(), command.newActuarialBasis()));
     }
 
     /**
@@ -292,7 +314,7 @@ public class InsuranceProduct extends BaseAggregate {
                 && !ProductEnum.ProductStatus.EFFECTIVE.equals(this.status)) {
             throw new ProductStatusPreconditionException(this.productId, statusName(), "更新附加险关联");
         }
-        this.attachProductIds = command.attachProductIds();
+        AggregateLifecycle.apply(new ProductAttachUpdatedEvent(productId, command.attachProductIds()));
     }
 
     // ==================== 事件溯源处理器 ====================
@@ -300,6 +322,7 @@ public class InsuranceProduct extends BaseAggregate {
     @EventSourcingHandler
     public void on(ProductCreatedEvent event) {
         this.productId = event.productId();
+        this.templateId = event.templateId();
         this.productCode = event.productCode();
         this.productName = event.productName();
         this.productDesc = event.productDesc();
@@ -320,6 +343,9 @@ public class InsuranceProduct extends BaseAggregate {
         this.issuanceProcessConfig = event.issuanceProcessConfig();
         this.policyFormConfig = event.policyFormConfig();
         this.underwritingConfig = event.underwritingConfig();
+        this.pricingMode = event.pricingMode();
+        this.rateTableRef = event.rateTableRef();
+        this.actuarialBasis = event.actuarialBasis();
         this.tenantId = event.tenantId();
         this.createTime = event.createdAt();
         this.updateTime = event.createdAt();
@@ -346,6 +372,8 @@ public class InsuranceProduct extends BaseAggregate {
     @EventSourcingHandler
     public void on(ProductRevisedEvent event) {
         this.productId = event.newProductId();
+        this.templateId = event.templateId();
+        this.originalProductId = event.originalProductId();
         this.productName = event.newProductName();
         this.productDesc = event.newProductDesc();
         this.version = event.newVersion();
@@ -358,9 +386,13 @@ public class InsuranceProduct extends BaseAggregate {
         this.clauseRels = event.newClauseRels();
         this.pricingBasicRule = event.newPricingBasicRule();
         this.salesChannels = event.newSalesChannels();
+        this.attachProductIds = event.attachProductIds();
         this.issuanceProcessConfig = event.newIssuanceProcessConfig();
         this.policyFormConfig = event.newPolicyFormConfig();
         this.underwritingConfig = event.newUnderwritingConfig();
+        this.pricingMode = event.newPricingMode();
+        this.rateTableRef = event.newRateTableRef();
+        this.actuarialBasis = event.newActuarialBasis();
         this.status = ProductEnum.ProductStatus.DRAFT;
     }
 
@@ -380,6 +412,11 @@ public class InsuranceProduct extends BaseAggregate {
         this.salesChannels = event.salesChannels();
     }
 
+    @EventSourcingHandler
+    public void on(ProductAttachUpdatedEvent event) {
+        this.attachProductIds = event.attachProductIds();
+    }
+
     // ==================== 私有方法 ====================
 
     private void validateCreateCommand(CreateProductCommand command) {
@@ -389,6 +426,9 @@ public class InsuranceProduct extends BaseAggregate {
         }
         if (command.productCode() == null || command.productCode().isBlank()) {
             throw new CommandValidationException(commandName, "productCode", "产品代码不能为空");
+        }
+        if (command.templateId() == null || command.templateId().isBlank()) {
+            throw new CommandValidationException(commandName, "templateId", "产品必须引用一个产品模板");
         }
         if (command.clauseIds() == null || command.clauseIds().isEmpty()) {
             throw new CommandValidationException(commandName, "clauseIds", "产品必须绑定至少一条条款");

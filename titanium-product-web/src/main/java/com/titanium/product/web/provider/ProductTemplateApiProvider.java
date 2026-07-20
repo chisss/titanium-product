@@ -3,8 +3,8 @@ package com.titanium.product.web.provider;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.product.api.ProductTemplateApi;
-import com.titanium.product.api.dto.ProductTemplateDTO;
 import com.titanium.product.api.response.ApiResponse;
+import com.titanium.product.api.response.ProductTemplateResponse;
 import com.titanium.product.application.query.ProductTemplateQueryAppService;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
 import com.titanium.product.web.mapper.ProductTemplateWebMapper;
@@ -30,20 +30,20 @@ public class ProductTemplateApiProvider implements ProductTemplateApi {
     private final ProductTemplateWebMapper       productTemplateWebMapper;
 
     @Override
-    public ApiResponse<ProductTemplateDTO> getByProductId(String productId, String tenantId) {
+    public ApiResponse<ProductTemplateResponse> getByProductId(String productId, String tenantId) {
         ProductTemplateQueryResult result = productTemplateQueryAppService.getTemplateByProductId(productId, tenantId);
-        return ApiResponse.success(productTemplateWebMapper.toDTO(result));
+        return ApiResponse.success(productTemplateWebMapper.toResponse(result));
     }
 
     @Override
-    public ApiResponse<ProductTemplateDTO> getByCode(String templateCode, String tenantId) {
+    public ApiResponse<ProductTemplateResponse> getByCode(String templateCode, String tenantId) {
         ProductTemplateQueryResult result = productTemplateQueryAppService.getTemplateByCode(templateCode, tenantId);
-        return ApiResponse.success(productTemplateWebMapper.toDTO(result));
+        return ApiResponse.success(productTemplateWebMapper.toResponse(result));
     }
 
     @Override
-    public ApiResponse<ProductTemplateDTO> getById(String templateId, String tenantId) {
+    public ApiResponse<ProductTemplateResponse> getById(String templateId, String tenantId) {
         ProductTemplateQueryResult result = productTemplateQueryAppService.getTemplateById(templateId, tenantId);
-        return ApiResponse.success(productTemplateWebMapper.toDTO(result));
+        return ApiResponse.success(productTemplateWebMapper.toResponse(result));
     }
 }

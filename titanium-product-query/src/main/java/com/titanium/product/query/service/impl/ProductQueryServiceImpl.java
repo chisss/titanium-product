@@ -13,18 +13,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
 
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
+import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.query.repository.ProductViewRepository;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.query.view.ProductView;
+import com.titanium.product.valueobject.ActuarialBasis;
 import com.titanium.product.valueobject.CoveragePeriodConfig;
 import com.titanium.product.valueobject.InsureCondition;
 import com.titanium.product.valueobject.IssuanceProcessConfig;
 import com.titanium.product.valueobject.PaymentConfig;
 import com.titanium.product.valueobject.PolicyFormConfig;
 import com.titanium.product.valueobject.PricingBasicRule;
+import com.titanium.product.valueobject.RateTableRef;
 import com.titanium.product.valueobject.UnderwritingConfig;
 
 import jakarta.persistence.criteria.Predicate;
@@ -55,20 +58,24 @@ public class ProductQueryServiceImpl implements ProductQueryService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductQueryResult> findByCondition(ProductEnum.ProductForm form, InsuranceType type,
-                                                    ProductEnum.ProductStatus status, int pageNum, int pageSize) {
+    public Page<ProductQueryResult> findByCondition(String productName, ProductEnum.ProductForm form,
+                                                    InsuranceProductType type, ProductEnum.ProductStatus status,
+                                                    int pageNum, int pageSize) {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
-        Specification<ProductView> spec = buildConditionSpec(form, type, status);
+        Specification<ProductView> spec = buildConditionSpec(productName, form, type, status);
         return productViewRepository.findAll(spec, pageable).map(this::toQueryResult);
     }
 
     /**
-     * 组装多条件动态查询规格：形态/险种/状态任意组合，非空条件以 AND 结合
+     * 组装多条件动态查询规格：产品名称（模糊）/形态/险种/状态任意组合，非空条件以 AND 结合
      */
-    private Specification<ProductView> buildConditionSpec(ProductEnum.ProductForm form, InsuranceType type,
-                                                          ProductEnum.ProductStatus status) {
+    private Specification<ProductView> buildConditionSpec(String productName, ProductEnum.ProductForm form,
+                                                          InsuranceProductType type, ProductEnum.ProductStatus status) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            if (productName != null && !productName.isBlank()) {
+                predicates.add(cb.like(root.get("productName"), "%" + productName.trim() + "%"));
+            }
             if (form != null) {
                 predicates.add(cb.equal(root.get("form"), form));
             }
@@ -108,6 +115,10 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         result.setIssuanceProcessConfig(parse(view.getIssuanceProcessConfigJson(), IssuanceProcessConfig.class));
         result.setPolicyFormConfig(parse(view.getPolicyFormConfigJson(), PolicyFormConfig.class));
         result.setUnderwritingConfig(parse(view.getUnderwritingConfigJson(), UnderwritingConfig.class));
+        // PROD-3读侧：定价模式 + 费率表引用 + 精算基础参数
+        result.setPricingMode(view.getPricingMode() != null ? PricingMode.fromCode(view.getPricingMode()) : null);
+        result.setRateTableRef(parse(view.getRateTableRefJson(), RateTableRef.class));
+        result.setActuarialBasis(parse(view.getActuarialBasisJson(), ActuarialBasis.class));
         result.setCreatedAt(view.getCreatedAt());
         result.setTenantId(view.getTenantId());
         return result;

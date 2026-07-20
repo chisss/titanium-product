@@ -1,4 +1,4 @@
-package com.titanium.product.api.dto;
+package com.titanium.product.api.request;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,10 +16,12 @@ import lombok.Data;
  * </p>
  */
 @Data
-public class CreateProductDTO {
+public class CreateProductRequest {
 
     /** 产品ID（可选，不传则自动生成） */
     private String productId;
+    /** 所属产品模板ID（必填，单向引用 ProductTemplate） */
+    private String templateId;
     /** 产品代码 */
     private String productCode;
     /** 产品名称 */
@@ -50,6 +52,9 @@ public class CreateProductDTO {
     private String mainClauseId;
     /** 附加险产品ID列表 */
     private List<String> attachProductIds;
+
+    /** 定价模式编码（RATE_TABLE 费率表查询 / ACTUARIAL_FORMULA 精算公式），billing 出单按此分派保费计算路径 */
+    private String pricingMode;
 
     /**
      * 投保条件远程入参（自包含，无领域依赖）

@@ -10,6 +10,9 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
+      # Axon 系统表加 axon_ 前缀，业务表不受影响
+      naming:
+        physical-strategy: com.titanium.common.jpa.AxonTablePrefixPhysicalNamingStrategy
       ddl-auto: none
     show-sql: true
     properties:

@@ -1,4 +1,4 @@
-package com.titanium.product.api.dto;
+package com.titanium.product.api.request;
 
 import lombok.Data;
 
@@ -7,7 +7,7 @@ import lombok.Data;
  * 用于表示产品的投保条件
  */
 @Data
-public class InsureConditionDTO {
+public class InsureConditionRequest {
     /**
      * 最小年龄
      */

@@ -1,8 +1,8 @@
-package com.titanium.product.api.dto;
+package com.titanium.product.api.response;
 
 import java.time.LocalDateTime;
 
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 
 import lombok.Data;
@@ -12,13 +12,13 @@ import lombok.Data;
  * 用于产品数据的传输，包含完整的产品配置信息
  */
 @Data
-public class ProductDTO {
+public class ProductResponse {
     private String productId;
     private String productCode;
     private String productName;
     private String productDesc;
     private ProductEnum.ProductForm form;
-    private InsuranceType insuranceType;
+    private InsuranceProductType insuranceType;
     private ProductEnum.ProductCategory category;
     private String version;
     private ProductEnum.ProductStatus status;

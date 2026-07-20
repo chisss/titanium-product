@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.product.api.dto.ProductTemplateDTO;
 import com.titanium.product.api.response.ApiResponse;
+import com.titanium.product.api.response.ProductTemplateResponse;
 import com.titanium.product.application.command.ProductTemplateCommandAppService;
 import com.titanium.product.application.query.ProductTemplateQueryAppService;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
+import com.titanium.product.web.dto.CreateProductTemplateDTO;
 import com.titanium.product.web.mapper.ProductTemplateWebMapper;
-import com.titanium.product.web.request.CreateProductTemplateRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -48,37 +48,37 @@ public class ProductTemplateController {
      * 根据产品ID查询产品模板
      */
     @GetMapping("/by-product/{productId}")
-    public ApiResponse<ProductTemplateDTO> getByProductId(@PathVariable String productId,
+    public ApiResponse<ProductTemplateResponse> getByProductId(@PathVariable String productId,
                                                           @RequestHeader("X-Tenant-ID") String tenantId) {
         ProductTemplateQueryResult result = queryAppService.getTemplateByProductId(productId, tenantId);
-        return ApiResponse.success(webMapper.toDTO(result));
+        return ApiResponse.success(webMapper.toResponse(result));
     }
 
     /**
      * 根据模板编码查询产品模板
      */
     @GetMapping("/by-code/{templateCode}")
-    public ApiResponse<ProductTemplateDTO> getByCode(@PathVariable String templateCode,
+    public ApiResponse<ProductTemplateResponse> getByCode(@PathVariable String templateCode,
                                                      @RequestHeader("X-Tenant-ID") String tenantId) {
         ProductTemplateQueryResult result = queryAppService.getTemplateByCode(templateCode, tenantId);
-        return ApiResponse.success(webMapper.toDTO(result));
+        return ApiResponse.success(webMapper.toResponse(result));
     }
 
     /**
      * 根据模板ID查询产品模板
      */
     @GetMapping("/{templateId}")
-    public ApiResponse<ProductTemplateDTO> getById(@PathVariable String templateId,
+    public ApiResponse<ProductTemplateResponse> getById(@PathVariable String templateId,
                                                    @RequestHeader("X-Tenant-ID") String tenantId) {
         ProductTemplateQueryResult result = queryAppService.getTemplateById(templateId, tenantId);
-        return ApiResponse.success(webMapper.toDTO(result));
+        return ApiResponse.success(webMapper.toResponse(result));
     }
 
     /**
      * 创建产品模板
      */
     @PostMapping
-    public ApiResponse<String> createTemplate(@RequestBody CreateProductTemplateRequest request,
+    public ApiResponse<String> createTemplate(@RequestBody CreateProductTemplateDTO request,
                                               @RequestHeader("X-Tenant-ID") String tenantId) {
         // 协议转换：HTTP Request → 领域命令，收敛到应用层门面
         CreateProductTemplateCommand command = webMapper.toCommand(request, tenantId);
@@ -110,10 +110,10 @@ public class ProductTemplateController {
      * 根据险种类型查询模板列表
      */
     @GetMapping("/by-type/{insuranceTypeCode}")
-    public ApiResponse<List<ProductTemplateDTO>> getByInsuranceType(@PathVariable String insuranceTypeCode,
+    public ApiResponse<List<ProductTemplateResponse>> getByInsuranceType(@PathVariable String insuranceTypeCode,
                                                                     @RequestHeader("X-Tenant-ID") String tenantId) {
         InsuranceType type = InsuranceType.fromCode(insuranceTypeCode);
         List<ProductTemplateQueryResult> results = queryAppService.getTemplatesByInsuranceType(type, tenantId);
-        return ApiResponse.success(results.stream().map(webMapper::toDTO).toList());
+        return ApiResponse.success(results.stream().map(webMapper::toResponse).toList());
     }
 }

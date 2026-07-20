@@ -19,7 +19,7 @@ import org.springframework.data.domain.PageImpl;
 
 import com.alibaba.fastjson2.JSON;
 
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.entity.ProductClauseRel;
 import com.titanium.product.query.handler.query.ProductClauseQueryHandler;
@@ -49,16 +49,17 @@ class ProductQueryHandlerTest {
         ProductQueryService productQueryService = mock(ProductQueryService.class);
         ProductConditionQueryHandler handler = new ProductConditionQueryHandler(productQueryService);
         FindProductByConditionQuery query = new FindProductByConditionQuery(
-                ProductEnum.ProductForm.GROUP, InsuranceType.CAR, ProductEnum.ProductStatus.EFFECTIVE, 0, 10);
+                null, ProductEnum.ProductForm.GROUP, InsuranceProductType.TERM_LIFE,
+                ProductEnum.ProductStatus.EFFECTIVE, 0, 10);
         Page<ProductQueryResult> expected = new PageImpl<>(List.of(new ProductQueryResult()));
-        when(productQueryService.findByCondition(ProductEnum.ProductForm.GROUP, InsuranceType.CAR,
+        when(productQueryService.findByCondition(null, ProductEnum.ProductForm.GROUP, InsuranceProductType.TERM_LIFE,
                 ProductEnum.ProductStatus.EFFECTIVE, 0, 10)).thenReturn(expected);
 
         Page<ProductQueryResult> actual = handler.handle(query);
 
         assertEquals(1, actual.getTotalElements());
-        verify(productQueryService).findByCondition(ProductEnum.ProductForm.GROUP, InsuranceType.CAR,
-                ProductEnum.ProductStatus.EFFECTIVE, 0, 10);
+        verify(productQueryService).findByCondition(null, ProductEnum.ProductForm.GROUP,
+                InsuranceProductType.TERM_LIFE, ProductEnum.ProductStatus.EFFECTIVE, 0, 10);
     }
 
     @Test

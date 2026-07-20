@@ -110,3 +110,24 @@ ALTER TABLE t_product_view
 ALTER TABLE t_product_template_view
     ADD COLUMN life_product_spec_json TEXT COMMENT '寿险产品规格(JSON序列化的LifeProductSpec)';
 --rollback ALTER TABLE t_product_template_view DROP COLUMN life_product_spec_json;
+
+--changeset weisun:product-7
+-- PROD-1: 可售产品单向引用产品模板, 打通 Product->Template 脱钩(此前互无引用)
+ALTER TABLE t_product_view
+    ADD COLUMN template_id VARCHAR(36) COMMENT '所属产品模板ID(单向引用ProductTemplate)';
+--rollback ALTER TABLE t_product_view DROP COLUMN template_id;
+
+--changeset weisun:product-8
+-- PROD-5: 修复分红配置读模型链路(此前写侧有dividendConfig但读侧无列永久丢失)
+ALTER TABLE t_product_template_view
+    ADD COLUMN dividend_config_json TEXT COMMENT '分红配置(JSON序列化的DividendConfig)';
+--rollback ALTER TABLE t_product_template_view DROP COLUMN dividend_config_json;
+
+--changeset weisun:product-9
+-- PROD-3(读侧): 补齐寿险双模式定价配置读模型链路
+-- pricingMode/rateTableRef/actuarialBasis 在写侧(聚合根+事件)已就位，此变更打通读侧投影
+ALTER TABLE t_product_view
+    ADD COLUMN pricing_mode         VARCHAR(32) COMMENT '定价模式(RATE_TABLE/ACTUARIAL_FORMULA)',
+    ADD COLUMN rate_table_ref_json  TEXT        COMMENT '费率表引用(JSON,pricingMode=RATE_TABLE时有值)',
+    ADD COLUMN actuarial_basis_json TEXT        COMMENT '精算基础参数(JSON,pricingMode=ACTUARIAL_FORMULA时有值)';
+--rollback ALTER TABLE t_product_view DROP COLUMN pricing_mode, DROP COLUMN rate_table_ref_json, DROP COLUMN actuarial_basis_json;

@@ -3,11 +3,11 @@ package com.titanium.product.web.provider;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.product.api.ProductApi;
-import com.titanium.product.api.dto.AuditProductDTO;
-import com.titanium.product.api.dto.CreateProductDTO;
-import com.titanium.product.api.dto.PricingBasicRuleDTO;
-import com.titanium.product.api.dto.ProductDTO;
+import com.titanium.product.api.request.AuditProductRequest;
+import com.titanium.product.api.request.CreateProductRequest;
 import com.titanium.product.api.response.ApiResponse;
+import com.titanium.product.api.response.PricingBasicRuleResponse;
+import com.titanium.product.api.response.ProductResponse;
 import com.titanium.product.application.command.ProductCommandAppService;
 import com.titanium.product.application.query.ProductQueryAppService;
 import com.titanium.product.command.CreateProductCommand;
@@ -36,7 +36,7 @@ public class ProductApiProvider implements ProductApi {
     private final ProductWebMapper         productWebMapper;
 
     @Override
-    public ApiResponse<String> createProduct(CreateProductDTO dto, String tenantId) {
+    public ApiResponse<String> createProduct(CreateProductRequest dto, String tenantId) {
         // 协议转换：远程 DTO → 领域命令，收敛到同一应用层门面
         CreateProductCommand command = productWebMapper.toCommand(dto, tenantId);
         String productId = productCommandAppService.createProduct(command);
@@ -44,9 +44,9 @@ public class ProductApiProvider implements ProductApi {
     }
 
     @Override
-    public ApiResponse<ProductDTO> getProductById(String productId, String tenantId) {
+    public ApiResponse<ProductResponse> getProductById(String productId, String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
-        return ApiResponse.success(productWebMapper.toProductDTO(result));
+        return ApiResponse.success(productWebMapper.toProductResponse(result));
     }
 
     @Override
@@ -56,13 +56,13 @@ public class ProductApiProvider implements ProductApi {
     }
 
     @Override
-    public ApiResponse<Void> auditProduct(String productId, AuditProductDTO dto, String tenantId) {
+    public ApiResponse<Void> auditProduct(String productId, AuditProductRequest dto, String tenantId) {
         productCommandAppService.auditProduct(productWebMapper.toAuditCommand(productId, dto));
         return ApiResponse.success(null);
     }
 
     @Override
-    public ApiResponse<Void> rejectAudit(String productId, AuditProductDTO dto, String tenantId) {
+    public ApiResponse<Void> rejectAudit(String productId, AuditProductRequest dto, String tenantId) {
         productCommandAppService.rejectAudit(productWebMapper.toRejectCommand(productId, dto));
         return ApiResponse.success(null);
     }
@@ -92,8 +92,8 @@ public class ProductApiProvider implements ProductApi {
     }
 
     @Override
-    public ApiResponse<PricingBasicRuleDTO> getPricingRule(String productId, String tenantId) {
+    public ApiResponse<PricingBasicRuleResponse> getPricingRule(String productId, String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
-        return ApiResponse.success(productWebMapper.toPricingRuleDTO(result.getPricingBasicRule()));
+        return ApiResponse.success(productWebMapper.toPricingRuleResponse(result));
     }
 }

@@ -103,6 +103,11 @@ public class ProductTemplateView extends BaseView {
     @Column(name = "life_product_spec_json", columnDefinition = "TEXT")
     private String                      lifeProductSpecJson;
 
+    /** 分红配置（JSON，分红型模板专属：分配方式/低中高档演示利率） */
+    @Lob
+    @Column(name = "dividend_config_json", columnDefinition = "TEXT")
+    private String                      dividendConfigJson;
+
     /** 模板状态 */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 32)

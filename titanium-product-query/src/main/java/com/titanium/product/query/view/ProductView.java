@@ -3,7 +3,7 @@ package com.titanium.product.query.view;
 import java.time.LocalDateTime;
 
 import com.titanium.common.jpa.BaseView;
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 
 import jakarta.persistence.Column;
@@ -41,6 +41,10 @@ public class ProductView extends BaseView {
     @Column(name = "product_id", nullable = false, length = 36)
     private String        productId;
 
+    /** 所属产品模板ID（单向引用 ProductTemplate） */
+    @Column(name = "template_id", length = 36)
+    private String        templateId;
+
     /** 产品编码 */
     @Column(name = "product_code", length = 64)
     private String        productCode;
@@ -61,7 +65,7 @@ public class ProductView extends BaseView {
     /** 险种类型 */
     @Enumerated(EnumType.STRING)
     @Column(name = "insurance_type", length = 32)
-    private InsuranceType insuranceType;
+    private InsuranceProductType insuranceType;
 
     /** 产品类别 */
     @Enumerated(EnumType.STRING)
@@ -141,6 +145,20 @@ public class ProductView extends BaseView {
     @Lob
     @Column(name = "sales_channels_json", columnDefinition = "TEXT")
     private String        salesChannelsJson;
+
+    /** 定价模式（RATE_TABLE/ACTUARIAL_FORMULA，来源 PricingMode 枚举 code） */
+    @Column(name = "pricing_mode", length = 32)
+    private String        pricingMode;
+
+    /** 费率表引用（JSON，pricingMode=RATE_TABLE 时有值，序列化的 RateTableRef） */
+    @Lob
+    @Column(name = "rate_table_ref_json", columnDefinition = "TEXT")
+    private String        rateTableRefJson;
+
+    /** 精算基础参数（JSON，pricingMode=ACTUARIAL_FORMULA 时有值，序列化的 ActuarialBasis） */
+    @Lob
+    @Column(name = "actuarial_basis_json", columnDefinition = "TEXT")
+    private String        actuarialBasisJson;
 
     /** 业务创建时间（来源事件） */
     @Column(name = "created_at")

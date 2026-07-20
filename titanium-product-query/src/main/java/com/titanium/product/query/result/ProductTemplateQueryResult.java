@@ -7,6 +7,8 @@ import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.valueobject.BillingConfig;
 import com.titanium.product.valueobject.ClaimConfig;
+import com.titanium.product.valueobject.DividendConfig;
+import com.titanium.product.valueobject.LifeProductSpec;
 import com.titanium.product.valueobject.MaintenanceConfig;
 import com.titanium.product.valueobject.PolicyStage;
 import com.titanium.product.valueobject.PolicyStructureConfig;
@@ -43,6 +45,9 @@ public class ProductTemplateQueryResult {
     private ClaimConfig claimConfig;
     private BillingConfig billingConfig;
     private ReinsuranceConfig reinsuranceConfig;
+    private DividendConfig dividendConfig;
+    /** 寿险产品规格（寿险模板专属：投保年龄/保额范围/缴费期/保障期选项） */
+    private LifeProductSpec lifeProductSpec;
     private CommonStatus status;
     private String tenantId;
 }
