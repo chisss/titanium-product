@@ -23,27 +23,31 @@ public class ProductResponse {
     private String version;
     private ProductEnum.ProductStatus status;
     private String originalProductId;
+    /** 绑定的产品模板ID（模板行为配置的定位键） */
+    private String templateId;
     private LocalDateTime effectiveTime;
     private LocalDateTime invalidTime;
     private LocalDateTime saleStartTime;
     private LocalDateTime saleEndTime;
 
-    /** 投保条件（JSON对象或结构化DTO） */
-    private Object insureCondition;
+    /** 投保条件 */
+    private InsureConditionResponse insureCondition;
     /** 保障期间配置 */
-    private Object coveragePeriod;
+    private CoveragePeriodConfigResponse coveragePeriod;
     /** 缴费方式配置 */
-    private Object paymentConfig;
+    private PaymentConfigResponse paymentConfig;
     /** 定价基础规则 */
-    private Object pricingBasicRule;
+    private PricingBasicRuleResponse pricingBasicRule;
     /** 出单流程配置 */
-    private Object issuanceProcessConfig;
+    private IssuanceProcessConfigResponse issuanceProcessConfig;
     /** 保单形态配置 */
-    private Object policyFormConfig;
+    private PolicyFormConfigResponse policyFormConfig;
     /** 核保配置 */
-    private Object underwritingConfig;
+    private UnderwritingConfigResponse underwritingConfig;
+    /** 文档配置（所需投保材料清单 + 生成文档模板清单） */
+    private DocumentConfigResponse documentConfig;
     /** 审核信息 */
-    private Object auditInfo;
+    private AuditInfoResponse auditInfo;
 
     private LocalDateTime createdAt;
     private String createdBy;

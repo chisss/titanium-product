@@ -18,8 +18,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 @EnableFeignClients(basePackages = "com.titanium.product.api")
+// 除读模型外，须显式纳入 Axon 的 JPA 实体（事件流/快照/位点/Saga），否则事件存储运行时找不到实体
 @EntityScan(basePackages = {
-        "com.titanium.product.query.view"
+        "com.titanium.product.query.view",
+        "org.axonframework.eventsourcing.eventstore.jpa",
+        "org.axonframework.eventhandling.tokenstore.jpa",
+        "org.axonframework.modelling.saga.repository.jpa"
 })
 @EnableJpaRepositories(basePackages = {
         "com.titanium.product.query.repository"

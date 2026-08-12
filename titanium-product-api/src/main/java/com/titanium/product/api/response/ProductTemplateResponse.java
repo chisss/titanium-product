@@ -1,12 +1,14 @@
 package com.titanium.product.api.response;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
+import com.titanium.metadata.enums.insurance.SubjectType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.common.enums.LiabilityStructure;
-import com.titanium.product.common.enums.SubjectType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -67,6 +69,12 @@ public class ProductTemplateResponse {
 
     @Schema(description = "再保险配置")
     private ReinsuranceConfigDTO reinsuranceConfig;
+
+    @Schema(description = "分红配置（分红险专属：红利分配方式 + 三档演示利率）")
+    private DividendConfigDTO dividendConfig;
+
+    @Schema(description = "寿险产品规格（寿险专属：投保年龄/保额范围/缴费期/保障期选项）")
+    private LifeProductSpecDTO lifeProductSpec;
 
     @Schema(description = "模板状态: ACTIVE/INACTIVE")
     private CommonStatus status;
@@ -173,5 +181,75 @@ public class ProductTemplateResponse {
         private java.math.BigDecimal retentionLimit;
         @Schema(description = "默认再保合约编码")
         private String defaultContractCode;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Schema(description = "分红配置DTO（分红险专属）")
+    public static class DividendConfigDTO {
+        @Schema(description = "红利分配方式: CASH/ACCUMULATE/PAID_UP_ADDITION/OFFSET_PREMIUM")
+        private ProductEnum.DividendDistribution distribution;
+        @Schema(description = "低档演示利率（如 0.015 表示 1.5%）")
+        private BigDecimal lowDemoRate;
+        @Schema(description = "中档演示利率")
+        private BigDecimal midDemoRate;
+        @Schema(description = "高档演示利率")
+        private BigDecimal highDemoRate;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Schema(description = "寿险产品规格DTO（寿险专属）")
+    public static class LifeProductSpecDTO {
+        @Schema(description = "险种三级分类: 定期寿/终身寿/两全/年金")
+        private InsuranceProductType productType;
+        @Schema(description = "可投保年龄范围")
+        private AgeRangeDTO entryAgeRange;
+        @Schema(description = "保额范围")
+        private SumInsuredRangeDTO sumInsuredRange;
+        @Schema(description = "缴费期选项列表")
+        private List<PremiumTermOptionDTO> premiumTermOptions;
+        @Schema(description = "保障期选项列表")
+        private List<CoverageTermOptionDTO> coverageTermOptions;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Schema(description = "可投保年龄范围DTO")
+    public static class AgeRangeDTO {
+        @Schema(description = "最小投保年龄（含）")
+        private int minAge;
+        @Schema(description = "最大投保年龄（含）")
+        private int maxAge;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Schema(description = "保额范围DTO")
+    public static class SumInsuredRangeDTO {
+        @Schema(description = "最低基本保额（含）")
+        private BigDecimal minSumInsured;
+        @Schema(description = "最高基本保额（含）")
+        private BigDecimal maxSumInsured;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Schema(description = "缴费期选项DTO")
+    public static class PremiumTermOptionDTO {
+        @Schema(description = "缴费年数（0 表示趸缴）")
+        private int years;
+        @Schema(description = "缴至年龄（与 years 二选一，null 表示按年数缴费）")
+        private Integer toAge;
+        @Schema(description = "选项描述")
+        private String description;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Schema(description = "保障期选项DTO")
+    public static class CoverageTermOptionDTO {
+        @Schema(description = "保障年数（0 表示终身）")
+        private int years;
+        @Schema(description = "保至年龄（与 years 二选一，null 表示按年数保障）")
+        private Integer toAge;
+        @Schema(description = "是否终身保障")
+        private boolean wholeLife;
+        @Schema(description = "选项描述")
+        private String description;
     }
 }

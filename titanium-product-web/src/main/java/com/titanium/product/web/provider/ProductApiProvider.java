@@ -1,11 +1,14 @@
 package com.titanium.product.web.provider;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductApi;
 import com.titanium.product.api.request.AuditProductRequest;
 import com.titanium.product.api.request.CreateProductRequest;
-import com.titanium.product.api.response.ApiResponse;
 import com.titanium.product.api.response.PricingBasicRuleResponse;
 import com.titanium.product.api.response.ProductResponse;
 import com.titanium.product.application.command.ProductCommandAppService;
@@ -26,6 +29,7 @@ import lombok.RequiredArgsConstructor;
  * </p>
  */
 @RestController
+@RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 public class ProductApiProvider implements ProductApi {
 
@@ -95,5 +99,15 @@ public class ProductApiProvider implements ProductApi {
     public ApiResponse<PricingBasicRuleResponse> getPricingRule(String productId, String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
         return ApiResponse.success(productWebMapper.toPricingRuleResponse(result));
+    }
+
+    @Override
+    public ApiResponse<List<com.titanium.product.api.response.ProductClauseResponse>> getProductClauses(
+            String productId, String tenantId) {
+        List<com.titanium.product.api.response.ProductClauseResponse> responses = productQueryAppService
+                .queryProductClauses(productId).stream()
+                .map(productWebMapper::toProductClauseResponse)
+                .toList();
+        return ApiResponse.success(responses);
     }
 }

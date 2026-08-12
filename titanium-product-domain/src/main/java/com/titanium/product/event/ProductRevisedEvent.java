@@ -21,7 +21,8 @@ import com.titanium.product.valueobject.UnderwritingConfig;
  * 产品修订事件 当产品被修订并生成新版本时发布
  */
 public record ProductRevisedEvent(String newProductId, String templateId, String originalProductId, String newVersion,
-                                  String newProductName, String newProductDesc, ProductEnum.ProductForm newForm,
+                                  String productCode, String newProductName, String newProductDesc,
+                                  ProductEnum.ProductForm newForm,
                                   InsuranceProductType newInsuranceType, ProductEnum.ProductCategory newCategory,
                                   InsureCondition newInsureCondition, CoveragePeriodConfig newCoveragePeriod,
                                   PaymentConfig newPaymentConfig, List<ProductClauseRel> newClauseRels,
@@ -29,5 +30,5 @@ public record ProductRevisedEvent(String newProductId, String templateId, String
                                   IssuanceProcessConfig newIssuanceProcessConfig, PolicyFormConfig newPolicyFormConfig,
                                   UnderwritingConfig newUnderwritingConfig, List<String> attachProductIds,
                                   PricingMode newPricingMode, RateTableRef newRateTableRef,
-                                  ActuarialBasis newActuarialBasis) {
+                                  ActuarialBasis newActuarialBasis, String tenantId) {
 }

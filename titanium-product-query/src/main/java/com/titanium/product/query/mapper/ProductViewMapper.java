@@ -46,6 +46,7 @@ public interface ProductViewMapper {
     @Mapping(target = "issuanceProcessConfigJson", source = "issuanceProcessConfig", qualifiedByName = "toJson")
     @Mapping(target = "policyFormConfigJson", source = "policyFormConfig", qualifiedByName = "toJson")
     @Mapping(target = "underwritingConfigJson", source = "underwritingConfig", qualifiedByName = "toJson")
+    @Mapping(target = "documentConfigJson", source = "documentConfig", qualifiedByName = "toJson")
     @Mapping(target = "pricingMode", source = "pricingMode", qualifiedByName = "pricingModeCode")
     @Mapping(target = "rateTableRefJson", source = "rateTableRef", qualifiedByName = "toJson")
     @Mapping(target = "actuarialBasisJson", source = "actuarialBasis", qualifiedByName = "toJson")
@@ -57,8 +58,8 @@ public interface ProductViewMapper {
     /**
      * 产品修订事件 → 产品读模型（就地 upsert；修订会生成新产品ID）。
      * <p>
-     * 修订事件字段以 {@code newXxx} 命名，逐字段映射到读模型；修订态 status 固定 DRAFT、
-     * productCode/tenantId 从原始记录继承，均属运行时业务规则，由投影处理器处理，此处 {@code ignore}。
+     * 修订事件字段以 {@code newXxx} 命名，逐字段映射到读模型；{@code productCode}/{@code tenantId} 现由事件携带，
+     * 与读模型同名字段自动映射（不再从原始记录继承）；修订态 status 固定 DRAFT 属运行时业务规则，由投影处理器处理。
      * </p>
      */
     @Mapping(target = "productId", source = "newProductId")
@@ -92,7 +93,9 @@ public interface ProductViewMapper {
     @Mapping(target = "underwritingConfigJson", source = "underwritingConfig", qualifiedByName = "toJson")
     @Mapping(target = "maintenanceConfigJson", source = "maintenanceConfig", qualifiedByName = "toJson")
     @Mapping(target = "claimConfigJson", source = "claimsConfig", qualifiedByName = "toJson")
-    @Mapping(target = "policyStructureJson", source = "policyFormConfig", qualifiedByName = "toJson")
+    // policyStructureJson 是保单结构配置(PolicyStructureConfig)列，仅由 UpdateProductTemplateCommand 写入；
+    // 创建事件不承载 policyStructureConfig（原误将 policyFormConfig 序列化入此列，与读侧 PolicyStructureConfig 反序列化类型冲突），故创建期忽略
+    @Mapping(target = "policyStructureJson", ignore = true)
     @Mapping(target = "issuanceMode", ignore = true)
     @Mapping(target = "createTime", ignore = true)
     @Mapping(target = "updateTime", ignore = true)

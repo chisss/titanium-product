@@ -22,6 +22,7 @@ import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.query.view.ProductView;
 import com.titanium.product.valueobject.ActuarialBasis;
 import com.titanium.product.valueobject.CoveragePeriodConfig;
+import com.titanium.product.valueobject.DocumentConfig;
 import com.titanium.product.valueobject.InsureCondition;
 import com.titanium.product.valueobject.IssuanceProcessConfig;
 import com.titanium.product.valueobject.PaymentConfig;
@@ -104,6 +105,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         result.setVersion(view.getVersionNo());
         result.setStatus(view.getStatus());
         result.setOriginalProductId(view.getOriginalProductId());
+        result.setTemplateId(view.getTemplateId());
         result.setEffectiveTime(view.getEffectiveTime());
         result.setInvalidTime(view.getInvalidTime());
         result.setSaleStartTime(view.getSaleStartTime());
@@ -115,11 +117,13 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         result.setIssuanceProcessConfig(parse(view.getIssuanceProcessConfigJson(), IssuanceProcessConfig.class));
         result.setPolicyFormConfig(parse(view.getPolicyFormConfigJson(), PolicyFormConfig.class));
         result.setUnderwritingConfig(parse(view.getUnderwritingConfigJson(), UnderwritingConfig.class));
+        result.setDocumentConfig(parse(view.getDocumentConfigJson(), DocumentConfig.class));
         // PROD-3读侧：定价模式 + 费率表引用 + 精算基础参数
         result.setPricingMode(view.getPricingMode() != null ? PricingMode.fromCode(view.getPricingMode()) : null);
         result.setRateTableRef(parse(view.getRateTableRefJson(), RateTableRef.class));
         result.setActuarialBasis(parse(view.getActuarialBasisJson(), ActuarialBasis.class));
         result.setCreatedAt(view.getCreatedAt());
+        result.setCreatedBy(view.getCreatedBy());
         result.setTenantId(view.getTenantId());
         return result;
     }

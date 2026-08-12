@@ -1,5 +1,7 @@
 package com.titanium.product.api;
 
+import java.util.List;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,10 +10,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
+import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.request.AuditProductRequest;
 import com.titanium.product.api.request.CreateProductRequest;
-import com.titanium.product.api.response.ApiResponse;
 import com.titanium.product.api.response.PricingBasicRuleResponse;
+import com.titanium.product.api.response.ProductClauseResponse;
 import com.titanium.product.api.response.ProductResponse;
 
 /**
@@ -76,4 +79,20 @@ public interface ProductApi {
     @GetMapping("/{productId}/pricing-rule")
     ApiResponse<PricingBasicRuleResponse> getPricingRule(@PathVariable("productId") String productId,
                                                     @RequestHeader("X-Tenant-ID") String tenantId);
+
+    /**
+     * 查询产品绑定的条款关联（供 Policy 域出单装配条款/责任快照调用）
+     * <p>
+     * 返回条款ID + <b>版本</b> + 是否主条款。policy 域据此向 clause 域取条款与责任清单，
+     * 冻结为保单的条款快照（L2.5）与责任快照（L4）——保单一经签发即适用该版本条款，
+     * 条款域后续修订不影响存量保单。
+     * </p>
+     *
+     * @param productId 产品ID
+     * @param tenantId 租户ID
+     * @return 条款关联列表，未绑定时为空列表
+     */
+    @GetMapping("/{productId}/clauses")
+    ApiResponse<List<ProductClauseResponse>> getProductClauses(@PathVariable("productId") String productId,
+                                                          @RequestHeader("X-Tenant-ID") String tenantId);
 }

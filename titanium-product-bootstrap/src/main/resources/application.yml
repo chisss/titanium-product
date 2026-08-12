@@ -4,7 +4,7 @@ spring:
   profiles:
     active: dev
   datasource:
-    url: jdbc:mysql://localhost:3306/titanium_insurance?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/titanium_insurance?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true
     username: root
     password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -21,9 +21,6 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:liquibase/changelog-master.xml
-    default-schema: titanium_insurance
-    liquibase-schema: titanium_insurance
-    username: root
     password: password
   # Kafka 跨域事件外发(与 customer 域一致：String 序列化 + 应用侧 fastjson2 JSON)
   kafka:
@@ -35,6 +32,11 @@ spring:
 
 server:
   port: 8082
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 axon:
   serializer:

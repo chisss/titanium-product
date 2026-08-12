@@ -53,6 +53,16 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Jackson JSR310 for Axon compatibility -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
         <!-- 架构守护：共享 ArchUnit 基类（版本由 titanium-parent 管理） -->
         <dependency>
             <groupId>com.titanium</groupId>

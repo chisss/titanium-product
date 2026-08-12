@@ -4,21 +4,41 @@ import java.util.List;
 import java.util.UUID;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.api.request.AuditProductRequest;
 import com.titanium.product.api.request.CreateProductRequest;
+import com.titanium.product.api.response.AdditionalStepResponse;
+import com.titanium.product.api.response.AuditInfoResponse;
+import com.titanium.product.api.response.CoveragePeriodConfigResponse;
+import com.titanium.product.api.response.DocumentConfigResponse;
+import com.titanium.product.api.response.DocumentTemplateResponse;
+import com.titanium.product.api.response.InsureConditionResponse;
+import com.titanium.product.api.response.IssuanceProcessConfigResponse;
+import com.titanium.product.api.response.PaymentConfigResponse;
+import com.titanium.product.api.response.PolicyFormConfigResponse;
 import com.titanium.product.api.response.PricingBasicRuleResponse;
 import com.titanium.product.api.response.ProductResponse;
+import com.titanium.product.api.response.RequiredMaterialResponse;
+import com.titanium.product.api.response.UnderwritingConfigResponse;
 import com.titanium.product.command.AuditProductCommand;
 import com.titanium.product.command.CreateProductCommand;
 import com.titanium.product.command.RejectProductAuditCommand;
 import com.titanium.product.query.result.ProductQueryResult;
+import com.titanium.product.valueobject.AdditionalStep;
+import com.titanium.product.valueobject.AuditInfo;
+import com.titanium.product.valueobject.CoveragePeriodConfig;
+import com.titanium.product.valueobject.DocumentConfig;
 import com.titanium.product.valueobject.InsureCondition;
+import com.titanium.product.valueobject.IssuanceProcessConfig;
 import com.titanium.product.valueobject.LifeProductSpec;
+import com.titanium.product.valueobject.PaymentConfig;
+import com.titanium.product.valueobject.PolicyFormConfig;
 import com.titanium.product.valueobject.PricingBasicRule;
+import com.titanium.product.valueobject.UnderwritingConfig;
 import com.titanium.product.web.dto.AuditProductDTO;
 import com.titanium.product.web.dto.ConfigureLifeProductDTO;
 import com.titanium.product.web.dto.CreateProductDTO;
@@ -64,21 +84,23 @@ public interface ProductWebMapper {
                 request.getSaleStartTime(),
                 request.getSaleEndTime(),
                 toInsureCondition(request.getInsureCondition()),
-                null, // coveragePeriod：后续通过 JSON 转换
-                null, // paymentConfig：后续通过 JSON 转换
+                request.getCoveragePeriod(), // 保障期间：DTO 直承载领域值对象（web 可依赖 domain VO）
+                request.getPaymentConfig(), // 缴费方式：同上
                 toPricingBasicRule(request.getPricingBasicRule()),
                 request.getClauseIds(),
                 request.getClauseVersionMap(),
                 request.getMainClauseId(),
-                null, // salesChannels：后续通过 JSON 转换
+                request.getSalesChannels(), // 销售渠道配置
                 request.getAttachProductIds(),
-                null, // issuanceProcessConfig：后续通过 JSON 转换
-                null, // policyFormConfig：后续通过 JSON 转换
-                null, // underwritingConfig：后续通过 JSON 转换
+                request.getIssuanceProcessConfig(), // 出单流程配置
+                request.getPolicyFormConfig(), // 保单形态配置
+                request.getUnderwritingConfig(), // 核保配置
                 tenantId,
                 request.getPricingMode() != null ? PricingMode.fromCode(request.getPricingMode()) : null,
-                null, // rateTableRef：后续通过 JSON 转换
-                null); // actuarialBasis：后续通过 JSON 转换
+                request.getRateTableRef(), // 费率表引用（RATE_TABLE 模式）
+                request.getActuarialBasis(), // 精算基础参数（ACTUARIAL_FORMULA 模式）
+                request.getDocumentConfig(), // 文档配置（所需投保材料 + 生成文档模板）
+                request.getCreatedBy()); // 创建人：前端随请求体传入登录用户显示名
     }
 
     /**
@@ -122,7 +144,9 @@ public interface ProductWebMapper {
                 tenantId,
                 dto.getPricingMode() != null ? PricingMode.fromCode(dto.getPricingMode()) : null,
                 null, // rateTableRef：后续通过 JSON 转换
-                null); // actuarialBasis：后续通过 JSON 转换
+                null, // actuarialBasis：后续通过 JSON 转换
+                null, // documentConfig：远程契约暂不承载文档配置
+                null); // createdBy：远程契约暂不承载创建人
     }
 
     /**
@@ -162,39 +186,49 @@ public interface ProductWebMapper {
     /**
      * 读模型结果 → 产品 DTO（Controller/Provider 用）
      */
-    default ProductResponse toProductResponse(ProductQueryResult result) {
-        if (result == null) {
-            return null;
-        }
-        ProductResponse dto = new ProductResponse();
-        dto.setProductId(result.getProductId());
-        dto.setProductCode(result.getProductCode());
-        dto.setProductName(result.getProductName());
-        dto.setProductDesc(result.getProductDesc());
-        dto.setForm(result.getForm());
-        dto.setInsuranceType(result.getInsuranceType());
-        dto.setCategory(result.getCategory());
-        dto.setVersion(result.getVersion());
-        dto.setStatus(result.getStatus());
-        dto.setOriginalProductId(result.getOriginalProductId());
-        dto.setEffectiveTime(result.getEffectiveTime());
-        dto.setInvalidTime(result.getInvalidTime());
-        dto.setSaleStartTime(result.getSaleStartTime());
-        dto.setSaleEndTime(result.getSaleEndTime());
-        dto.setInsureCondition(result.getInsureCondition());
-        dto.setCoveragePeriod(result.getCoveragePeriod());
-        dto.setPaymentConfig(result.getPaymentConfig());
-        dto.setPricingBasicRule(result.getPricingBasicRule());
-        dto.setIssuanceProcessConfig(result.getIssuanceProcessConfig());
-        dto.setPolicyFormConfig(result.getPolicyFormConfig());
-        dto.setUnderwritingConfig(result.getUnderwritingConfig());
-        dto.setAuditInfo(result.getAuditInfo());
-        dto.setCreatedAt(result.getCreatedAt());
-        dto.setCreatedBy(result.getCreatedBy());
-        dto.setUpdatedAt(result.getUpdatedAt());
-        dto.setUpdatedBy(result.getUpdatedBy());
-        return dto;
-    }
+    /**
+     * 读模型结果 → 产品响应（Controller/Provider 用）。
+     * <p>
+     * 声明式映射：标量字段同名自动映射；6 个配置值对象经声明式子映射器转为对应 {@code *Response}
+     * 强类型（替代原 {@code Object} 松类型）；{@code pricingBasicRule} 因需合并 result 顶层的
+     * 定价模式/精算基础/费率表引用，复用富化装配的 {@link #toPricingRuleResponse}。
+     * </p>
+     */
+    @Mapping(target = "pricingBasicRule", expression = "java(toPricingRuleResponse(result))")
+    ProductResponse toProductResponse(ProductQueryResult result);
+
+    /** 投保条件值对象 → 响应（同名字段声明式映射） */
+    InsureConditionResponse toInsureConditionResponse(InsureCondition vo);
+
+    /** 保障期间配置值对象 → 响应 */
+    CoveragePeriodConfigResponse toCoveragePeriodConfigResponse(CoveragePeriodConfig vo);
+
+    /** 缴费方式配置值对象 → 响应 */
+    PaymentConfigResponse toPaymentConfigResponse(PaymentConfig vo);
+
+    /** 出单流程配置值对象 → 响应（内嵌附加步骤列表由 MapStruct 逐项映射） */
+    IssuanceProcessConfigResponse toIssuanceProcessConfigResponse(IssuanceProcessConfig vo);
+
+    /** 附加业务步骤值对象 → 响应 */
+    AdditionalStepResponse toAdditionalStepResponse(AdditionalStep vo);
+
+    /** 保单形态配置值对象 → 响应 */
+    PolicyFormConfigResponse toPolicyFormConfigResponse(PolicyFormConfig vo);
+
+    /** 核保配置值对象 → 响应 */
+    UnderwritingConfigResponse toUnderwritingConfigResponse(UnderwritingConfig vo);
+
+    /** 文档配置值对象 → 响应（内嵌所需材料/文档模板列表由 MapStruct 逐项映射） */
+    DocumentConfigResponse toDocumentConfigResponse(DocumentConfig vo);
+
+    /** 所需投保材料值对象 → 响应 */
+    RequiredMaterialResponse toRequiredMaterialResponse(DocumentConfig.RequiredMaterial vo);
+
+    /** 生成文档模板值对象 → 响应 */
+    DocumentTemplateResponse toDocumentTemplateResponse(DocumentConfig.DocumentTemplate vo);
+
+    /** 审核信息值对象 → 响应 */
+    AuditInfoResponse toAuditInfoResponse(AuditInfo vo);
 
     /**
      * 产品查询结果 → 定价基础规则 DTO（Provider 定价规则查询用）
@@ -278,10 +312,12 @@ public interface ProductWebMapper {
         }
         return new InsureCondition(
                 req.getMinAge(), req.getMaxAge(),
-                req.getForbiddenOccupations(), null,
+                req.getForbiddenOccupations(), req.getAllowedOccupations(),
                 req.getMinGroupSize(), req.getMaxGroupSize(),
                 req.getHealthNotice(),
-                null, null, null, null, null, null, null);
+                req.getMinInsuredAmount(), req.getMaxInsuredAmount(),
+                req.getForbiddenRegions(), req.getAllowedRegions(),
+                req.getMaxInsuredCount(), req.getWaitingPeriodDays(), req.getHesitationPeriodDays());
     }
 
     /**
@@ -323,4 +359,17 @@ public interface ProductWebMapper {
                 input.getPricingType() != null ? ProductEnum.PricingType.fromCode(input.getPricingType()) : null,
                 input.getBaseRate(), null, input.getRateFormula(), null);
     }
+
+    /**
+     * 产品条款关联读模型结果 → 对外响应（Provider 用）
+     * <p>
+     * 同名字段自动映射（clauseId/clauseVersion/mainClause/bindTime），供 policy 域出单时
+     * 据条款ID与版本装配保单条款快照。
+     * </p>
+     *
+     * @param result 产品条款关联查询结果
+     * @return 产品条款关联响应
+     */
+    com.titanium.product.api.response.ProductClauseResponse toProductClauseResponse(
+            com.titanium.product.query.result.ProductClauseQueryResult result);
 }

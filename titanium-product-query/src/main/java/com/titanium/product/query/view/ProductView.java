@@ -136,6 +136,11 @@ public class ProductView extends BaseView {
     @Column(name = "underwriting_config_json", columnDefinition = "TEXT")
     private String        underwritingConfigJson;
 
+    /** 文档配置（JSON，序列化的 DocumentConfig：所需投保材料 + 生成文档模板） */
+    @Lob
+    @Column(name = "document_config_json", columnDefinition = "TEXT")
+    private String        documentConfigJson;
+
     /** 审核信息（JSON） */
     @Lob
     @Column(name = "audit_info_json", columnDefinition = "TEXT")
@@ -163,4 +168,8 @@ public class ProductView extends BaseView {
     /** 业务创建时间（来源事件） */
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    /** 创建人（登录用户显示名，来源事件） */
+    @Column(name = "created_by", length = 64)
+    private String        createdBy;
 }

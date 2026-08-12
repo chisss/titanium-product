@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-import com.titanium.product.api.response.ApiResponse;
+import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.response.ProductTemplateResponse;
 
 /**

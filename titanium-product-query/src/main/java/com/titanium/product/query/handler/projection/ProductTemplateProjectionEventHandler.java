@@ -55,9 +55,11 @@ public class ProductTemplateProjectionEventHandler {
 
         // 事件字段 → 读模型的结构映射收敛到 MapStruct（含复杂值对象 JSON 序列化），消除逐字段 set
         productViewMapper.applyTemplateCreated(view, event);
-        // 出单模式：值对象整体序列化，缺省回退 DEFAULT（含默认值语义，保留在投影处理器）
-        view.setIssuanceMode(event.issuanceProcessConfig() != null
-                ? JSON.toJSONString(event.issuanceProcessConfig()) : "DEFAULT");
+        // 出单模式：仅存枚举名（与列语义/QueryResult/Response 类型一致），缺省或无模式时置 null，
+        // 避免把整个 IssuanceProcessConfig 值对象 JSON 塞进 issuance_mode 列导致读侧 valueOf 崩溃
+        view.setIssuanceMode(resolveIssuanceMode(event));
+        // 出单步骤链：值对象整体 JSON 存于 policy_stages_json，供读侧还原
+        view.setPolicyStagesJson(toJson(event.issuanceProcessConfig()));
         stampAuditTime(view);
 
         templateViewRepository.save(view);
@@ -128,6 +130,20 @@ public class ProductTemplateProjectionEventHandler {
             templateViewRepository.save(view);
         }, () -> log.warn("[读模型投影] {} 失败：未找到读模型记录 templateId={}（可能事件乱序，将由DLQ重试）", action,
                 templateId));
+    }
+
+    /**
+     * 从出单流程配置解析出单模式枚举名（null 安全）：无配置或无模式时返回 null。
+     * <p>
+     * issuance_mode 列语义为「出单模式枚举名」（ONE_STEP/TWO_STEP/...），非整个流程配置；
+     * 流程细节（步骤链等）单独存于 policy_stages_json。
+     * </p>
+     */
+    private String resolveIssuanceMode(ProductTemplateCreatedEvent event) {
+        if (event.issuanceProcessConfig() == null || event.issuanceProcessConfig().issuanceMode() == null) {
+            return null;
+        }
+        return event.issuanceProcessConfig().issuanceMode().name();
     }
 
     /**

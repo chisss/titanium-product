@@ -9,6 +9,7 @@ import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.entity.ProductClauseRel;
 import com.titanium.product.valueobject.ActuarialBasis;
 import com.titanium.product.valueobject.CoveragePeriodConfig;
+import com.titanium.product.valueobject.DocumentConfig;
 import com.titanium.product.valueobject.InsureCondition;
 import com.titanium.product.valueobject.IssuanceProcessConfig;
 import com.titanium.product.valueobject.PaymentConfig;
@@ -32,5 +33,5 @@ public record ProductCreatedEvent(String productId, String templateId, String pr
                                   List<String> attachProductIds, IssuanceProcessConfig issuanceProcessConfig,
                                   PolicyFormConfig policyFormConfig, UnderwritingConfig underwritingConfig,
                                   String tenantId, PricingMode pricingMode, RateTableRef rateTableRef,
-                                  ActuarialBasis actuarialBasis) {
+                                  ActuarialBasis actuarialBasis, DocumentConfig documentConfig, String createdBy) {
 }

@@ -10,9 +10,11 @@ import com.alibaba.fastjson2.TypeReference;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.product.query.repository.ProductTemplateViewRepository;
+import com.titanium.product.query.repository.ProductViewRepository;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
 import com.titanium.product.query.service.ProductTemplateQueryService;
 import com.titanium.product.query.view.ProductTemplateView;
+import com.titanium.product.query.view.ProductView;
 import com.titanium.product.valueobject.BillingConfig;
 import com.titanium.product.valueobject.ClaimConfig;
 import com.titanium.product.valueobject.DividendConfig;
@@ -38,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProductTemplateQueryServiceImpl implements ProductTemplateQueryService {
 
     private final ProductTemplateViewRepository templateViewRepository;
+    private final ProductViewRepository         productViewRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -50,7 +53,12 @@ public class ProductTemplateQueryServiceImpl implements ProductTemplateQueryServ
     @Override
     @Transactional(readOnly = true)
     public ProductTemplateQueryResult getTemplateByProductId(String productId, String tenantId) {
-        return templateViewRepository.findByProductIdAndTenantId(productId, tenantId)
+        // 产品→模板的关联落在产品读模型 t_product_view.template_id（一个模板被多个产品复用），
+        // 故先据产品定位其绑定的 templateId，再取模板读模型；模板读模型自身的 product_id 列不可靠（投影未回填）。
+        return productViewRepository.findByProductIdAndTenantId(productId, tenantId)
+                .map(ProductView::getTemplateId)
+                .filter(templateId -> templateId != null && !templateId.isBlank())
+                .flatMap(templateId -> templateViewRepository.findByTemplateIdAndTenantId(templateId, tenantId))
                 .map(this::toQueryResult)
                 .orElse(null);
     }

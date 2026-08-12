@@ -131,3 +131,15 @@ ALTER TABLE t_product_view
     ADD COLUMN rate_table_ref_json  TEXT        COMMENT '费率表引用(JSON,pricingMode=RATE_TABLE时有值)',
     ADD COLUMN actuarial_basis_json TEXT        COMMENT '精算基础参数(JSON,pricingMode=ACTUARIAL_FORMULA时有值)';
 --rollback ALTER TABLE t_product_view DROP COLUMN pricing_mode, DROP COLUMN rate_table_ref_json, DROP COLUMN actuarial_basis_json;
+
+--changeset weisun:product-10
+-- 补齐创建人读模型列: ProductCreatedEvent 携带 createdBy(前端随请求体传入登录用户显示名), 投影至读模型供列表/详情展示
+ALTER TABLE t_product_view
+    ADD COLUMN created_by VARCHAR(64) COMMENT '创建人(登录用户显示名,来源事件)';
+--rollback ALTER TABLE t_product_view DROP COLUMN created_by;
+
+--changeset weisun:product-11
+-- 补齐文档配置读模型列: ProductCreatedEvent 携带 documentConfig(所需投保材料清单+生成文档模板清单), 纯产品配置(不跨文档域)
+ALTER TABLE t_product_view
+    ADD COLUMN document_config_json TEXT COMMENT '文档配置(JSON序列化的DocumentConfig:所需投保材料+生成文档模板)';
+--rollback ALTER TABLE t_product_view DROP COLUMN document_config_json;

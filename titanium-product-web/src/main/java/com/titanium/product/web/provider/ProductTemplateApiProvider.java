@@ -1,9 +1,10 @@
 package com.titanium.product.web.provider;
 
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductTemplateApi;
-import com.titanium.product.api.response.ApiResponse;
 import com.titanium.product.api.response.ProductTemplateResponse;
 import com.titanium.product.application.query.ProductTemplateQueryAppService;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
  * </p>
  */
 @RestController
+@RequestMapping("/api/v1/product-templates")
 @RequiredArgsConstructor
 public class ProductTemplateApiProvider implements ProductTemplateApi {
 

@@ -10,13 +10,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.query.query.FindProductByConditionQuery;
 import com.titanium.product.query.query.FindProductByIdQuery;
 import com.titanium.product.query.query.FindProductClauseByProductIdQuery;
 import com.titanium.product.query.query.GetTemplateByProductIdQuery;
 import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
+import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.valueobject.LifeProductSpec;
 
 /**
@@ -26,14 +26,17 @@ import com.titanium.product.valueobject.LifeProductSpec;
 @Transactional(readOnly = true)
 public class ProductQueryAppService {
     private final QueryGateway queryGateway;
+    private final ProductQueryService productQueryService;
 
     /**
      * 构造函数
      *
-     * @param queryGateway 查询网关
+     * @param queryGateway        查询网关
+     * @param productQueryService 产品读模型查询服务（分页查询直调，绕过查询总线）
      */
-    public ProductQueryAppService(QueryGateway queryGateway) {
+    public ProductQueryAppService(QueryGateway queryGateway, ProductQueryService productQueryService) {
         this.queryGateway = queryGateway;
+        this.productQueryService = productQueryService;
     }
 
     /**
@@ -60,9 +63,9 @@ public class ProductQueryAppService {
     public Page<ProductQueryResult> queryProductByCondition(String productName, ProductEnum.ProductForm form,
                                                             InsuranceProductType type, ProductEnum.ProductStatus status,
                                                             int pageNum, int pageSize) {
-        FindProductByConditionQuery query =
-                new FindProductByConditionQuery(productName, form, type, status, pageNum, pageSize);
-        return queryGateway.query(query, Page.class).join();
+        // 直接委托读侧 ProductQueryService，不经 QueryGateway 派发：Axon 4.10 的 InstanceResponseType
+        // 无法匹配返回 Page（继承 Iterable）的查询处理器，分页查询绕过查询总线直调读模型服务
+        return productQueryService.findByCondition(productName, form, type, status, pageNum, pageSize);
     }
 
     /**

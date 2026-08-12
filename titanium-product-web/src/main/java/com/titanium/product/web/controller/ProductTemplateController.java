@@ -12,13 +12,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.product.api.response.ApiResponse;
+import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.response.ProductTemplateResponse;
 import com.titanium.product.application.command.ProductTemplateCommandAppService;
 import com.titanium.product.application.query.ProductTemplateQueryAppService;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
 import com.titanium.product.web.dto.CreateProductTemplateDTO;
+import com.titanium.product.web.dto.UpdateProductTemplateDTO;
 import com.titanium.product.web.mapper.ProductTemplateWebMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -84,6 +85,27 @@ public class ProductTemplateController {
         CreateProductTemplateCommand command = webMapper.toCommand(request, tenantId);
         String templateId = commandAppService.createTemplate(command);
         return ApiResponse.success(templateId);
+    }
+
+    /**
+     * 更新产品模板行为配置
+     * <p>
+     * 更新模板的出单模式/出单阶段/核保/保单结构/保全/理赔/缴费/再保/分红等行为配置。web 层经
+     * {@link ProductTemplateWebMapper} 把请求转成 {@code UpdateProductTemplateCommand}，交
+     * {@link ProductTemplateCommandAppService} 派发。模板须为非删除态，否则聚合根拒绝更新。
+     * </p>
+     *
+     * @param templateId 模板ID（路径变量）
+     * @param request 更新产品模板请求
+     * @param tenantId 租户ID（请求头）
+     * @return 空响应
+     */
+    @PutMapping("/{templateId}")
+    public ApiResponse<Void> updateTemplate(@PathVariable String templateId,
+                                            @RequestBody UpdateProductTemplateDTO request,
+                                            @RequestHeader("X-Tenant-ID") String tenantId) {
+        commandAppService.updateTemplate(webMapper.toUpdateCommand(templateId, request, tenantId));
+        return ApiResponse.success(null);
     }
 
     /**

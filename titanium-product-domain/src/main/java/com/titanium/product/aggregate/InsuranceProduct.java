@@ -2,6 +2,7 @@ package com.titanium.product.aggregate;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.axonframework.commandhandling.CommandHandler;
@@ -36,9 +37,11 @@ import com.titanium.product.event.ProductSalesChannelUpdatedEvent;
 import com.titanium.product.event.ProductSubmittedForAuditEvent;
 import com.titanium.product.exception.ProductAuditException;
 import com.titanium.product.exception.ProductStatusPreconditionException;
+import com.titanium.product.service.ProductDomainService;
 import com.titanium.product.valueobject.ActuarialBasis;
 import com.titanium.product.valueobject.AuditInfo;
 import com.titanium.product.valueobject.CoveragePeriodConfig;
+import com.titanium.product.valueobject.DocumentConfig;
 import com.titanium.product.valueobject.InsureCondition;
 import com.titanium.product.valueobject.IssuanceProcessConfig;
 import com.titanium.product.valueobject.PaymentConfig;
@@ -71,6 +74,8 @@ public class InsuranceProduct extends BaseAggregate {
     private String                      productName;
     /** 产品描述 */
     private String                      productDesc;
+    /** 创建人（登录用户显示名，随创建命令由前端传入） */
+    private String                      createdBy;
 
     // ====== 产品分类与形态 ======
     /** 产品形态（团险/个险） */
@@ -123,6 +128,8 @@ public class InsuranceProduct extends BaseAggregate {
     private PolicyFormConfig            policyFormConfig;
     /** 核保配置 */
     private UnderwritingConfig          underwritingConfig;
+    /** 文档配置（所需投保材料清单 + 生成文档模板清单，纯产品配置不跨文档域） */
+    private DocumentConfig              documentConfig;
 
     // ====== 定价模式（保费计算数据源与方法，billing 出单按此分派） ======
     /** 定价模式（费率表查询/精算公式） */
@@ -157,8 +164,8 @@ public class InsuranceProduct extends BaseAggregate {
      * 创建产品
      */
     @CommandHandler
-    public InsuranceProduct(CreateProductCommand command) {
-        validateCreateCommand(command);
+    public InsuranceProduct(CreateProductCommand command, ProductDomainService productDomainService) {
+        validateCreateCommand(command, productDomainService);
 
         this.productId = command.productId();
         this.templateId = command.templateId();
@@ -176,9 +183,12 @@ public class InsuranceProduct extends BaseAggregate {
         this.coveragePeriod = command.coveragePeriod();
         this.paymentConfig = command.paymentConfig();
         this.pricingBasicRule = command.pricingBasicRule();
+        // 条款版本映射为可选元数据（前端可不传），缺省视为无显式版本，避免空指针
+        Map<String, String> clauseVersionMap = command.clauseVersionMap() != null
+                ? command.clauseVersionMap() : Map.of();
         this.clauseRels = command
                 .clauseIds().stream().map(clauseId -> new ProductClauseRel(clauseId,
-                        command.clauseVersionMap().get(clauseId), clauseId.equals(command.mainClauseId())))
+                        clauseVersionMap.get(clauseId), clauseId.equals(command.mainClauseId())))
                 .collect(Collectors.toList());
         this.salesChannels = command.salesChannels();
         this.attachProductIds = command.attachProductIds();
@@ -188,7 +198,9 @@ public class InsuranceProduct extends BaseAggregate {
         this.pricingMode = command.pricingMode();
         this.rateTableRef = command.rateTableRef();
         this.actuarialBasis = command.actuarialBasis();
+        this.documentConfig = command.documentConfig();
         this.tenantId = command.tenantId();
+        this.createdBy = command.createdBy();
 
         AggregateLifecycle.apply(
                 new ProductCreatedEvent(productId, templateId, productCode, productName, productDesc, form,
@@ -196,7 +208,19 @@ public class InsuranceProduct extends BaseAggregate {
                         version, ProductEnum.ProductStatus.DRAFT, LocalDateTime.now(), saleStartTime, saleEndTime,
                         insureCondition, coveragePeriod, paymentConfig, pricingBasicRule, clauseRels, salesChannels,
                         attachProductIds, issuanceProcessConfig, policyFormConfig, underwritingConfig, tenantId,
-                        pricingMode, rateTableRef, actuarialBasis));
+                        pricingMode, rateTableRef, actuarialBasis, documentConfig, createdBy));
+    }
+
+    /**
+     * 修订新版本聚合的工厂构造器（非命令处理器）
+     * <p>
+     * 由原 EFFECTIVE 产品在 {@link #handle(ReviseProductCommand)} 中经 {@link AggregateLifecycle#createNew}
+     * 调用，为 {@code newProductId} 建立独立事件流。此处 apply {@link ProductRevisedEvent} 作为新聚合的首个事件，
+     * 状态初始化由 {@link #on(ProductRevisedEvent)} 承接。
+     * </p>
+     */
+    public InsuranceProduct(ProductRevisedEvent event) {
+        AggregateLifecycle.apply(event);
     }
 
     /**
@@ -257,14 +281,20 @@ public class InsuranceProduct extends BaseAggregate {
             throw new ProductStatusPreconditionException(this.productId, statusName(), "修订");
         }
         String newVersion = generateNewVersion(this.version);
-        // 修订生成新版本：templateId 与 attachProductIds 继承原产品（修订主要变更定价/条款，模板与附加险搭配延续）
-        AggregateLifecycle.apply(new ProductRevisedEvent(command.newProductId(), this.templateId, this.productId,
-                newVersion, command.newProductName(), command.newProductDesc(), command.newForm(),
-                command.newInsuranceType(), command.newCategory(), command.newInsureCondition(),
+        // 修订生成新版本：templateId/productCode/attachProductIds/tenantId 继承原产品（修订主要变更定价/条款，模板与附加险搭配延续）
+        ProductRevisedEvent revisedEvent = new ProductRevisedEvent(command.newProductId(), this.templateId,
+                this.productId, newVersion, this.productCode, command.newProductName(), command.newProductDesc(),
+                command.newForm(), command.newInsuranceType(), command.newCategory(), command.newInsureCondition(),
                 command.newCoveragePeriod(), command.newPaymentConfig(), command.newClauseRels(),
                 command.newPricingBasicRule(), command.newSalesChannels(), command.newIssuanceProcessConfig(),
                 command.newPolicyFormConfig(), command.newUnderwritingConfig(), this.attachProductIds,
-                command.newPricingMode(), command.newRateTableRef(), command.newActuarialBasis()));
+                command.newPricingMode(), command.newRateTableRef(), command.newActuarialBasis(), this.tenantId);
+        // 修订不改写当前 EFFECTIVE 版本，而以全新的 newProductId 创建独立聚合，使新版本拥有自己的事件流并可被命令寻址
+        try {
+            AggregateLifecycle.createNew(InsuranceProduct.class, () -> new InsuranceProduct(revisedEvent));
+        } catch (Exception e) {
+            throw new ProductStatusPreconditionException(this.productId, statusName(), "修订：创建新版本聚合异常");
+        }
     }
 
     /**
@@ -346,7 +376,9 @@ public class InsuranceProduct extends BaseAggregate {
         this.pricingMode = event.pricingMode();
         this.rateTableRef = event.rateTableRef();
         this.actuarialBasis = event.actuarialBasis();
+        this.documentConfig = event.documentConfig();
         this.tenantId = event.tenantId();
+        this.createdBy = event.createdBy();
         this.createTime = event.createdAt();
         this.updateTime = event.createdAt();
     }
@@ -369,11 +401,21 @@ public class InsuranceProduct extends BaseAggregate {
         this.auditInfo = event.auditInfo();
     }
 
+    /**
+     * 修订事件溯源处理器：初始化「新版本」聚合的状态。
+     * <p>
+     * 该事件是经 {@link AggregateLifecycle#createNew} 创建的新聚合的首个事件，运行在新聚合
+     * （{@code newProductId}）自己的事件流上，故此处对 {@code productId} 的赋值是<b>初始化</b>而非改写既有标识。
+     * 新版本落为 DRAFT 状态，{@code productCode}/{@code tenantId} 由事件携带（不再从读模型继承），
+     * 并通过 {@code originalProductId} 溯源到原产品。
+     * </p>
+     */
     @EventSourcingHandler
     public void on(ProductRevisedEvent event) {
         this.productId = event.newProductId();
         this.templateId = event.templateId();
         this.originalProductId = event.originalProductId();
+        this.productCode = event.productCode();
         this.productName = event.newProductName();
         this.productDesc = event.newProductDesc();
         this.version = event.newVersion();
@@ -394,6 +436,9 @@ public class InsuranceProduct extends BaseAggregate {
         this.rateTableRef = event.newRateTableRef();
         this.actuarialBasis = event.newActuarialBasis();
         this.status = ProductEnum.ProductStatus.DRAFT;
+        this.tenantId = event.tenantId();
+        this.createTime = LocalDateTime.now();
+        this.updateTime = LocalDateTime.now();
     }
 
     @EventSourcingHandler
@@ -419,7 +464,7 @@ public class InsuranceProduct extends BaseAggregate {
 
     // ==================== 私有方法 ====================
 
-    private void validateCreateCommand(CreateProductCommand command) {
+    private void validateCreateCommand(CreateProductCommand command, ProductDomainService productDomainService) {
         String commandName = CreateProductCommand.class.getSimpleName();
         if (command.productId() == null || command.productName() == null) {
             throw new CommandValidationException(commandName, "productId/productName", "产品编号、名称不能为空");
@@ -432,6 +477,17 @@ public class InsuranceProduct extends BaseAggregate {
         }
         if (command.clauseIds() == null || command.clauseIds().isEmpty()) {
             throw new CommandValidationException(commandName, "clauseIds", "产品必须绑定至少一条条款");
+        }
+        // 主条款必须在绑定条款列表中（跨条款关联的纯领域规则，委托领域服务判定）
+        if (!productDomainService.validateMainClause(command.clauseIds(), command.mainClauseId())) {
+            throw new CommandValidationException(commandName, "mainClauseId",
+                    "必须指定一条主条款，且主条款须包含在绑定条款列表中");
+        }
+        // 出单流程配置与出单模式的步数一致性（配置存在时校验；缺省视为暂不配置，留待提审前补全）
+        if (command.issuanceProcessConfig() != null
+                && !productDomainService.validateIssuanceConfig(command.issuanceProcessConfig())) {
+            throw new CommandValidationException(commandName, "issuanceProcessConfig",
+                    "出单流程配置与出单模式不一致：步骤数不满足所选出单模式要求");
         }
         if (command.insureCondition() == null) {
             throw new CommandValidationException(commandName, "insureCondition", "投保条件不能为空");

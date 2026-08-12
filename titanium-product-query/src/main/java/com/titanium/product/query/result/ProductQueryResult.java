@@ -8,6 +8,7 @@ import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.valueobject.ActuarialBasis;
 import com.titanium.product.valueobject.AuditInfo;
 import com.titanium.product.valueobject.CoveragePeriodConfig;
+import com.titanium.product.valueobject.DocumentConfig;
 import com.titanium.product.valueobject.InsureCondition;
 import com.titanium.product.valueobject.IssuanceProcessConfig;
 import com.titanium.product.valueobject.PaymentConfig;
@@ -42,6 +43,8 @@ public class ProductQueryResult {
     private String version;
     private ProductEnum.ProductStatus status;
     private String originalProductId;
+    /** 绑定的产品模板ID（模板行为配置的定位键） */
+    private String templateId;
 
     // ====== 时间 ======
     private LocalDateTime effectiveTime;
@@ -57,6 +60,8 @@ public class ProductQueryResult {
     private IssuanceProcessConfig issuanceProcessConfig;
     private PolicyFormConfig policyFormConfig;
     private UnderwritingConfig underwritingConfig;
+    /** 文档配置（所需投保材料清单 + 生成文档模板清单） */
+    private DocumentConfig documentConfig;
 
     // ====== 寿险双模式定价配置（PROD-3读侧） ======
     /** 定价模式（RATE_TABLE/ACTUARIAL_FORMULA） */

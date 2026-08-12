@@ -74,18 +74,13 @@ public class ProductProjectionEventHandler {
         log.info("[读模型投影] 产品修订: newProductId={}, originalProductId={}", event.newProductId(),
                 event.originalProductId());
 
-        // 复用原产品的租户与编码（修订事件未携带），从原始记录继承
-        ProductView origin = productViewRepository.findById(event.originalProductId()).orElse(null);
         ProductView view = productViewRepository.findById(event.newProductId()).orElseGet(ProductView::new);
 
-        // 事件字段（newXxx）→ 读模型的结构映射收敛到 MapStruct（含复杂值对象 JSON 序列化），消除逐字段 set
+        // 事件字段（newXxx）→ 读模型的结构映射收敛到 MapStruct（含复杂值对象 JSON 序列化），消除逐字段 set；
+        // productCode/tenantId 由事件携带并自动映射，不再从原始记录继承
         productViewMapper.applyRevised(view, event);
-        // 修订态默认为草稿，编码与租户从原记录继承（运行时业务规则，保留在投影处理器）
+        // 修订态默认为草稿（运行时业务规则，保留在投影处理器）
         view.setStatus(ProductEnum.ProductStatus.DRAFT);
-        if (origin != null) {
-            view.setProductCode(origin.getProductCode());
-            view.setTenantId(origin.getTenantId());
-        }
         stampAuditTime(view);
 
         productViewRepository.save(view);

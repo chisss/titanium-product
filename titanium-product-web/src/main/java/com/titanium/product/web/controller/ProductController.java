@@ -1,5 +1,7 @@
 package com.titanium.product.web.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,12 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.api.response.ApiResponse;
+import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.response.PricingBasicRuleResponse;
 import com.titanium.product.api.response.ProductResponse;
 import com.titanium.product.application.command.ProductCommandAppService;
 import com.titanium.product.application.query.ProductQueryAppService;
 import com.titanium.product.command.CreateProductCommand;
+import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.valueobject.LifeProductSpec;
 import com.titanium.product.web.dto.AuditProductDTO;
@@ -100,6 +103,23 @@ public class ProductController {
                                                   @RequestHeader("X-Tenant-ID") String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
         return ApiResponse.success(productWebMapper.toProductResponse(result));
+    }
+
+    /**
+     * 查询产品绑定的条款清单
+     * <p>
+     * 读取产品条款关联读模型（{@code t_product_clause_rel_view}），返回产品绑定的条款ID/版本/是否主条款。
+     * 供后台产品详情页按电子保单形态呈现条款与保障责任（前端据条款ID再取条款域详情与保障责任）。
+     * </p>
+     *
+     * @param productId 产品ID
+     * @param tenantId 租户ID（请求头）
+     * @return 产品绑定条款关联清单
+     */
+    @GetMapping("/{productId}/clauses")
+    public ApiResponse<List<ProductClauseQueryResult>> getProductClauses(@PathVariable("productId") String productId,
+                                                                         @RequestHeader("X-Tenant-ID") String tenantId) {
+        return ApiResponse.success(productQueryAppService.queryProductClauses(productId));
     }
 
     /**
