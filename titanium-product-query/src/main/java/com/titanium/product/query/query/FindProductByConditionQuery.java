@@ -12,7 +12,9 @@ import com.titanium.metadata.enums.product.ProductEnum;
  * @param status 产品状态（可为空表示不限）
  * @param pageNum 页码（从 0 开始）
  * @param pageSize 每页条数
+ * @param tenantId 租户ID
  */
 public record FindProductByConditionQuery(String productName, ProductEnum.ProductForm form, InsuranceProductType type,
-                                          ProductEnum.ProductStatus status, int pageNum, int pageSize) {
+                                          ProductEnum.ProductStatus status, int pageNum, int pageSize,
+                                          String tenantId) {
 }

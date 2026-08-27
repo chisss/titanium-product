@@ -59,11 +59,27 @@ public class ProductQueryServiceImpl implements ProductQueryService {
 
     @Override
     @Transactional(readOnly = true)
+    public ProductQueryResult findProductById(String productId, String tenantId) {
+        return productViewRepository.findByProductIdAndTenantId(productId, tenantId)
+                .map(this::toQueryResult)
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductQueryResult findProductByCode(String productCode, String tenantId) {
+        return productViewRepository.findByProductCodeAndTenantId(productCode, tenantId)
+                .map(this::toQueryResult)
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Page<ProductQueryResult> findByCondition(String productName, ProductEnum.ProductForm form,
                                                     InsuranceProductType type, ProductEnum.ProductStatus status,
-                                                    int pageNum, int pageSize) {
+                                                    int pageNum, int pageSize, String tenantId) {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
-        Specification<ProductView> spec = buildConditionSpec(productName, form, type, status);
+        Specification<ProductView> spec = buildConditionSpec(productName, form, type, status, tenantId);
         return productViewRepository.findAll(spec, pageable).map(this::toQueryResult);
     }
 
@@ -71,9 +87,11 @@ public class ProductQueryServiceImpl implements ProductQueryService {
      * 组装多条件动态查询规格：产品名称（模糊）/形态/险种/状态任意组合，非空条件以 AND 结合
      */
     private Specification<ProductView> buildConditionSpec(String productName, ProductEnum.ProductForm form,
-                                                          InsuranceProductType type, ProductEnum.ProductStatus status) {
+                                                          InsuranceProductType type, ProductEnum.ProductStatus status,
+                                                          String tenantId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("tenantId"), tenantId));
             if (productName != null && !productName.isBlank()) {
                 predicates.add(cb.like(root.get("productName"), "%" + productName.trim() + "%"));
             }

@@ -8,8 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
+import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.query.query.FindProductByIdQuery;
 import com.titanium.product.query.query.FindProductClauseByProductIdQuery;
 import com.titanium.product.query.query.GetTemplateByProductIdQuery;
@@ -50,6 +52,28 @@ public class ProductQueryAppService {
     }
 
     /**
+     * 在指定租户内查询产品详情，不存在时返回稳定的产品不存在错误。
+     *
+     * @param productId 产品ID
+     * @param tenantId 租户ID
+     * @return 产品查询结果
+     */
+    public ProductQueryResult queryProductDetail(String productId, String tenantId) {
+        return requireProduct(productQueryService.findProductById(productId, tenantId));
+    }
+
+    /**
+     * 在指定租户内按产品编码查询产品详情。
+     *
+     * @param productCode 产品编码
+     * @param tenantId 租户ID
+     * @return 产品查询结果
+     */
+    public ProductQueryResult queryProductByCode(String productCode, String tenantId) {
+        return requireProduct(productQueryService.findProductByCode(productCode, tenantId));
+    }
+
+    /**
      * 根据条件查询产品列表
      *
      * @param productName 产品名称（模糊匹配，可为空）
@@ -58,14 +82,15 @@ public class ProductQueryAppService {
      * @param status 产品状态（可为空）
      * @param pageNum 页码（从 0 开始）
      * @param pageSize 每页条数
+     * @param tenantId 租户ID
      * @return 分页产品查询结果
      */
     public Page<ProductQueryResult> queryProductByCondition(String productName, ProductEnum.ProductForm form,
                                                             InsuranceProductType type, ProductEnum.ProductStatus status,
-                                                            int pageNum, int pageSize) {
+                                                            int pageNum, int pageSize, String tenantId) {
         // 直接委托读侧 ProductQueryService，不经 QueryGateway 派发：Axon 4.10 的 InstanceResponseType
         // 无法匹配返回 Page（继承 Iterable）的查询处理器，分页查询绕过查询总线直调读模型服务
-        return productQueryService.findByCondition(productName, form, type, status, pageNum, pageSize);
+        return productQueryService.findByCondition(productName, form, type, status, pageNum, pageSize, tenantId);
     }
 
     /**
@@ -95,5 +120,12 @@ public class ProductQueryAppService {
                 new GetTemplateByProductIdQuery(productId, tenantId),
                 ResponseTypes.instanceOf(ProductTemplateQueryResult.class)).join();
         return template != null ? template.getLifeProductSpec() : null;
+    }
+
+    private ProductQueryResult requireProduct(ProductQueryResult result) {
+        if (result == null) {
+            throw new BusinessException(ProductErrorCode.PRODUCT_NOT_EXIST);
+        }
+        return result;
     }
 }

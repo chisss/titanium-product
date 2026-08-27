@@ -91,7 +91,7 @@ public class ProductController {
         ProductEnum.ProductStatus productStatus =
                 status != null ? ProductEnum.ProductStatus.fromCode(status) : null;
         Page<ProductQueryResult> page = productQueryAppService.queryProductByCondition(
-                productName, null, type, productStatus, pageNum, pageSize);
+                productName, null, type, productStatus, pageNum, pageSize, tenantId);
         return ApiResponse.success(page.map(productWebMapper::toProductResponse));
     }
 
@@ -101,7 +101,7 @@ public class ProductController {
     @GetMapping("/{productId}")
     public ApiResponse<ProductResponse> getProductById(@PathVariable("productId") String productId,
                                                   @RequestHeader("X-Tenant-ID") String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(productWebMapper.toProductResponse(result));
     }
 
@@ -170,7 +170,7 @@ public class ProductController {
     @GetMapping("/{productId}/issuance-config")
     public ApiResponse<Object> getIssuanceConfig(@PathVariable("productId") String productId,
                                                  @RequestHeader("X-Tenant-ID") String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(result.getIssuanceProcessConfig());
     }
 
@@ -180,7 +180,7 @@ public class ProductController {
     @GetMapping("/{productId}/underwriting-config")
     public ApiResponse<Object> getUnderwritingConfig(@PathVariable("productId") String productId,
                                                      @RequestHeader("X-Tenant-ID") String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(result.getUnderwritingConfig());
     }
 
@@ -190,7 +190,7 @@ public class ProductController {
     @GetMapping("/{productId}/policy-form-config")
     public ApiResponse<Object> getPolicyFormConfig(@PathVariable("productId") String productId,
                                                    @RequestHeader("X-Tenant-ID") String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(result.getPolicyFormConfig());
     }
 
@@ -200,7 +200,7 @@ public class ProductController {
     @GetMapping("/{productId}/pricing-rule")
     public ApiResponse<PricingBasicRuleResponse> getPricingRule(@PathVariable("productId") String productId,
                                                            @RequestHeader("X-Tenant-ID") String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(productWebMapper.toPricingRuleResponse(result));
     }
 

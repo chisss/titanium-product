@@ -5,4 +5,16 @@
       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
     <include file="classpath:liquibase/ddl/axon_event_store_202607091700_weisun_ddl.sql"/>
     <include file="classpath:liquibase/ddl/product_view_202607091700_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_pricing_202608181200_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_pricing_plan_202608182000_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_premium_calculation_202608182200_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_actuarial_workbench_202608191900_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_tax_policy_v2b_202608201000_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_commission_v2c_202608201700_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_dynamic_factor_v2c_202608202300_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_dynamic_factor_version_length_v2c_202608201410_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_lifecycle_adjustment_v2d_202608202200_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_surrender_value_v2d3_202608210900_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_lifecycle_reversal_v2d3b_202608211000_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_maintenance_offering_202608241730_weisun_ddl.sql"/>
 </databaseChangeLog>

@@ -23,6 +23,24 @@ public interface ProductQueryService {
     ProductQueryResult findProductById(String productId);
 
     /**
+     * 根据产品ID和租户ID查询产品详情。
+     *
+     * @param productId 产品ID
+     * @param tenantId 租户ID
+     * @return 产品详情查询结果，不存在时返回 null
+     */
+    ProductQueryResult findProductById(String productId, String tenantId);
+
+    /**
+     * 根据产品编码和租户ID查询产品详情。
+     *
+     * @param productCode 产品编码
+     * @param tenantId 租户ID
+     * @return 产品详情查询结果，不存在时返回 null
+     */
+    ProductQueryResult findProductByCode(String productCode, String tenantId);
+
+    /**
      * 按条件分页查询产品列表（产品名称/形态/险种/状态任意组合，均可为空表示不限）
      *
      * @param productName 产品名称（模糊匹配），可为空
@@ -31,9 +49,10 @@ public interface ProductQueryService {
      * @param status      产品状态，可为空
      * @param pageNum     页码（从 0 开始）
      * @param pageSize    每页条数
+     * @param tenantId    租户ID
      * @return 分页产品查询结果
      */
     Page<ProductQueryResult> findByCondition(String productName, ProductEnum.ProductForm form,
                                              InsuranceProductType type, ProductEnum.ProductStatus status,
-                                             int pageNum, int pageSize);
+                                             int pageNum, int pageSize, String tenantId);
 }

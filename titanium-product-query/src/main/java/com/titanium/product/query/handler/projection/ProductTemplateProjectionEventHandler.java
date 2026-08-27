@@ -58,8 +58,10 @@ public class ProductTemplateProjectionEventHandler {
         // 出单模式：仅存枚举名（与列语义/QueryResult/Response 类型一致），缺省或无模式时置 null，
         // 避免把整个 IssuanceProcessConfig 值对象 JSON 塞进 issuance_mode 列导致读侧 valueOf 崩溃
         view.setIssuanceMode(resolveIssuanceMode(event));
-        // 出单步骤链：值对象整体 JSON 存于 policy_stages_json，供读侧还原
-        view.setPolicyStagesJson(toJson(event.issuanceProcessConfig()));
+        // 出单步骤链单独存于 policy_stages_json，避免把 IssuanceProcessConfig 对象写入阶段列表列。
+        view.setPolicyStagesJson(event.issuanceProcessConfig() == null
+                ? null
+                : toJson(event.issuanceProcessConfig().steps()));
         stampAuditTime(view);
 
         templateViewRepository.save(view);

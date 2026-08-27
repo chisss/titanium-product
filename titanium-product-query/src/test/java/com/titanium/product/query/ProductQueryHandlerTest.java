@@ -50,16 +50,16 @@ class ProductQueryHandlerTest {
         ProductConditionQueryHandler handler = new ProductConditionQueryHandler(productQueryService);
         FindProductByConditionQuery query = new FindProductByConditionQuery(
                 null, ProductEnum.ProductForm.GROUP, InsuranceProductType.TERM_LIFE,
-                ProductEnum.ProductStatus.EFFECTIVE, 0, 10);
+                ProductEnum.ProductStatus.EFFECTIVE, 0, 10, "tenant-a");
         Page<ProductQueryResult> expected = new PageImpl<>(List.of(new ProductQueryResult()));
         when(productQueryService.findByCondition(null, ProductEnum.ProductForm.GROUP, InsuranceProductType.TERM_LIFE,
-                ProductEnum.ProductStatus.EFFECTIVE, 0, 10)).thenReturn(expected);
+                ProductEnum.ProductStatus.EFFECTIVE, 0, 10, "tenant-a")).thenReturn(expected);
 
         Page<ProductQueryResult> actual = handler.handle(query);
 
         assertEquals(1, actual.getTotalElements());
         verify(productQueryService).findByCondition(null, ProductEnum.ProductForm.GROUP,
-                InsuranceProductType.TERM_LIFE, ProductEnum.ProductStatus.EFFECTIVE, 0, 10);
+                InsuranceProductType.TERM_LIFE, ProductEnum.ProductStatus.EFFECTIVE, 0, 10, "tenant-a");
     }
 
     @Test

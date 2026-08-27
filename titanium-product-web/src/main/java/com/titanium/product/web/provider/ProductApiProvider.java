@@ -49,7 +49,7 @@ public class ProductApiProvider implements ProductApi {
 
     @Override
     public ApiResponse<ProductResponse> getProductById(String productId, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(productWebMapper.toProductResponse(result));
     }
 
@@ -79,25 +79,31 @@ public class ProductApiProvider implements ProductApi {
 
     @Override
     public ApiResponse<Object> getIssuanceConfig(String productId, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(result.getIssuanceProcessConfig());
     }
 
     @Override
     public ApiResponse<Object> getUnderwritingConfig(String productId, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
+        return ApiResponse.success(result.getUnderwritingConfig());
+    }
+
+    @Override
+    public ApiResponse<Object> getUnderwritingConfigByCode(String productCode, String tenantId) {
+        ProductQueryResult result = productQueryAppService.queryProductByCode(productCode, tenantId);
         return ApiResponse.success(result.getUnderwritingConfig());
     }
 
     @Override
     public ApiResponse<Object> getPolicyFormConfig(String productId, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(result.getPolicyFormConfig());
     }
 
     @Override
     public ApiResponse<PricingBasicRuleResponse> getPricingRule(String productId, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId);
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(productWebMapper.toPricingRuleResponse(result));
     }
 

@@ -70,6 +70,11 @@ public interface ProductApi {
     ApiResponse<Object> getUnderwritingConfig(@PathVariable("productId") String productId,
                                                @RequestHeader("X-Tenant-ID") String tenantId);
 
+    /** 按产品编码查询核保配置（供仅持有险种编码的 Underwriting 域调用） */
+    @GetMapping("/by-code/{productCode}/underwriting-config")
+    ApiResponse<Object> getUnderwritingConfigByCode(@PathVariable("productCode") String productCode,
+                                                     @RequestHeader("X-Tenant-ID") String tenantId);
+
     /** 查询产品保单形态配置（供Policy域调用） */
     @GetMapping("/{productId}/policy-form-config")
     ApiResponse<Object> getPolicyFormConfig(@PathVariable("productId") String productId,

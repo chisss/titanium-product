@@ -34,6 +34,7 @@ public class ProductConditionQueryHandler {
     @QueryHandler
     public Page<ProductQueryResult> handle(FindProductByConditionQuery query) {
         return productQueryService.findByCondition(
-                query.productName(), query.form(), query.type(), query.status(), query.pageNum(), query.pageSize());
+                query.productName(), query.form(), query.type(), query.status(), query.pageNum(), query.pageSize(),
+                query.tenantId());
     }
 }

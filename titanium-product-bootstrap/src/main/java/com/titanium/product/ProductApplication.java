@@ -4,8 +4,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import com.titanium.product.service.PremiumAdjustmentService;
 
 /**
  * 产品服务启动类
@@ -17,18 +20,32 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @SpringBootApplication
 @EnableScheduling
-@EnableFeignClients(basePackages = "com.titanium.product.api")
+@EnableFeignClients(basePackages = {
+        "com.titanium.product.api",
+        "com.titanium.featurecenter.api",
+        "com.titanium.ruleengine.api",
+        "com.titanium.channel.api"
+})
 // 除读模型外，须显式纳入 Axon 的 JPA 实体（事件流/快照/位点/Saga），否则事件存储运行时找不到实体
 @EntityScan(basePackages = {
         "com.titanium.product.query.view",
+        "com.titanium.product.infrastructure.pricing.entity",
+        "com.titanium.product.infrastructure.maintenance.entity",
         "org.axonframework.eventsourcing.eventstore.jpa",
         "org.axonframework.eventhandling.tokenstore.jpa",
         "org.axonframework.modelling.saga.repository.jpa"
 })
 @EnableJpaRepositories(basePackages = {
-        "com.titanium.product.query.repository"
+        "com.titanium.product.query.repository",
+        "com.titanium.product.infrastructure.pricing.repository",
+        "com.titanium.product.infrastructure.maintenance.repository"
 })
 public class ProductApplication {
+    @Bean
+    PremiumAdjustmentService premiumAdjustmentService() {
+        return new PremiumAdjustmentService();
+    }
+
     public static void main(String[] args) {
         SpringApplication.run(ProductApplication.class, args);
     }

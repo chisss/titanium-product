@@ -1,12 +1,14 @@
 package com.titanium.product.query.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.TypeReference;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.product.query.repository.ProductTemplateViewRepository;
@@ -110,13 +112,51 @@ public class ProductTemplateQueryServiceImpl implements ProductTemplateQueryServ
      * JSON 字符串 → 值对象（null 安全）
      */
     private <T> T parse(String json, Class<T> type) {
-        return json != null ? JSON.parseObject(json, type) : null;
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        try {
+            return JSON.parseObject(json, type);
+        } catch (RuntimeException ex) {
+            log.warn("产品模板配置 JSON 解析失败，忽略该配置: type={}, json={}", type.getSimpleName(), json, ex);
+            return null;
+        }
     }
 
     /**
      * JSON 字符串 → 出单阶段列表（null 安全）
      */
     private List<PolicyStage> parseList(String json) {
-        return json != null ? JSON.parseObject(json, new TypeReference<List<PolicyStage>>() {}) : null;
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        try {
+            Object parsed = JSON.parse(json);
+            JSONArray values;
+            if (parsed instanceof JSONArray array) {
+                values = array;
+            } else if (parsed instanceof JSONObject object) {
+                values = object.getJSONArray("steps");
+                if (values == null) {
+                    return List.of();
+                }
+            } else {
+                return List.of();
+            }
+            List<PolicyStage> stages = new ArrayList<>(values.size());
+            for (Object value : values) {
+                if (value instanceof String stageCode) {
+                    stages.add(new PolicyStage(stageCode, stageCode, List.of(), null, null, false));
+                } else if (value instanceof JSONObject object) {
+                    stages.add(object.toJavaObject(PolicyStage.class));
+                } else {
+                    stages.add(JSON.parseObject(JSON.toJSONString(value), PolicyStage.class));
+                }
+            }
+            return List.copyOf(stages);
+        } catch (RuntimeException ex) {
+            log.warn("产品模板出单阶段 JSON 解析失败，忽略阶段配置: json={}", json, ex);
+            return List.of();
+        }
     }
 }

@@ -1,0 +1,40 @@
+--liquibase formatted sql
+--changeset weisun:product-premium-calculation-1
+CREATE TABLE IF NOT EXISTS t_product_premium_calculation (
+    calculation_id              VARCHAR(36)   NOT NULL COMMENT '确认计算ID',
+    calculation_request_id      VARCHAR(64)   NOT NULL COMMENT '调用方幂等请求ID',
+    biz_no                      VARCHAR(64)   NOT NULL COMMENT '业务号',
+    purpose                     VARCHAR(32)   NOT NULL COMMENT '计算用途',
+    status                      VARCHAR(16)   NOT NULL COMMENT 'CONFIRMED',
+    tenant_id                   VARCHAR(32)   NOT NULL COMMENT '租户ID',
+    product_id                  VARCHAR(36)   NOT NULL COMMENT '产品ID',
+    product_version             VARCHAR(32)   NOT NULL COMMENT '产品版本',
+    business_time               DATETIME      NOT NULL COMMENT '业务时点',
+    currency                    VARCHAR(3)    NOT NULL COMMENT '币种',
+    standard_premium            DECIMAL(20,8) NOT NULL COMMENT '标准保费',
+    total_premium               DECIMAL(20,8) NOT NULL COMMENT '确认总保费',
+    installment_amount          DECIMAL(20,8) NOT NULL COMMENT '分期金额',
+    periods                     INT           NOT NULL COMMENT '缴费期数',
+    adjustments_json            LONGTEXT      NOT NULL COMMENT '结构化调整项(JSON)',
+    request_snapshot_json       LONGTEXT      NOT NULL COMMENT '请求快照(JSON)',
+    pricing_plan_version        VARCHAR(32)   COMMENT '定价方案版本',
+    pricing_plan_content_hash   VARCHAR(64)   COMMENT '定价方案内容hash',
+    rate_table_code             VARCHAR(64)   COMMENT '费率表编码',
+    rate_table_version          VARCHAR(32)   COMMENT '费率表版本',
+    rate_table_content_hash     VARCHAR(64)   COMMENT '费率表内容hash',
+    feature_snapshot_id         VARCHAR(64)   COMMENT '特征快照ID',
+    rule_artifact_code          VARCHAR(64)   COMMENT '规则工件编码',
+    rule_artifact_version       VARCHAR(32)   COMMENT '规则工件版本',
+    rule_artifact_hash           VARCHAR(64)   COMMENT '规则工件hash',
+    rounding_scale              INT           NOT NULL COMMENT '金额精度',
+    rounding_mode               VARCHAR(32)   NOT NULL COMMENT '舍入模式',
+    request_hash                VARCHAR(64)   NOT NULL COMMENT '请求hash',
+    input_hash                  VARCHAR(64)   NOT NULL COMMENT '输入hash',
+    result_hash                 VARCHAR(64)   NOT NULL COMMENT '结果hash',
+    create_time                 DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (calculation_id),
+    UNIQUE KEY uk_product_premium_calculation_request (
+        tenant_id, calculation_request_id, purpose),
+    KEY idx_product_premium_calculation_biz (tenant_id, biz_no, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Product不可变保费确认计算事实';
+--rollback DROP TABLE IF EXISTS t_product_premium_calculation;

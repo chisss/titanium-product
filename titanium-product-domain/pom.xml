@@ -55,11 +55,6 @@
             <artifactId>titanium-clause-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.axonframework</groupId>
-            <artifactId>axon-spring</artifactId>
-        </dependency>
-
         <!-- 测试依赖（版本由 parent 管理） -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
