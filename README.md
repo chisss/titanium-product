@@ -1,200 +1,218 @@
-# Titanium Product Domain
+<div align="center">
 
-This is the Product Domain service for the Titanium insurance platform. It provides core functionality for managing insurance products, including product creation, auditing, revision, and invalidation.
+# Titanium 保险核心系统
 
-## Domain Overview
+**面向多险种、全生命周期和多租户场景的 DDD + CQRS + 事件驱动保险核心平台**
 
-The Product Domain is a core sub-domain of the insurance platform, connecting the Clause Domain (rule foundation) and the Policy Domain (business carrier). Its core value is to encapsulate the commercial configuration of insurance products, supporting the entire process from product上架 (listing) to policy issuance and underwriting.
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.1-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Axon](https://img.shields.io/badge/Axon-4.10-4B32C3)](https://www.axoniq.io/)
+[![Kafka](https://img.shields.io/badge/Kafka-4.0-231F20?logo=apachekafka&logoColor=white)](https://kafka.apache.org/)
+[![License](https://img.shields.io/badge/license-project_policy-lightgrey)](https://github.com/chisss/titanium)
 
-## Core Features
+[系统全景](#titanium-是什么) · [服务索引](#微服务索引) · [架构边界](#架构与领域边界) · [当前服务](#titanium-product) · [快速开始](#快速开始)
 
-- **Product Lifecycle Management**: Create, audit, revise, and invalidate products
-- **Version Control**: Maintain product versions, ensuring consistency for existing policies
-- **Clause Association**: Bind multiple clauses to a product, with support for main and additional clauses
-- **Pricing Configuration**: Define pricing rules and factors for different product types
-- **Versioned Rate Tables**: Manage draft, validation, publication, retirement, and immutable rate rows
-- **Versioned Pricing Plans**: Bind product versions to feature contracts, rate tables, fixed rule artifacts, effective periods, rounding, and release regression cases
-- **Charge Components**: Define versioned customer-price and internal-cost components with visibility, payer, direction, source, accounting class, and effective period
-- **Calculation Models**: Compose charge components as a validated DAG with deterministic execution and immutable content hashes
-- **Tax Policies**: Define versioned tax, stamp-duty, and regulatory-levy policies with jurisdiction, tax base, inclusive/exclusive pricing, exemption features, and regulatory evidence
-- **Actuarial Workbench APIs**: Manage charge components and calculation models through `/web/v2/actuarial`; the administration UI calls PricingPlan a “定价包” while Java/API names remain compatible
-- **Premium Quotes**: Execute the effective PricingPlan and return non-posting premium quotes with replayable version evidence
-- **Premium Confirmations**: Create immutable `ISSUANCE_CONFIRM` and `MAINTENANCE` calculations with customer-price lines, internal-cost lines, totals, and hash/version evidence
-- **Lifecycle Premium Differences**: Compare an original confirmed calculation with a `MAINTENANCE` calculation and persist immutable debit/credit, tax, internal-cost, and line-level differences
-- **Versioned Maintenance Premium Quotes**: Recalculate maintenance inputs against an exact product/pricing-plan version and return a 24-hour content-addressed quote without posting to Billing
-- **Pricing Integration Ports**: Resolve versioned typed features and execute fixed-version rule artifacts through Product-owned ports
-- **Versioned Maintenance Offerings**: Publish product/plan-specific maintenance item availability and resolve immutable evidence for Maintenance case creation
-- **Multi-Tenancy Support**: Ensure data isolation across different tenants
+</div>
 
-## Project Structure
+## 微服务索引
 
-The project follows DDD (Domain-Driven Design) principles with a clear separation of layers:
+> 下面全部使用 GitHub 绝对链接。从任何 Titanium 仓库进入，都可以直接跳转到目标服务。
 
+| 业务分组 | 服务 |
+|---|---|
+| 平台与运营 | [管理后台服务 `titanium-admin`](https://github.com/chisss/titanium-admin) · [功能中心域 `titanium-feature-center`](https://github.com/chisss/titanium-feature-center) |
+| 交易与履约 | [计费域 `titanium-billing`](https://github.com/chisss/titanium-billing) · [理赔域 `titanium-claim`](https://github.com/chisss/titanium-claim) · [投资域 `titanium-investment`](https://github.com/chisss/titanium-investment) · [保全域 `titanium-maintenance`](https://github.com/chisss/titanium-maintenance) · [支付域 `titanium-payment`](https://github.com/chisss/titanium-payment) |
+| 生态支撑 | [渠道域 `titanium-channel`](https://github.com/chisss/titanium-channel) · [文档域 `titanium-document`](https://github.com/chisss/titanium-document) · [通知域 `titanium-notification`](https://github.com/chisss/titanium-notification) |
+| 产品与承保 | [条款域 `titanium-clause`](https://github.com/chisss/titanium-clause) · [保单域 `titanium-policy`](https://github.com/chisss/titanium) · **[产品域 `titanium-product`](https://github.com/chisss/titanium-product)** · [核保域 `titanium-underwriting`](https://github.com/chisss/titanium-underwriting) |
+| 客户与交易 | [客户域 `titanium-customer`](https://github.com/chisss/titanium-customer) |
+| 治理与风控 | [监管域 `titanium-regulatory`](https://github.com/chisss/titanium-regulatory) · [再保险域 `titanium-reinsurance`](https://github.com/chisss/titanium-reinsurance) · [规则引擎域 `titanium-rule-engine`](https://github.com/chisss/titanium-rule-engine) |
+
+<details>
+<summary><strong>共享组件、前端与工程仓库</strong></summary>
+
+| 类型 | 仓库 | 用途 |
+|---|---|---|
+| [运营管理前端](https://github.com/chisss/titanium-admin-web) | `titanium-admin-web` | Vue 3 管理工作台 |
+| [共享基础库](https://github.com/chisss/titanium-common) | `titanium-common` | 多租户、通用响应、异常与基础能力 |
+| [业务元数据](https://github.com/chisss/titanium-metadata) | `titanium-metadata` | 跨域枚举、值语义与元数据契约 |
+| [依赖基线](https://github.com/chisss/titanium-parent) | `titanium-parent` | Maven BOM、插件与版本治理 |
+| [构建规则](https://github.com/chisss/titanium-build-tools) | `titanium-build-tools` | 架构和代码质量检查 |
+| [系统测试](https://github.com/chisss/titanium-test) | `titanium-test` | 跨服务集成与端到端验收 |
+
+</details>
+
+## Titanium 是什么
+
+Titanium 是保险核心业务平台，围绕保险产品从定义、投保、核保、签发、收费，到保全、理赔、再保和监管的完整生命周期建设。系统以限界上下文拆分业务能力，让每个服务拥有自己的领域模型、数据和发布节奏，并通过稳定 API 与领域事件协作。
+
+### 设计目标
+
+- **全险种**：支持车险、寿险、健康险、宠物险，以及投连险、万能险等账户型产品。
+- **全生命周期**：覆盖产品、销售、承保、收费、保全、理赔、投资、再保和监管链路。
+- **多租户**：请求、命令、事件、读模型和持久化数据均携带租户上下文。
+- **可演进**：服务内部坚持 DDD 分层，服务之间通过契约和事件解耦。
+- **可审计**：关键业务决定保存版本、输入摘要、业务证据与操作轨迹。
+
+## 技术栈
+
+| 领域 | 技术 | 用途 |
+|---|---|---|
+| 语言与构建 | Java 21、Maven | Record、虚拟线程、统一依赖与构建生命周期 |
+| 应用框架 | Spring Boot 4.0.1、Spring Cloud OpenFeign | Web 应用、依赖注入、服务间同步契约 |
+| 领域与消息 | Axon Framework 4.10、Apache Kafka 4.0 | CQRS、领域事件、异步跨域协作 |
+| 数据与缓存 | MySQL 8、Redis 7.2 | 事务数据、读模型、缓存与幂等辅助 |
+| 数据迁移 | Liquibase 4.26 | 数据库结构版本化 |
+| 工程效率 | Lombok、MapStruct | 构造注入、日志、跨层对象映射 |
+| 交付运行 | Docker、Docker Compose | 本地依赖、集成环境和容器化运行 |
+
+> 各服务按自身边界选择依赖；例如后台 CRUD 服务不强制使用 Axon，纯共享组件也不会引入 Web 运行时。
+
+## 架构与领域边界
+
+### 服务内部：DDD + 六边形分层
+
+```mermaid
+flowchart TB
+    WEB[Web<br/>REST / Validation] --> APP[Application<br/>Use Case Orchestration]
+    API[API<br/>Feign Contract / DTO] --> APP
+    APP --> DOMAIN[Domain<br/>Aggregate / Value Object / Event]
+    APP --> PORT[Domain Port]
+    INFRA[Infrastructure Adapter] -. implements .-> PORT
+    INFRA --> DB[(MySQL / Redis)]
+    INFRA --> MQ[(Kafka / External Service)]
+    EVENT[Domain Event] --> QUERY[Query Projection]
+    QUERY --> READ[(Read Model)]
 ```
-titanium-product/
-├── titanium-product-common/          # Common utilities and constants
-├── titanium-product-domain/          # Domain layer - core business logic
-│   └── src/main/java/com/titanium/product/
-│       ├── aggregate/              # Aggregate roots (InsuranceProduct)
-│       ├── command/                # Command definitions
-│       ├── query/                  # Query definitions
-│       ├── event/                  # Event definitions
-│       ├── repository/             # Repository interfaces
-│       ├── service/                # Domain services
-│       ├── valueobject/            # Value objects
-│       └── entity/                 # Aggregate entities
-├── titanium-product-infrastructure/ # Infrastructure layer - persistence and external systems
-│   └── src/main/java/com/titanium/product/
-│       ├── repository/             # Repository implementations
-│       ├── jpa/                    # JPA repositories
-│       ├── entity/                 # Database entities
-│       └── mapper/                 # Entity mappers
-├── titanium-product-application/   # Application layer - business logic orchestration
-│   └── src/main/java/com/titanium/product/
-│       ├── command/                # Command services
-│       └── query/                  # Query services
-├── titanium-product-api/            # API layer - DTOs and interfaces
-├── titanium-product-web/            # Web layer - REST controllers
-├── titanium-product-bootstrap/      # Application entry point
-└── titanium-product-query/          # Query layer - query handlers and services
+
+- Web 只处理协议、鉴权、校验和响应；Application 只编排用例。
+- 业务不变量进入聚合根或纯领域服务，Domain 不依赖 Spring 基础设施。
+- 远程调用和消息发送由 Domain 定义 Port，Infrastructure 提供 Adapter。
+- 写侧发布事实，Query 维护读模型；跨域不共享数据库表和内部实体。
+
+### 服务之间：事件驱动协作
+
+```mermaid
+flowchart LR
+    Customer -->|CustomerCreated| Policy
+    Product -->|ProductPublished| Policy
+    Policy -->|ProposalSubmitted| Underwriting
+    Underwriting -->|DecisionMade| Policy
+    Policy -->|PolicyUnderwritten| Billing
+    Billing -->|BillGenerated| Payment
+    Payment -->|PaymentSucceeded| Policy
+    Policy -->|PolicyActivated| Maintenance
+    Policy -->|ClaimRequested| Claim
+    Claim -->|CompensationApproved| Payment
+    Policy --> Reinsurance
+    Claim --> Regulatory
 ```
 
-## Core Components
+### 边界规则
 
-### Aggregate Root
+1. 聚合只能在所属服务内修改；其他服务通过 API 查询或以命令/事件发起协作。
+2. 事件描述已经发生的业务事实，必须带有 `tenantId`、业务标识和必要快照，避免消费者反查写库。
+3. 同步调用用于必须即时获得的判定；跨生命周期状态推进优先使用事件并保证幂等。
+4. `titanium-metadata` 只承载稳定的跨域语义；服务专属枚举和值对象留在本域。
+5. 仓储和远程 Port 由 Domain 定义，Adapter 位于 Infrastructure；Domain Service 不依赖任何 Port。
 
-- **InsuranceProduct**: The main aggregate root representing an insurance product, containing all product configurations and business logic.
-- **RateTableDefinition**: Owns rate-table metadata, row conflict validation, content hashing, publication, and retirement rules.
-- **PricingPlanDefinition**: Owns pricing configuration lifecycle, immutable content hashing, release gates, effective periods, and regression cases.
-- **ChargeComponentDefinition**: Owns a versioned fee/cost definition, visibility, applicability, lifecycle, and immutable published content.
-- **CalculationModelDefinition**: Owns calculation nodes and edges, DAG validation, lifecycle, and version hash.
-- **TaxPolicyDefinition**: Owns the lifecycle, effective period, exact tax base, price mode, exemption feature, regulatory evidence, and immutable content hash of a tax policy.
-- **PremiumCalculation**: Stores the immutable confirmed pricing fact, totals, lines, and replay evidence.
-- **PremiumLifecycleAdjustment**: Stores the immutable lifecycle difference between original and replacement calculation facts.
+---
 
-### Key Value Objects
+## titanium-product
 
-- **InsureCondition**: Represents the eligibility criteria for a product, such as age range, occupation restrictions, and group size limits.
-- **PricingBasicRule**: Defines the pricing structure for a product, including pricing type, base rate, and pricing factors.
-- **PricingFactor**: Represents a specific factor affecting pricing, such as age or vehicle type.
+> **产品域**：定义保险产品、计划、责任组合、销售配置和版本化定价能力。
 
-### Commands
+| 属性 | 内容 |
+|---|---|
+| 限界上下文 | 产品域（核心域） |
+| 核心模型 | Product、ProductPlan、PricingModel |
+| 主要上游 | Clause、Channel、Rule Engine |
+| 主要下游 | Policy、Billing、Maintenance |
+| 默认地址 | [`http://localhost:8082`](http://localhost:8082) |
+| GitHub | [`titanium-product`](https://github.com/chisss/titanium-product) |
 
-- **CreateProductCommand**: Creates a new product with basic configuration and clause associations.
-- **AuditProductCommand**: Approves a product, making it effective for new policies.
-- **ReviseProductCommand**: Creates a new version of an existing product with updated configuration.
-- **InvalidateProductCommand**: Invalidates an effective product, preventing new policies from being created.
-- **UpdateProductClauseRelCommand**: Updates the clause associations for a product (only allowed in draft status).
+### 能力与边界
 
-### Events
+| 本服务负责 | 本服务不负责 |
+|---|---|
+| 产品与计划生命周期<br/>责任、条款和销售配置组合<br/>版本化试算与确认计算<br/>费用、税费和佣金计算证据 | 保单合同实例<br/>账单与应收<br/>支付执行 |
 
-- **ProductCreatedEvent**: Published when a new product is created.
-- **ProductAuditedEvent**: Published when a product is approved and becomes effective.
-- **ProductRevisedEvent**: Published when a new version of a product is created.
-- **ProductInvalidatedEvent**: Published when a product is invalidated.
+### 核心能力
 
-### Queries
+- 产品与计划生命周期
+- 责任、条款和销售配置组合
+- 版本化试算与确认计算
+- 费用、税费和佣金计算证据
 
-- **FindProductByIdQuery**: Retrieves a product by its ID.
-- **FindProductByConditionQuery**: Retrieves products matching specified criteria (form, type, status).
-- **FindProductClauseByProductIdQuery**: Retrieves the clauses associated with a product.
+### 协作关系
 
-## Technology Stack
+```mermaid
+flowchart LR
+    UP[Clause、Channel、Rule Engine] -->|API / Event| CURRENT[产品域]
+    CURRENT -->|API / Event| DOWN[Policy、Billing、Maintenance]
+```
 
-- Java 21
-- Spring Boot 4.0.1
-- Axon Framework 4.10.0 (CQRS and Event Sourcing)
-- Spring Data JPA
-- MapStruct for entity-DTO mapping
-- Lombok for boilerplate code reduction
-- MySQL for data persistence
+跨域调用必须透传 `X-Tenant-Id`；命令、事件和持久化模型必须保留 `tenantId`。服务间只依赖 `api` 契约或公开事件，不依赖对方的 Domain、Infrastructure 或数据库。
 
-## Getting Started
+### 模块结构
 
-### Prerequisites
+| 模块 | 职责 |
+|---|---|
+| `titanium-product-common` | 通用层：模块内枚举、异常和常量 |
+| `titanium-product-api` | API 层：服务间契约、Feign 接口和 DTO |
+| `titanium-product-domain` | 领域层：聚合、值对象、领域事件及 Port |
+| `titanium-product-application` | 应用层：用例编排、命令与查询协调 |
+| `titanium-product-infrastructure` | 基础设施层：Repository、远程 Adapter、消息与持久化 |
+| `titanium-product-query` | 查询层：CQRS 读模型与查询处理器 |
+| `titanium-product-web` | Web 层：REST 入口、请求校验和响应装配 |
+| `titanium-product-bootstrap` | 启动层：Spring Boot 入口、配置和 Liquibase |
 
-- JDK 21 or higher
-- Maven 3.9 or higher
-- MySQL 8.0 or higher
+## 快速开始
 
-### Building the Project
+### 环境要求
+
+- JDK 21
+- Maven 3.9+
+- MySQL 8.0+
+- Redis 7.2+、Kafka 4.0（按本服务配置启用）
+
+### 构建与测试
 
 ```bash
-cd /Users/sunwei/titanium-project/titanium-product
-mvn clean install
+git clone https://github.com/chisss/titanium-product.git
+cd titanium-product
+mvn clean verify
 ```
 
-### Running the Application
+### 本地启动
 
 ```bash
-cd /Users/sunwei/titanium-project/titanium-product/titanium-product-bootstrap
-mvn spring-boot:run
+mvn -pl titanium-product-bootstrap -am spring-boot:run
 ```
 
-## API Documentation
+默认访问地址为 `http://localhost:8082`。数据库、Redis、Kafka、下游服务地址及环境变量以 `titanium-product-bootstrap/src/main/resources/application.yml` 为准。
 
-Once the application is running, you can access the Swagger UI at:
-```
-http://localhost:8082/swagger-ui.html
-```
+## 接口与开发约定
 
-Pricing endpoints:
+- 面向前端的接口放在 `web`，服务间接口和 DTO 放在 `api`。
+- Controller 使用 `@Validated` 与 JSR-303；Application 采用构造器注入。
+- 跨层转换使用 MapStruct，不直接暴露持久化对象。
+- 日志使用 SLF4J 占位符，不记录身份证件、Token 等敏感数据。
+- 新增业务行为时优先补充聚合测试；跨域流程补充集成或契约测试。
 
-- `POST /api/v1/products/{productId}/premium-quotes`: calculate a non-posting premium quote.
-- `POST /api/v1/products/{productId}/premium-calculations`: confirm an issuance premium and create an immutable calculation fact.
-- `GET /api/v1/premium-calculations/{calculationId}`: retrieve a tenant-scoped calculation fact for Policy/Billing verification.
-- `POST /api/v1/premium-calculations/lifecycle-adjustments`: create an immutable lifecycle debit/credit difference fact.
-- `GET /api/v1/premium-lifecycle-adjustments/{adjustmentId}`: retrieve a tenant-scoped lifecycle difference fact.
-- `POST /api/v1/products/{productId}/maintenance-premium-quotes`: create a versioned maintenance quote from frozen before/proposed snapshots and complete pricing inputs.
-- `/web/v1/products/{productId}/rate-tables`: manage rate-table drafts and versions for the administration backend.
-- `/web/v1/products/{productId}/pricing-plans`: manage pricing-plan drafts, test cases, approval, release regression, publication, retirement, and queries.
-- `/web/v1/products/{productId}/maintenance-offerings`: create, publish, and inspect versioned Product maintenance offerings.
-- `GET /api/v1/products/{productId}/maintenance-offering`: resolve the unique published offering by product/plan version, policy status, channel, and business time.
-- `/web/v2/actuarial/products/{productId}/charge-components`: manage versioned charge-component definitions and lifecycle.
-- `/web/v2/actuarial/products/{productId}/calculation-models`: manage calculation DAG definitions and lifecycle.
-- `/web/v2/actuarial/products/{productId}/tax-policies`: manage versioned tax-policy definitions and lifecycle.
+## 相关资料
 
-Pricing result boundaries:
+- [详细设计](./DESIGN.md)
+- [Titanium 主仓库](https://github.com/chisss/titanium)
+- [全部服务与组件](https://github.com/chisss?tab=repositories&q=titanium)
+- [Axon Framework 文档](https://docs.axoniq.io/axon-framework-reference/4.10/)
+- [Spring Boot 文档](https://docs.spring.io/spring-boot/)
 
-- `QUOTE` returns only customer-visible charge lines and never exposes internal cost details.
-- `CONFIRM` persists the complete customer-price and internal-cost fact for authorized Product/actuarial users and downstream reconciliation.
-- Maintenance premium quotes reuse `MAINTENANCE` confirmation and lifecycle-difference facts, return `quoteVersion=resultHash`, expire 24 hours after creation, and never call Billing or Payment.
-- Product owns price definitions; Channel owns channel contracts and commission schemes; Billing owns receivables, commission payables, and ledger reconciliation.
-- Tenant-scoped masking is applied by Admin when authorized users inspect confirmed internal details.
+---
 
-V2-A local acceptance data can be initialized idempotently from the project root:
+<div align="center">
 
-```bash
-./scripts/seed_actuarial_v2a_gold.sh
-```
+**Titanium Insurance Core** · Domain-driven, event-aware, tenant-safe.
 
-The script prepares one life, motor/property, short-term, and group product, advances all required assets to an executable state, and prints `READY` only after final assertions pass.
+[返回顶部](#titanium-保险核心系统) · [切换服务](#微服务索引)
 
-V2-B tax and full-receivable acceptance data can be initialized idempotently from the project root:
-
-```bash
-./scripts/seed_actuarial_v2b_tax_gold.sh
-```
-
-The script extends the same four product archetypes with exclusive tax, inclusive tax, and exemption scenarios, then verifies Product calculation evidence and Billing receivable/tax-ledger facts.
-
-V2-D1 lifecycle differences and Billing balance postings can be accepted from the project root:
-
-```bash
-./scripts/accept_actuarial_v2d_lifecycle.sh
-```
-
-The script verifies both debit and credit changes, immutable evidence, idempotency conflicts, Product/Billing line reconciliation, and MySQL persistence.
-
-Pricing integration boundaries:
-
-- `FeatureResolutionPort` maps Product feature-contract snapshots to Feature Center `POST /api/v1/features:resolve`.
-- `RuleComputationPort` executes Rule Engine `POST /api/v1/rule-artifacts/{code}/versions/{version}:compute` with an explicit artifact and input Schema version.
-- Both adapters fail closed on remote failures, empty payloads, malformed typed values, or response identity mismatches.
-- Premium quotes use the single published PricingPlan effective for the requested currency and business time, require an exact Product version and pricing-mode binding, and return PricingPlan/rate-table/feature-snapshot/rule-artifact evidence.
-- Maintenance quotes additionally require the exact expected PricingPlan version, frozen before/proposed snapshot references, an original confirmed calculation, and a complete payload SHA-256. `ENDORSEMENT` and `SURRENDER` are supported lifecycle intents; `REVERSAL` remains a separate reversal contract.
-- Products without a published PricingPlan continue to use the Phase 1 `RATE_TABLE` path; non-rate-table products fail closed until a PricingPlan is published.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+</div>
