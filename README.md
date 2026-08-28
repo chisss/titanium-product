@@ -145,14 +145,19 @@ flowchart LR
 
 ### 管理后台展示
 
-以下截图来自 [Titanium 管理后台](https://github.com/chisss/titanium-admin-web)，展示真实运行中的数据看板和产品管理页面。图片采用仓库内版本化资源，GitHub 页面可直接加载。
+以下截图来自 [Titanium 管理后台](https://github.com/chisss/titanium-admin-web)，仅展示产品域对应的业务页面。截图包含可核验的示例数据，并按页面上下排列，GitHub 页面可直接加载。
 
 <p align="center">
-  <img src="./docs/screenshots/titanium-admin-dashboard-20260828.png" alt="Titanium 管理后台数据看板" width="49%" />
-  <img src="./docs/screenshots/titanium-admin-product-list-20260828.png" alt="Titanium 管理后台产品列表" width="49%" />
+  <img src="./docs/screenshots/titanium-product-list-20260828.png" alt="产品列表：产品版本与上下架状态" width="100%" />
 </p>
 
-<p align="center"><sub>数据看板总览 · 产品列表与产品生命周期操作</sub></p>
+<p align="center"><sub>产品列表 · 产品编码、版本、险种及上下架状态</sub></p>
+
+<p align="center">
+  <img src="./docs/screenshots/titanium-product-pricing-plans-20260828.png" alt="定价包列表：费率版本与计算配置" width="100%" />
+</p>
+
+<p align="center"><sub>定价包 · 产品版本、费率模式及发布状态</sub></p>
 
 ### 协作关系
 
