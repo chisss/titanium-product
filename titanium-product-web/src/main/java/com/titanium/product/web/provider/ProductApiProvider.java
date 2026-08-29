@@ -11,6 +11,9 @@ import com.titanium.product.api.request.AuditProductRequest;
 import com.titanium.product.api.request.CreateProductRequest;
 import com.titanium.product.api.response.PricingBasicRuleResponse;
 import com.titanium.product.api.response.ProductResponse;
+import com.titanium.product.api.response.IssuanceProcessConfigResponse;
+import com.titanium.product.api.response.PolicyFormConfigResponse;
+import com.titanium.product.api.response.UnderwritingConfigResponse;
 import com.titanium.product.application.command.ProductCommandAppService;
 import com.titanium.product.application.query.ProductQueryAppService;
 import com.titanium.product.command.CreateProductCommand;
@@ -78,27 +81,27 @@ public class ProductApiProvider implements ProductApi {
     }
 
     @Override
-    public ApiResponse<Object> getIssuanceConfig(String productId, String tenantId) {
+    public ApiResponse<IssuanceProcessConfigResponse> getIssuanceConfig(String productId, String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
-        return ApiResponse.success(result.getIssuanceProcessConfig());
+        return ApiResponse.success(productWebMapper.toIssuanceProcessConfigResponse(result.getIssuanceProcessConfig()));
     }
 
     @Override
-    public ApiResponse<Object> getUnderwritingConfig(String productId, String tenantId) {
+    public ApiResponse<UnderwritingConfigResponse> getUnderwritingConfig(String productId, String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
-        return ApiResponse.success(result.getUnderwritingConfig());
+        return ApiResponse.success(productWebMapper.toUnderwritingConfigResponse(result.getUnderwritingConfig()));
     }
 
     @Override
-    public ApiResponse<Object> getUnderwritingConfigByCode(String productCode, String tenantId) {
+    public ApiResponse<UnderwritingConfigResponse> getUnderwritingConfigByCode(String productCode, String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductByCode(productCode, tenantId);
-        return ApiResponse.success(result.getUnderwritingConfig());
+        return ApiResponse.success(productWebMapper.toUnderwritingConfigResponse(result.getUnderwritingConfig()));
     }
 
     @Override
-    public ApiResponse<Object> getPolicyFormConfig(String productId, String tenantId) {
+    public ApiResponse<PolicyFormConfigResponse> getPolicyFormConfig(String productId, String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
-        return ApiResponse.success(result.getPolicyFormConfig());
+        return ApiResponse.success(productWebMapper.toPolicyFormConfigResponse(result.getPolicyFormConfig()));
     }
 
     @Override

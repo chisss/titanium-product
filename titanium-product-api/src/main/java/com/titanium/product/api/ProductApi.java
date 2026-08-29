@@ -16,6 +16,9 @@ import com.titanium.product.api.request.CreateProductRequest;
 import com.titanium.product.api.response.PricingBasicRuleResponse;
 import com.titanium.product.api.response.ProductClauseResponse;
 import com.titanium.product.api.response.ProductResponse;
+import com.titanium.product.api.response.IssuanceProcessConfigResponse;
+import com.titanium.product.api.response.PolicyFormConfigResponse;
+import com.titanium.product.api.response.UnderwritingConfigResponse;
 
 /**
  * 产品聚合对外契约（Feign）
@@ -62,23 +65,27 @@ public interface ProductApi {
 
     /** 查询产品出单流程配置（供Policy域调用） */
     @GetMapping("/{productId}/issuance-config")
-    ApiResponse<Object> getIssuanceConfig(@PathVariable("productId") String productId,
-                                           @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<IssuanceProcessConfigResponse> getIssuanceConfig(
+            @PathVariable("productId") String productId,
+            @RequestHeader("X-Tenant-ID") String tenantId);
 
     /** 查询产品核保配置（供Underwriting域调用） */
     @GetMapping("/{productId}/underwriting-config")
-    ApiResponse<Object> getUnderwritingConfig(@PathVariable("productId") String productId,
-                                               @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<UnderwritingConfigResponse> getUnderwritingConfig(
+            @PathVariable("productId") String productId,
+            @RequestHeader("X-Tenant-ID") String tenantId);
 
     /** 按产品编码查询核保配置（供仅持有险种编码的 Underwriting 域调用） */
     @GetMapping("/by-code/{productCode}/underwriting-config")
-    ApiResponse<Object> getUnderwritingConfigByCode(@PathVariable("productCode") String productCode,
-                                                     @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<UnderwritingConfigResponse> getUnderwritingConfigByCode(
+            @PathVariable("productCode") String productCode,
+            @RequestHeader("X-Tenant-ID") String tenantId);
 
     /** 查询产品保单形态配置（供Policy域调用） */
     @GetMapping("/{productId}/policy-form-config")
-    ApiResponse<Object> getPolicyFormConfig(@PathVariable("productId") String productId,
-                                             @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<PolicyFormConfigResponse> getPolicyFormConfig(
+            @PathVariable("productId") String productId,
+            @RequestHeader("X-Tenant-ID") String tenantId);
 
     /** 查询产品定价基础规则（供Billing域保费计算调用） */
     @GetMapping("/{productId}/pricing-rule")

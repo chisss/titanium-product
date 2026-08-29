@@ -18,6 +18,9 @@ import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.response.PricingBasicRuleResponse;
 import com.titanium.product.api.response.ProductResponse;
+import com.titanium.product.api.response.IssuanceProcessConfigResponse;
+import com.titanium.product.api.response.PolicyFormConfigResponse;
+import com.titanium.product.api.response.UnderwritingConfigResponse;
 import com.titanium.product.application.command.ProductCommandAppService;
 import com.titanium.product.application.query.ProductQueryAppService;
 import com.titanium.product.command.CreateProductCommand;
@@ -168,30 +171,33 @@ public class ProductController {
      * 查询产品出单流程配置
      */
     @GetMapping("/{productId}/issuance-config")
-    public ApiResponse<Object> getIssuanceConfig(@PathVariable("productId") String productId,
-                                                 @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<IssuanceProcessConfigResponse> getIssuanceConfig(
+            @PathVariable("productId") String productId,
+            @RequestHeader("X-Tenant-ID") String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
-        return ApiResponse.success(result.getIssuanceProcessConfig());
+        return ApiResponse.success(productWebMapper.toIssuanceProcessConfigResponse(result.getIssuanceProcessConfig()));
     }
 
     /**
      * 查询产品核保配置
      */
     @GetMapping("/{productId}/underwriting-config")
-    public ApiResponse<Object> getUnderwritingConfig(@PathVariable("productId") String productId,
-                                                     @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<UnderwritingConfigResponse> getUnderwritingConfig(
+            @PathVariable("productId") String productId,
+            @RequestHeader("X-Tenant-ID") String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
-        return ApiResponse.success(result.getUnderwritingConfig());
+        return ApiResponse.success(productWebMapper.toUnderwritingConfigResponse(result.getUnderwritingConfig()));
     }
 
     /**
      * 查询产品保单形态配置
      */
     @GetMapping("/{productId}/policy-form-config")
-    public ApiResponse<Object> getPolicyFormConfig(@PathVariable("productId") String productId,
-                                                   @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<PolicyFormConfigResponse> getPolicyFormConfig(
+            @PathVariable("productId") String productId,
+            @RequestHeader("X-Tenant-ID") String tenantId) {
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
-        return ApiResponse.success(result.getPolicyFormConfig());
+        return ApiResponse.success(productWebMapper.toPolicyFormConfigResponse(result.getPolicyFormConfig()));
     }
 
     /**

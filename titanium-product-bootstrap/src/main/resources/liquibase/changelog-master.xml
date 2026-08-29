@@ -5,6 +5,7 @@
       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
     <include file="classpath:liquibase/ddl/axon_event_store_202607091700_weisun_ddl.sql"/>
     <include file="classpath:liquibase/ddl/product_view_202607091700_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_no_202608281500_weisun_ddl.sql"/>
     <include file="classpath:liquibase/ddl/product_pricing_202608181200_weisun_ddl.sql"/>
     <include file="classpath:liquibase/ddl/product_pricing_plan_202608182000_weisun_ddl.sql"/>
     <include file="classpath:liquibase/ddl/product_premium_calculation_202608182200_weisun_ddl.sql"/>

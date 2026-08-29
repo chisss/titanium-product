@@ -121,6 +121,8 @@ flowchart LR
 
 > **产品域**：定义保险产品、计划、责任组合、销售配置和版本化定价能力。
 
+产品 API 的配置查询使用强类型 `ApiResponse<T>` 契约；`ProductApiContractTypeTest` 会锁定出单、核保和保单表单配置接口，避免回退为 `ApiResponse<Object>`。
+
 | 属性 | 内容 |
 |---|---|
 | 限界上下文 | 产品域（核心域） |

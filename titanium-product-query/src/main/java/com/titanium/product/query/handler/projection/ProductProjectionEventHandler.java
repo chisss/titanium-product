@@ -1,16 +1,20 @@
 package com.titanium.product.query.handler.projection;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
 
 import com.titanium.common.jpa.BasePersistable;
+import com.titanium.common.number.BusinessNumberGenerator;
+import com.titanium.common.number.BusinessNumberType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.event.ProductAuditRejectedEvent;
 import com.titanium.product.event.ProductAuditedEvent;
@@ -23,7 +27,6 @@ import com.titanium.product.query.mapper.ProductViewMapper;
 import com.titanium.product.query.repository.ProductViewRepository;
 import com.titanium.product.query.view.ProductView;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -42,11 +45,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @ProcessingGroup("product-query-group")
-@RequiredArgsConstructor
 public class ProductProjectionEventHandler {
 
     private final ProductViewRepository productViewRepository;
     private final ProductViewMapper     productViewMapper;
+    private final BusinessNumberGenerator businessNumberGenerator;
+
+    @Autowired
+    public ProductProjectionEventHandler(ProductViewRepository productViewRepository, ProductViewMapper productViewMapper,
+                                         BusinessNumberGenerator businessNumberGenerator) {
+        this.productViewRepository = productViewRepository;
+        this.productViewMapper = productViewMapper;
+        this.businessNumberGenerator = businessNumberGenerator;
+    }
+
+    /** 测试/历史兼容构造器：不分配业务号。 */
+    public ProductProjectionEventHandler(ProductViewRepository productViewRepository, ProductViewMapper productViewMapper) {
+        this(productViewRepository, productViewMapper, null);
+    }
 
     /**
      * 投影产品创建事件：新建读模型记录
@@ -56,10 +72,15 @@ public class ProductProjectionEventHandler {
     public void on(ProductCreatedEvent event) {
         log.info("[读模型投影] 产品创建: productId={}, tenantId={}", event.productId(), event.tenantId());
 
-        ProductView view = productViewRepository.findById(event.productId()).orElseGet(ProductView::new);
+        Optional<ProductView> existing = productViewRepository.findById(event.productId());
+        boolean newView = existing.isEmpty();
+        ProductView view = existing.orElseGet(ProductView::new);
 
         // 事件字段 → 读模型的结构映射收敛到 MapStruct（含复杂值对象 JSON 序列化），消除逐字段 set
         productViewMapper.applyCreated(view, event);
+        if (newView && businessNumberGenerator != null) {
+            view.setProductNo(businessNumberGenerator.next(event.tenantId(), BusinessNumberType.PRODUCT));
+        }
         stampAuditTime(view);
 
         productViewRepository.save(view);

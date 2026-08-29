@@ -41,6 +41,10 @@ public class ProductView extends BaseView {
     @Column(name = "product_id", nullable = false, length = 36)
     private String        productId;
 
+    /** 产品业务号（系统生成，区别于业务人员维护的 productCode） */
+    @Column(name = "product_no", length = 32)
+    private String        productNo;
+
     /** 所属产品模板ID（单向引用 ProductTemplate） */
     @Column(name = "template_id", length = 36)
     private String        templateId;

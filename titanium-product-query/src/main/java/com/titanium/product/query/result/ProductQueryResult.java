@@ -30,6 +30,7 @@ public class ProductQueryResult {
 
     // ====== 基础标识 ======
     private String productId;
+    private String productNo;
     private String productCode;
     private String productName;
     private String productDesc;

@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -19,6 +20,7 @@ import com.titanium.product.service.PremiumAdjustmentService;
  * </p>
  */
 @SpringBootApplication
+@ComponentScan(basePackages = { "com.titanium.product", "com.titanium.common" })
 @EnableScheduling
 @EnableFeignClients(basePackages = {
         "com.titanium.product.api",

@@ -1,12 +1,12 @@
 package com.titanium.product.web.mapper;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
+import com.titanium.common.util.SnowflakeIdGenerator;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.api.request.AuditProductRequest;
@@ -72,7 +72,7 @@ public interface ProductWebMapper {
             return null;
         }
         return new CreateProductCommand(
-                request.getProductId() != null ? request.getProductId() : UUID.randomUUID().toString(),
+                request.getProductId() != null ? request.getProductId() : SnowflakeIdGenerator.generate(),
                 request.getTemplateId(),
                 request.getProductCode(),
                 request.getProductName(),
@@ -118,7 +118,7 @@ public interface ProductWebMapper {
             return null;
         }
         return new CreateProductCommand(
-                dto.getProductId() != null ? dto.getProductId() : UUID.randomUUID().toString(),
+                dto.getProductId() != null ? dto.getProductId() : SnowflakeIdGenerator.generate(),
                 dto.getTemplateId(),
                 dto.getProductCode(),
                 dto.getProductName(),

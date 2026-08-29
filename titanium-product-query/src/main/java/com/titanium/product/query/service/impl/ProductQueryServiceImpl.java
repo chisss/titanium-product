@@ -114,6 +114,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     private ProductQueryResult toQueryResult(ProductView view) {
         ProductQueryResult result = new ProductQueryResult();
         result.setProductId(view.getProductId());
+        result.setProductNo(view.getProductNo());
         result.setProductCode(view.getProductCode());
         result.setProductName(view.getProductName());
         result.setProductDesc(view.getProductDesc());
