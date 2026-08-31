@@ -16,16 +16,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.titanium.product.aggregate.PricingPlanDefinition;
-import com.titanium.product.application.command.maintenance.CreateProductMaintenanceOfferingCommand;
+import com.titanium.product.command.maintenance.CreateProductMaintenanceOfferingCommand;
 import com.titanium.product.common.enums.PricingPlanStatus;
 import com.titanium.product.common.enums.ProductMaintenanceOfferingFailureReason;
 import com.titanium.product.common.enums.ProductMaintenanceOfferingStatus;
 import com.titanium.product.exception.ProductMaintenanceOfferingException;
 import com.titanium.product.maintenance.aggregate.ProductMaintenanceOffering;
 import com.titanium.product.maintenance.repository.ProductMaintenanceOfferingRepository;
-import com.titanium.product.port.PricingPlanRepository;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
+import com.titanium.product.repository.PricingPlanRepository;
 
 class ProductMaintenanceOfferingManagementApplicationServiceTest {
 
@@ -78,23 +78,6 @@ class ProductMaintenanceOfferingManagementApplicationServiceTest {
 
         assertEquals(ProductMaintenanceOfferingFailureReason.VERSION_MISMATCH, exception.getReason());
         verify(offeringRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldResolvePublishedOfferingForBusinessContext() {
-        ProductMaintenanceOffering offering = draft();
-        offering.publish();
-        LocalDateTime businessTime = LocalDateTime.of(2026, 8, 24, 12, 0);
-        allowProductAndPlan(PricingPlanStatus.PUBLISHED);
-        when(offeringRepository.findEffective(
-                "tenant-1", "product-1", "product-v3", "plan-v2", businessTime))
-                .thenReturn(Optional.of(offering));
-
-        ProductMaintenanceOffering resolved = service.resolve(
-                "tenant-1", "product-1", "product-v3", "plan-v2",
-                "EFFECTIVE", "API", businessTime);
-
-        assertEquals("offering-1", resolved.offeringId());
     }
 
     @Test

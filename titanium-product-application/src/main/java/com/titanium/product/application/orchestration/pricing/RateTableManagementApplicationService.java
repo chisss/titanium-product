@@ -9,15 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.aggregate.RateTableDefinition;
-import com.titanium.product.application.command.pricing.CreateRateTableDraftCommand;
-import com.titanium.product.application.command.pricing.RateTableRowDraft;
-import com.titanium.product.application.command.pricing.ReplaceRateTableRowsCommand;
-import com.titanium.product.common.enums.RateTableStatus;
-import com.titanium.product.port.RateTableManagementRepository;
+import com.titanium.product.command.pricing.CreateRateTableDraftCommand;
+import com.titanium.product.command.pricing.ReplaceRateTableRowsCommand;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
+import com.titanium.product.repository.RateTableManagementRepository;
 import com.titanium.product.valueobject.RateTableRow;
 import com.titanium.product.valueobject.RateTableValidationResult;
+import com.titanium.product.valueobject.pricing.RateTableRowDraft;
 
 import lombok.RequiredArgsConstructor;
 
@@ -79,19 +78,6 @@ public class RateTableManagementApplicationService {
         RateTableDefinition rateTable = requireRateTable(tenantId, productId, tableId);
         rateTable.retire();
         rateTableManagementRepository.save(rateTable);
-    }
-
-    /** 查询费率表详情。 */
-    @Transactional(readOnly = true)
-    public RateTableDefinition get(String tenantId, String productId, String tableId) {
-        return requireRateTable(tenantId, productId, tableId);
-    }
-
-    /** 查询产品下的费率表版本。 */
-    @Transactional(readOnly = true)
-    public List<RateTableDefinition> list(String tenantId, String productId, RateTableStatus status) {
-        validateProduct(productId, tenantId);
-        return rateTableManagementRepository.findAll(tenantId, productId, status);
     }
 
     private RateTableDefinition requireRateTable(String tenantId, String productId, String tableId) {

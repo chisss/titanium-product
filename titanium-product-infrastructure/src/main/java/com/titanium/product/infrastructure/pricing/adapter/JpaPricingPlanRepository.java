@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,19 +15,22 @@ import org.springframework.transaction.annotation.Transactional;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 
+import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.aggregate.PricingPlanDefinition;
 import com.titanium.product.common.enums.PricingPlanStatus;
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanCommissionSchemeRefEntity;
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanDynamicFactorRefEntity;
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanEntity;
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanTaxPolicyRefEntity;
-import com.titanium.product.infrastructure.pricing.entity.PricingTestCaseEntity;
+import com.titanium.product.exception.PricingDomainException;
+import com.titanium.product.infrastructure.mapper.PricingPlanPersistenceMapper;
+import com.titanium.product.infrastructure.pricing.entity.PricingPlanCommissionSchemeRefDO;
+import com.titanium.product.infrastructure.pricing.entity.PricingPlanDO;
+import com.titanium.product.infrastructure.pricing.entity.PricingPlanDynamicFactorRefDO;
+import com.titanium.product.infrastructure.pricing.entity.PricingPlanTaxPolicyRefDO;
+import com.titanium.product.infrastructure.pricing.entity.PricingTestCaseDO;
 import com.titanium.product.infrastructure.pricing.repository.PricingPlanCommissionSchemeRefJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.PricingPlanDynamicFactorRefJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.PricingPlanJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.PricingPlanTaxPolicyRefJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.PricingTestCaseJpaRepository;
-import com.titanium.product.port.PricingPlanRepository;
+import com.titanium.product.repository.PricingPlanRepository;
 import com.titanium.product.valueobject.RateTableRef;
 import com.titanium.product.valueobject.pricing.CalculationModelRef;
 import com.titanium.product.valueobject.pricing.CommissionSchemeRef;
@@ -57,6 +61,7 @@ public class JpaPricingPlanRepository implements PricingPlanRepository {
     private final PricingPlanTaxPolicyRefJpaRepository taxPolicyRefJpaRepository;
     private final PricingPlanCommissionSchemeRefJpaRepository commissionSchemeRefJpaRepository;
     private final PricingPlanDynamicFactorRefJpaRepository dynamicFactorRefJpaRepository;
+    private final PricingPlanPersistenceMapper persistenceMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -83,7 +88,7 @@ public class JpaPricingPlanRepository implements PricingPlanRepository {
     @Override
     @Transactional(readOnly = true)
     public List<PricingPlanDefinition> findAll(String tenantId, String productId, PricingPlanStatus status) {
-        List<PricingPlanEntity> plans = status == null
+        List<PricingPlanDO> plans = status == null
                 ? pricingPlanJpaRepository.findByTenantIdAndProductIdOrderByCreateTimeDesc(tenantId, productId)
                 : pricingPlanJpaRepository.findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
                         tenantId, productId, status);
@@ -94,10 +99,11 @@ public class JpaPricingPlanRepository implements PricingPlanRepository {
     @Transactional(readOnly = true)
     public Optional<PricingPlanDefinition> findEffective(
             String tenantId, String productId, String currency, LocalDateTime businessTime) {
-        List<PricingPlanEntity> plans = pricingPlanJpaRepository.findEffectivePlans(
+        List<PricingPlanDO> plans = pricingPlanJpaRepository.findEffectivePlans(
                 tenantId, productId, currency, businessTime);
         if (plans.size() > 1) {
-            throw new IllegalStateException("同一业务时点存在多个有效定价方案");
+            throw new PricingDomainException(ProductErrorCode.PRICING_PLAN_EFFECTIVE_PERIOD_CONFLICT,
+                    "同一业务时点存在多个有效定价方案");
         }
         return plans.stream().findFirst().map(this::toDomain);
     }
@@ -118,11 +124,11 @@ public class JpaPricingPlanRepository implements PricingPlanRepository {
     @Override
     @Transactional
     public void save(PricingPlanDefinition pricingPlan) {
-        pricingPlanJpaRepository.save(toEntity(pricingPlan));
+        pricingPlanJpaRepository.save(persistenceMapper.toDO(pricingPlan));
         pricingTestCaseJpaRepository.deleteByPlanIdAndTenantId(pricingPlan.planId(), pricingPlan.tenantId());
         pricingTestCaseJpaRepository.flush();
         pricingTestCaseJpaRepository.saveAll(pricingPlan.testCases().stream()
-                .map(testCase -> toEntity(pricingPlan, testCase))
+                .map(testCase -> persistenceMapper.toDO(pricingPlan, testCase))
                 .toList());
         taxPolicyRefJpaRepository.deleteByPlanId(pricingPlan.planId());
         taxPolicyRefJpaRepository.flush();
@@ -135,187 +141,93 @@ public class JpaPricingPlanRepository implements PricingPlanRepository {
         dynamicFactorRefJpaRepository.saveAll(toDynamicFactorRefEntities(pricingPlan));
     }
 
-    private PricingPlanDefinition toDomain(PricingPlanEntity entity) {
-        RateTableRef rateTableRef = entity.getRateTableCode() == null ? null : new RateTableRef(
-                null, entity.getRateTableCode(), entity.getRateTableVersion(),
-                parseStringList(entity.getRateDimensionKeysJson()));
-        PricingFeatureContract featureContract = entity.getFeatureContractId() == null ? null
+    private PricingPlanDefinition toDomain(PricingPlanDO dataObject) {
+        RateTableRef rateTableRef = dataObject.getRateTableCode() == null ? null : new RateTableRef(
+                null, dataObject.getRateTableCode(), dataObject.getRateTableVersion(),
+                parseStringList(dataObject.getRateDimensionKeysJson()));
+        PricingFeatureContract featureContract = dataObject.getFeatureContractId() == null ? null
                 : new PricingFeatureContract(
-                        entity.getFeatureContractId(), entity.getFeatureContractVersion(),
-                        JSON.parseObject(entity.getFeatureRequirementsJson(), REQUIREMENT_LIST_TYPE));
-        PricingRuleArtifactRef artifactRef = entity.getArtifactCode() == null ? null
+                        dataObject.getFeatureContractId(), dataObject.getFeatureContractVersion(),
+                        JSON.parseObject(dataObject.getFeatureRequirementsJson(), REQUIREMENT_LIST_TYPE));
+        PricingRuleArtifactRef artifactRef = dataObject.getArtifactCode() == null ? null
                 : new PricingRuleArtifactRef(
-                        entity.getArtifactCode(), entity.getArtifactVersion(), entity.getInputSchemaVersion(),
-                        entity.getArtifactHash());
-        CalculationModelRef calculationModelRef = entity.getCalculationModelCode() == null ? null
+                        dataObject.getArtifactCode(), dataObject.getArtifactVersion(),
+                        dataObject.getInputSchemaVersion(), dataObject.getArtifactHash());
+        CalculationModelRef calculationModelRef = dataObject.getCalculationModelCode() == null ? null
                 : new CalculationModelRef(
-                        entity.getCalculationModelCode(), entity.getCalculationModelVersion(),
-                        entity.getCalculationModelHash());
+                        dataObject.getCalculationModelCode(), dataObject.getCalculationModelVersion(),
+                        dataObject.getCalculationModelHash());
         List<PricingTestCase> testCases = pricingTestCaseJpaRepository
-                .findByPlanIdAndTenantIdOrderByCaseCodeAsc(entity.getPlanId(), entity.getTenantId())
+                .findByPlanIdAndTenantIdOrderByCaseCodeAsc(dataObject.getPlanId(), dataObject.getTenantId())
                 .stream()
                 .map(this::toDomain)
                 .toList();
         List<TaxPolicyRef> taxPolicyRefs = taxPolicyRefJpaRepository
-                .findByPlanIdOrderBySortOrderAsc(entity.getPlanId()).stream()
+                .findByPlanIdOrderBySortOrderAsc(dataObject.getPlanId()).stream()
                 .map(ref -> new TaxPolicyRef(ref.getPolicyCode(), ref.getPolicyVersion(), ref.getPolicyHash()))
                 .toList();
         List<CommissionSchemeRef> commissionSchemeRefs = commissionSchemeRefJpaRepository
-                .findByPlanIdOrderBySortOrderAsc(entity.getPlanId()).stream()
+                .findByPlanIdOrderBySortOrderAsc(dataObject.getPlanId()).stream()
                 .map(ref -> new CommissionSchemeRef(
                         ref.getChannelId(), ref.getSchemeCode(), ref.getSchemeVersion(), ref.getSchemeHash()))
                 .toList();
         List<DynamicFactorRef> dynamicFactorRefs = dynamicFactorRefJpaRepository
-                .findByPlanIdOrderBySortOrderAsc(entity.getPlanId()).stream()
+                .findByPlanIdOrderBySortOrderAsc(dataObject.getPlanId()).stream()
                 .map(ref -> new DynamicFactorRef(
                         ref.getFactorCode(), ref.getFactorVersion(), ref.getFactorHash()))
                 .toList();
         return PricingPlanDefinition.restore(
-                entity.getPlanId(), entity.getProductId(), entity.getProductVersion(), entity.getPlanVersion(),
-                entity.getPricingMode(), entity.getStatus(), entity.getCurrency(), entity.getEffectiveFrom(),
-                entity.getEffectiveTo(), rateTableRef, featureContract, artifactRef, calculationModelRef,
-                taxPolicyRefs, commissionSchemeRefs, dynamicFactorRefs,
-                new PricingRoundingRule(entity.getRoundingScale(), RoundingMode.valueOf(entity.getRoundingMode())),
-                entity.getTenantId(), testCases, entity.getContentHash());
+                dataObject.getPlanId(), dataObject.getProductId(), dataObject.getProductVersion(),
+                dataObject.getPlanVersion(), dataObject.getPricingMode(), dataObject.getStatus(),
+                dataObject.getCurrency(), dataObject.getEffectiveFrom(), dataObject.getEffectiveTo(),
+                rateTableRef, featureContract, artifactRef, calculationModelRef, taxPolicyRefs,
+                commissionSchemeRefs, dynamicFactorRefs,
+                new PricingRoundingRule(dataObject.getRoundingScale(),
+                        RoundingMode.valueOf(dataObject.getRoundingMode())),
+                dataObject.getTenantId(), testCases, dataObject.getContentHash());
     }
 
-    private PricingTestCase toDomain(PricingTestCaseEntity entity) {
+    private PricingTestCase toDomain(PricingTestCaseDO dataObject) {
         return new PricingTestCase(
-                entity.getCaseId(), entity.getCaseCode(), entity.getDescription(), entity.getBusinessTime(),
-                entity.getSumInsured(), entity.getAge(), entity.getGender(), entity.getPaymentTermYears(),
-                entity.getCoverageTermYears(), entity.getPaymentPeriods(),
-                JSON.parseObject(entity.getRequestSnapshotJson(), SNAPSHOT_MAP_TYPE),
-                entity.getExpectedPremium(), entity.getTolerance());
+                dataObject.getCaseId(), dataObject.getCaseCode(), dataObject.getDescription(),
+                dataObject.getBusinessTime(), dataObject.getSumInsured(), dataObject.getAge(),
+                dataObject.getGender(), dataObject.getPaymentTermYears(), dataObject.getCoverageTermYears(),
+                dataObject.getPaymentPeriods(),
+                JSON.parseObject(dataObject.getRequestSnapshotJson(), SNAPSHOT_MAP_TYPE),
+                dataObject.getExpectedPremium(), dataObject.getTolerance());
     }
 
-    private PricingPlanEntity toEntity(PricingPlanDefinition plan) {
-        PricingPlanEntity entity = new PricingPlanEntity();
-        entity.setPlanId(plan.planId());
-        entity.setProductId(plan.productId());
-        entity.setProductVersion(plan.productVersion());
-        entity.setPlanVersion(plan.planVersion());
-        entity.setPricingMode(plan.mode());
-        entity.setStatus(plan.status());
-        entity.setCurrency(plan.currency());
-        entity.setEffectiveFrom(plan.effectiveFrom());
-        entity.setEffectiveTo(plan.effectiveTo());
-        mapRateTable(plan, entity);
-        mapFeatureContract(plan, entity);
-        mapArtifact(plan, entity);
-        mapCalculationModel(plan, entity);
-        entity.setRoundingScale(plan.roundingRule().scale());
-        entity.setRoundingMode(plan.roundingRule().roundingMode().name());
-        entity.setContentHash(plan.contentHash());
-        entity.setTestCaseCount(plan.testCases().size());
-        entity.setTenantId(plan.tenantId());
-        return entity;
-    }
-
-    private void mapRateTable(PricingPlanDefinition plan, PricingPlanEntity entity) {
-        if (plan.rateTableRef() != null) {
-            entity.setRateTableCode(plan.rateTableRef().tableCode());
-            entity.setRateTableVersion(plan.rateTableRef().version());
-            entity.setRateDimensionKeysJson(JSON.toJSONString(plan.rateTableRef().dimensionKeys()));
-        }
-    }
-
-    private void mapFeatureContract(PricingPlanDefinition plan, PricingPlanEntity entity) {
-        if (plan.featureContract() == null) {
-            entity.setFeatureRequirementsJson("[]");
-            return;
-        }
-        entity.setFeatureContractId(plan.featureContract().contractId());
-        entity.setFeatureContractVersion(plan.featureContract().contractVersion());
-        entity.setFeatureRequirementsJson(JSON.toJSONString(plan.featureContract().requirements()));
-    }
-
-    private void mapArtifact(PricingPlanDefinition plan, PricingPlanEntity entity) {
-        if (plan.artifactRef() != null) {
-            entity.setArtifactCode(plan.artifactRef().artifactCode());
-            entity.setArtifactVersion(plan.artifactRef().artifactVersion());
-            entity.setInputSchemaVersion(plan.artifactRef().inputSchemaVersion());
-            entity.setArtifactHash(plan.artifactRef().artifactHash());
-        }
-    }
-
-    private void mapCalculationModel(PricingPlanDefinition plan, PricingPlanEntity entity) {
-        if (plan.calculationModelRef() != null) {
-            entity.setCalculationModelCode(plan.calculationModelRef().modelCode());
-            entity.setCalculationModelVersion(plan.calculationModelRef().modelVersion());
-            entity.setCalculationModelHash(plan.calculationModelRef().contentHash());
-        }
-    }
-
-    private PricingTestCaseEntity toEntity(PricingPlanDefinition plan, PricingTestCase testCase) {
-        PricingTestCaseEntity entity = new PricingTestCaseEntity();
-        entity.setCaseId(testCase.caseId());
-        entity.setPlanId(plan.planId());
-        entity.setCaseCode(testCase.caseCode());
-        entity.setDescription(testCase.description());
-        entity.setBusinessTime(testCase.businessTime());
-        entity.setSumInsured(testCase.sumInsured());
-        entity.setAge(testCase.age());
-        entity.setGender(testCase.gender());
-        entity.setPaymentTermYears(testCase.paymentTermYears());
-        entity.setCoverageTermYears(testCase.coverageTermYears());
-        entity.setPaymentPeriods(testCase.paymentPeriods());
-        entity.setRequestSnapshotJson(JSON.toJSONString(testCase.requestSnapshot()));
-        entity.setExpectedPremium(testCase.expectedPremium());
-        entity.setTolerance(testCase.tolerance());
-        entity.setTenantId(plan.tenantId());
-        return entity;
-    }
-
-    private List<PricingPlanTaxPolicyRefEntity> toTaxPolicyRefEntities(PricingPlanDefinition plan) {
-        return java.util.stream.IntStream.range(0, plan.taxPolicyRefs().size())
+    private List<PricingPlanTaxPolicyRefDO> toTaxPolicyRefEntities(PricingPlanDefinition plan) {
+        return IntStream.range(0, plan.taxPolicyRefs().size())
                 .mapToObj(index -> {
                     TaxPolicyRef ref = plan.taxPolicyRefs().get(index);
-                    PricingPlanTaxPolicyRefEntity entity = new PricingPlanTaxPolicyRefEntity();
                     String key = plan.planId() + ':' + ref.policyCode() + ':' + ref.policyVersion();
-                    entity.setRefId(UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8)).toString());
-                    entity.setPlanId(plan.planId());
-                    entity.setPolicyCode(ref.policyCode());
-                    entity.setPolicyVersion(ref.policyVersion());
-                    entity.setPolicyHash(ref.contentHash());
-                    entity.setSortOrder(index);
-                    return entity;
+                    String refId = UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8)).toString();
+                    return persistenceMapper.toDO(plan, ref, refId, index);
                 })
                 .toList();
     }
 
-    private List<PricingPlanCommissionSchemeRefEntity> toCommissionSchemeRefEntities(
+    private List<PricingPlanCommissionSchemeRefDO> toCommissionSchemeRefEntities(
             PricingPlanDefinition plan) {
-        return java.util.stream.IntStream.range(0, plan.commissionSchemeRefs().size())
+        return IntStream.range(0, plan.commissionSchemeRefs().size())
                 .mapToObj(index -> {
                     CommissionSchemeRef ref = plan.commissionSchemeRefs().get(index);
-                    PricingPlanCommissionSchemeRefEntity entity = new PricingPlanCommissionSchemeRefEntity();
                     String key = plan.planId() + ':' + ref.channelId() + ':' + ref.schemeCode() + ':'
                             + ref.schemeVersion();
-                    entity.setRefId(UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8)).toString());
-                    entity.setPlanId(plan.planId());
-                    entity.setChannelId(ref.channelId());
-                    entity.setSchemeCode(ref.schemeCode());
-                    entity.setSchemeVersion(ref.schemeVersion());
-                    entity.setSchemeHash(ref.contentHash());
-                    entity.setSortOrder(index);
-                    return entity;
+                    String refId = UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8)).toString();
+                    return persistenceMapper.toDO(plan, ref, refId, index);
                 })
                 .toList();
     }
 
-    private List<PricingPlanDynamicFactorRefEntity> toDynamicFactorRefEntities(PricingPlanDefinition plan) {
-        return java.util.stream.IntStream.range(0, plan.dynamicFactorRefs().size())
+    private List<PricingPlanDynamicFactorRefDO> toDynamicFactorRefEntities(PricingPlanDefinition plan) {
+        return IntStream.range(0, plan.dynamicFactorRefs().size())
                 .mapToObj(index -> {
                     DynamicFactorRef ref = plan.dynamicFactorRefs().get(index);
-                    PricingPlanDynamicFactorRefEntity entity = new PricingPlanDynamicFactorRefEntity();
                     String key = plan.planId() + ':' + ref.factorCode() + ':' + ref.factorVersion();
-                    entity.setRefId(UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8)).toString());
-                    entity.setPlanId(plan.planId());
-                    entity.setFactorCode(ref.factorCode());
-                    entity.setFactorVersion(ref.factorVersion());
-                    entity.setFactorHash(ref.contentHash());
-                    entity.setSortOrder(index);
-                    return entity;
+                    String refId = UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8)).toString();
+                    return persistenceMapper.toDO(plan, ref, refId, index);
                 })
                 .toList();
     }

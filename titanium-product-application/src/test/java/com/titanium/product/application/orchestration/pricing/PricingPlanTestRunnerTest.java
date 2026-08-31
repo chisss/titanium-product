@@ -20,16 +20,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.titanium.metadata.enums.product.PricingMode;
+import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.aggregate.PricingPlanDefinition;
+import com.titanium.product.application.service.pricing.PricingPlanTestRunner;
 import com.titanium.product.common.enums.PricingFeatureDataType;
 import com.titanium.product.common.enums.RateUnit;
 import com.titanium.product.port.CommissionResolutionPort;
 import com.titanium.product.port.FeatureResolutionPort;
-import com.titanium.product.port.RateTableSnapshotRepository;
 import com.titanium.product.port.RuleComputationPort;
 import com.titanium.product.repository.CalculationModelRepository;
 import com.titanium.product.repository.ChargeComponentRepository;
 import com.titanium.product.repository.DynamicFactorRepository;
+import com.titanium.product.repository.RateTableSnapshotRepository;
 import com.titanium.product.repository.TaxPolicyRepository;
 import com.titanium.product.service.CalculationModelExecutionService;
 import com.titanium.product.service.CalculationTotalsService;
@@ -119,7 +121,8 @@ class PricingPlanTestRunnerTest {
         var result = runner.run(plan);
 
         assertFalse(result.allPassed());
-        assertTrue(result.caseResults().getFirst().failureReason().contains("hash"));
+        assertEquals(ProductErrorCode.PRICING_PLAN_VALIDATION_FAILED.getCode(),
+                result.caseResults().getFirst().failureReason());
     }
 
     @Test

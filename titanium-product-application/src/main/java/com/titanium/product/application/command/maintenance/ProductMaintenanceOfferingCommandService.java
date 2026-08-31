@@ -3,6 +3,7 @@ package com.titanium.product.application.command.maintenance;
 import org.springframework.stereotype.Service;
 
 import com.titanium.product.application.orchestration.maintenance.ProductMaintenanceOfferingManagementApplicationService;
+import com.titanium.product.command.maintenance.CreateProductMaintenanceOfferingCommand;
 import com.titanium.product.maintenance.aggregate.ProductMaintenanceOffering;
 
 import lombok.RequiredArgsConstructor;

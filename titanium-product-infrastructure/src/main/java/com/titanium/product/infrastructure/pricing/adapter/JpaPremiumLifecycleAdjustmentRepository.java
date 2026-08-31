@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.exception.PremiumLifecycleAdjustmentConcurrentConflictException;
-import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleAdjustmentEntity;
-import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleDifferenceLineEntity;
-import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleDifferenceLineId;
+import com.titanium.product.infrastructure.mapper.PremiumLifecycleAdjustmentPersistenceMapper;
+import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleAdjustmentDO;
+import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleDifferenceLineDO;
 import com.titanium.product.infrastructure.pricing.repository.PremiumLifecycleAdjustmentJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.PremiumLifecycleDifferenceLineJpaRepository;
 import com.titanium.product.repository.PremiumLifecycleAdjustmentRepository;
@@ -29,6 +29,7 @@ public class JpaPremiumLifecycleAdjustmentRepository implements PremiumLifecycle
 
     private final PremiumLifecycleAdjustmentJpaRepository adjustmentJpaRepository;
     private final PremiumLifecycleDifferenceLineJpaRepository lineJpaRepository;
+    private final PremiumLifecycleAdjustmentPersistenceMapper persistenceMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -57,98 +58,53 @@ public class JpaPremiumLifecycleAdjustmentRepository implements PremiumLifecycle
     @Transactional
     public void save(PremiumLifecycleAdjustment adjustment) {
         try {
-            adjustmentJpaRepository.saveAndFlush(toEntity(adjustment));
+            adjustmentJpaRepository.saveAndFlush(persistenceMapper.toDO(adjustment));
             lineJpaRepository.saveAll(adjustment.getLines().stream()
-                    .map(line -> toEntity(adjustment.getAdjustmentId(), line))
+                    .map(line -> persistenceMapper.toDO(adjustment.getAdjustmentId(), line))
                     .toList());
         } catch (DataIntegrityViolationException exception) {
             throw new PremiumLifecycleAdjustmentConcurrentConflictException(exception);
         }
     }
 
-    private PremiumLifecycleAdjustmentEntity toEntity(PremiumLifecycleAdjustment adjustment) {
-        PremiumLifecycleAdjustmentEntity entity = new PremiumLifecycleAdjustmentEntity();
-        entity.setAdjustmentId(adjustment.getAdjustmentId());
-        entity.setAdjustmentRequestId(adjustment.getAdjustmentRequestId());
-        entity.setReversalOfAdjustmentId(adjustment.getReversalOfAdjustmentId());
-        entity.setBizNo(adjustment.getBizNo());
-        entity.setLifecycleType(adjustment.getLifecycleType());
-        entity.setTenantId(adjustment.getTenantId());
-        entity.setProductId(adjustment.getProductId());
-        entity.setOriginalCalculationId(adjustment.getOriginalCalculationId());
-        entity.setOriginalResultHash(adjustment.getOriginalResultHash());
-        entity.setReplacementCalculationId(adjustment.getReplacementCalculationId());
-        entity.setReplacementResultHash(adjustment.getReplacementResultHash());
-        entity.setBusinessTime(adjustment.getBusinessTime());
-        entity.setCurrency(adjustment.getCurrency());
-        entity.setDirection(adjustment.getDirection());
-        entity.setCustomerAmount(adjustment.getCustomerAmount());
-        entity.setTaxDirection(adjustment.getTaxDirection());
-        entity.setTaxAmount(adjustment.getTaxAmount());
-        entity.setInternalCostDirection(adjustment.getInternalCostDirection());
-        entity.setInternalCostAmount(adjustment.getInternalCostAmount());
-        entity.setReason(adjustment.getReason());
-        entity.setRequestHash(adjustment.getRequestHash());
-        entity.setResultHash(adjustment.getResultHash());
-        return entity;
-    }
-
-    private PremiumLifecycleDifferenceLineEntity toEntity(
-            String adjustmentId, PremiumLifecycleDifferenceLine line) {
-        PremiumLifecycleDifferenceLineEntity entity = new PremiumLifecycleDifferenceLineEntity();
-        entity.setId(new PremiumLifecycleDifferenceLineId(adjustmentId, line.lineId()));
-        entity.setComponentCode(line.componentCode());
-        entity.setOriginalComponentVersion(line.originalComponentVersion());
-        entity.setReplacementComponentVersion(line.replacementComponentVersion());
-        entity.setCategory(line.category());
-        entity.setAmountChannel(line.amountChannel());
-        entity.setDirection(line.direction());
-        entity.setPayerType(line.payerType());
-        entity.setAccountingClass(line.accountingClass());
-        entity.setCurrency(line.currency());
-        entity.setOriginalDirection(line.originalDirection());
-        entity.setBeforeAmount(line.beforeAmount());
-        entity.setReplacementDirection(line.replacementDirection());
-        entity.setAfterAmount(line.afterAmount());
-        entity.setDifferenceAmount(line.differenceAmount());
-        entity.setCustomerVisible(line.customerVisible());
-        entity.setAffectsCustomerPayable(line.affectsCustomerPayable());
-        entity.setDescription(line.description());
-        return entity;
-    }
-
-    private PremiumLifecycleAdjustment toDomain(PremiumLifecycleAdjustmentEntity entity) {
+    private PremiumLifecycleAdjustment toDomain(PremiumLifecycleAdjustmentDO dataObject) {
         List<PremiumLifecycleDifferenceLine> lines = lineJpaRepository
-                .findByIdAdjustmentIdOrderByIdLineIdAsc(entity.getAdjustmentId())
+                .findByIdAdjustmentIdOrderByIdLineIdAsc(dataObject.getAdjustmentId())
                 .stream().map(this::toDomain).toList();
         PremiumLifecycleDifference difference = new PremiumLifecycleDifference(
-                entity.getDirection(), entity.getCustomerAmount(), entity.getTaxDirection(),
-                entity.getTaxAmount(), entity.getInternalCostDirection(), entity.getInternalCostAmount(), lines);
-        if (entity.getReversalOfAdjustmentId() != null) {
+                dataObject.getDirection(), dataObject.getCustomerAmount(), dataObject.getTaxDirection(),
+                dataObject.getTaxAmount(), dataObject.getInternalCostDirection(),
+                dataObject.getInternalCostAmount(), lines);
+        if (dataObject.getReversalOfAdjustmentId() != null) {
             return PremiumLifecycleAdjustment.confirmReversal(
-                    entity.getAdjustmentId(), entity.getAdjustmentRequestId(), entity.getReversalOfAdjustmentId(),
-                    entity.getBizNo(), entity.getLifecycleType(), entity.getTenantId(), entity.getProductId(),
-                    entity.getOriginalCalculationId(), entity.getOriginalResultHash(),
-                    entity.getReplacementCalculationId(), entity.getReplacementResultHash(),
-                    entity.getBusinessTime(), entity.getCurrency(), difference, entity.getReason(),
-                    entity.getRequestHash(), entity.getResultHash(), entity.getCreatedAt());
+                    dataObject.getAdjustmentId(), dataObject.getAdjustmentRequestId(),
+                    dataObject.getReversalOfAdjustmentId(), dataObject.getBizNo(),
+                    dataObject.getLifecycleType(), dataObject.getTenantId(), dataObject.getProductId(),
+                    dataObject.getOriginalCalculationId(), dataObject.getOriginalResultHash(),
+                    dataObject.getReplacementCalculationId(), dataObject.getReplacementResultHash(),
+                    dataObject.getBusinessTime(), dataObject.getCurrency(), difference,
+                    dataObject.getReason(), dataObject.getRequestHash(), dataObject.getResultHash(),
+                    dataObject.getCreatedAt());
         }
         return PremiumLifecycleAdjustment.confirm(
-                entity.getAdjustmentId(), entity.getAdjustmentRequestId(), entity.getBizNo(),
-                entity.getLifecycleType(), entity.getTenantId(), entity.getProductId(),
-                entity.getOriginalCalculationId(), entity.getOriginalResultHash(),
-                entity.getReplacementCalculationId(), entity.getReplacementResultHash(),
-                entity.getBusinessTime(), entity.getCurrency(), difference, entity.getReason(),
-                entity.getRequestHash(), entity.getResultHash(), entity.getCreatedAt());
+                dataObject.getAdjustmentId(), dataObject.getAdjustmentRequestId(), dataObject.getBizNo(),
+                dataObject.getLifecycleType(), dataObject.getTenantId(), dataObject.getProductId(),
+                dataObject.getOriginalCalculationId(), dataObject.getOriginalResultHash(),
+                dataObject.getReplacementCalculationId(), dataObject.getReplacementResultHash(),
+                dataObject.getBusinessTime(), dataObject.getCurrency(), difference,
+                dataObject.getReason(), dataObject.getRequestHash(), dataObject.getResultHash(),
+                dataObject.getCreatedAt());
     }
 
-    private PremiumLifecycleDifferenceLine toDomain(PremiumLifecycleDifferenceLineEntity entity) {
+    private PremiumLifecycleDifferenceLine toDomain(PremiumLifecycleDifferenceLineDO dataObject) {
         return new PremiumLifecycleDifferenceLine(
-                entity.getId().getLineId(), entity.getComponentCode(), entity.getOriginalComponentVersion(),
-                entity.getReplacementComponentVersion(), entity.getCategory(), entity.getAmountChannel(),
-                entity.getDirection(), entity.getPayerType(), entity.getAccountingClass(), entity.getCurrency(),
-                entity.getOriginalDirection(), entity.getBeforeAmount(), entity.getReplacementDirection(),
-                entity.getAfterAmount(), entity.getDifferenceAmount(), entity.isCustomerVisible(),
-                entity.isAffectsCustomerPayable(), entity.getDescription());
+                dataObject.getId().getLineId(), dataObject.getComponentCode(),
+                dataObject.getOriginalComponentVersion(), dataObject.getReplacementComponentVersion(),
+                dataObject.getCategory(), dataObject.getAmountChannel(), dataObject.getDirection(),
+                dataObject.getPayerType(), dataObject.getAccountingClass(), dataObject.getCurrency(),
+                dataObject.getOriginalDirection(), dataObject.getBeforeAmount(),
+                dataObject.getReplacementDirection(), dataObject.getAfterAmount(),
+                dataObject.getDifferenceAmount(), dataObject.isCustomerVisible(),
+                dataObject.isAffectsCustomerPayable(), dataObject.getDescription());
     }
 }

@@ -13,11 +13,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.request.AuditProductRequest;
 import com.titanium.product.api.request.CreateProductRequest;
+import com.titanium.product.api.response.InsuranceProductDefinitionResponse;
+import com.titanium.product.api.response.IssuanceProcessConfigResponse;
+import com.titanium.product.api.response.PolicyFormConfigResponse;
 import com.titanium.product.api.response.PricingBasicRuleResponse;
 import com.titanium.product.api.response.ProductClauseResponse;
 import com.titanium.product.api.response.ProductResponse;
-import com.titanium.product.api.response.IssuanceProcessConfigResponse;
-import com.titanium.product.api.response.PolicyFormConfigResponse;
 import com.titanium.product.api.response.UnderwritingConfigResponse;
 
 /**
@@ -30,6 +31,10 @@ import com.titanium.product.api.response.UnderwritingConfigResponse;
  */
 @FeignClient(name = "titanium-product-service", contextId = "productApi", path = "/api/v1/products")
 public interface ProductApi {
+
+    /** 查询标准险种产品定义目录 */
+    @GetMapping("/definitions")
+    ApiResponse<List<InsuranceProductDefinitionResponse>> listDefinitions();
 
     /** 创建产品 */
     @PostMapping

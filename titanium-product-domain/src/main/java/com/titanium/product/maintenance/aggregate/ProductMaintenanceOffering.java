@@ -263,4 +263,58 @@ public class ProductMaintenanceOffering {
     public String contentHash() {
         return contentHash;
     }
+
+    // ==================== 持久化映射访问器（MapStruct getXxx 约定） ====================
+
+    public String getOfferingId() {
+        return offeringId;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public String getProductVersion() {
+        return productVersion;
+    }
+
+    public String getPlanVersion() {
+        return planVersion;
+    }
+
+    public String getOfferingVersion() {
+        return offeringVersion;
+    }
+
+    public LocalDateTime getEffectiveFrom() {
+        return effectiveFrom;
+    }
+
+    public LocalDateTime getEffectiveTo() {
+        return effectiveTo;
+    }
+
+    public Set<String> getAllowedPolicyStatuses() {
+        return allowedPolicyStatuses;
+    }
+
+    public Set<String> getAllowedChannels() {
+        return allowedChannels;
+    }
+
+    public Set<String> getAllowedItemCodes() {
+        return allowedItemCodes;
+    }
+
+    public ProductMaintenanceOfferingStatus getStatus() {
+        return status;
+    }
+
+    public String getContentHash() {
+        return contentHash;
+    }
 }

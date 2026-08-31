@@ -16,10 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.response.ApiResponse;
-import com.titanium.product.api.response.PricingBasicRuleResponse;
-import com.titanium.product.api.response.ProductResponse;
+import com.titanium.product.api.response.InsuranceProductDefinitionResponse;
 import com.titanium.product.api.response.IssuanceProcessConfigResponse;
 import com.titanium.product.api.response.PolicyFormConfigResponse;
+import com.titanium.product.api.response.PricingBasicRuleResponse;
+import com.titanium.product.api.response.ProductResponse;
 import com.titanium.product.api.response.UnderwritingConfigResponse;
 import com.titanium.product.application.command.ProductCommandAppService;
 import com.titanium.product.application.query.ProductQueryAppService;
@@ -27,6 +28,7 @@ import com.titanium.product.command.CreateProductCommand;
 import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.valueobject.LifeProductSpec;
+import com.titanium.product.web.catalog.InsuranceProductDefinitionCatalog;
 import com.titanium.product.web.dto.AuditProductDTO;
 import com.titanium.product.web.dto.ConfigureLifeProductDTO;
 import com.titanium.product.web.dto.CreateProductDTO;
@@ -54,6 +56,16 @@ public class ProductController {
     private final ProductQueryAppService   productQueryAppService;
 
     private final ProductWebMapper         productWebMapper;
+
+    private final InsuranceProductDefinitionCatalog definitionCatalog;
+
+    /**
+     * 查询九类险种的标准产品定义目录，供后台动态渲染专属字段。
+     */
+    @GetMapping("/definitions")
+    public ApiResponse<List<InsuranceProductDefinitionResponse>> listDefinitions() {
+        return ApiResponse.success(definitionCatalog.list());
+    }
 
     /**
      * 创建产品

@@ -13,16 +13,15 @@ import com.titanium.product.aggregate.CalculationModelDefinition;
 import com.titanium.product.aggregate.DynamicFactorDefinition;
 import com.titanium.product.aggregate.PricingPlanDefinition;
 import com.titanium.product.aggregate.TaxPolicyDefinition;
-import com.titanium.product.application.command.pricing.CreatePricingPlanDraftCommand;
-import com.titanium.product.application.command.pricing.PricingTestCaseDraft;
-import com.titanium.product.application.command.pricing.ReplacePricingTestCasesCommand;
-import com.titanium.product.common.enums.PricingPlanStatus;
+import com.titanium.product.application.service.pricing.PricingPlanTestRunner;
+import com.titanium.product.command.pricing.CreatePricingPlanDraftCommand;
+import com.titanium.product.command.pricing.ReplacePricingTestCasesCommand;
 import com.titanium.product.port.CommissionResolutionPort;
-import com.titanium.product.port.PricingPlanRepository;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.CalculationModelRepository;
 import com.titanium.product.repository.DynamicFactorRepository;
+import com.titanium.product.repository.PricingPlanRepository;
 import com.titanium.product.repository.TaxPolicyRepository;
 import com.titanium.product.valueobject.pricing.CommissionSchemeRef;
 import com.titanium.product.valueobject.pricing.CommissionSchemeValidationRequest;
@@ -30,6 +29,7 @@ import com.titanium.product.valueobject.pricing.DynamicFactorRef;
 import com.titanium.product.valueobject.pricing.PricingFeatureContract;
 import com.titanium.product.valueobject.pricing.PricingPlanValidationResult;
 import com.titanium.product.valueobject.pricing.PricingTestCase;
+import com.titanium.product.valueobject.pricing.PricingTestCaseDraft;
 import com.titanium.product.valueobject.pricing.TaxPolicyRef;
 
 import lombok.RequiredArgsConstructor;
@@ -96,15 +96,6 @@ public class PricingPlanManagementApplicationService {
         return contentHash;
     }
 
-    @Transactional(readOnly = true)
-    public PricingPlanValidationResult runTests(String tenantId, String productId, String planId) {
-        PricingPlanDefinition plan = requirePlan(tenantId, productId, planId);
-        if (plan.status() != PricingPlanStatus.APPROVED && plan.status() != PricingPlanStatus.PUBLISHED) {
-            throw new BusinessException(ProductErrorCode.PRICING_PLAN_STATUS_INVALID);
-        }
-        return pricingPlanTestRunner.run(plan);
-    }
-
     @Transactional
     public PricingPlanValidationResult publish(String tenantId, String productId, String planId) {
         PricingPlanDefinition plan = requirePlan(tenantId, productId, planId);
@@ -127,18 +118,6 @@ public class PricingPlanManagementApplicationService {
         PricingPlanDefinition plan = requirePlan(tenantId, productId, planId);
         plan.retire();
         pricingPlanRepository.save(plan);
-    }
-
-    @Transactional(readOnly = true)
-    public PricingPlanDefinition get(String tenantId, String productId, String planId) {
-        return requirePlan(tenantId, productId, planId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<PricingPlanDefinition> list(
-            String tenantId, String productId, PricingPlanStatus status) {
-        validateProduct(productId, null, tenantId);
-        return pricingPlanRepository.findAll(tenantId, productId, status);
     }
 
     private PricingPlanDefinition requirePlan(String tenantId, String productId, String planId) {

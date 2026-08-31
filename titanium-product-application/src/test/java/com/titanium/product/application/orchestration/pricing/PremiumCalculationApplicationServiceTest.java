@@ -20,7 +20,9 @@ import org.junit.jupiter.api.Test;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.aggregate.PremiumCalculation;
-import com.titanium.product.application.command.pricing.PremiumCalculationCommand;
+import com.titanium.product.application.orchestration.pricing.validation.PremiumCalculationCommandValidator;
+import com.titanium.product.application.service.pricing.PremiumQuoteApplicationService;
+import com.titanium.product.command.pricing.PremiumCalculationCommand;
 import com.titanium.product.common.enums.PremiumAdjustmentType;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
 import com.titanium.product.exception.PricingDomainException;
@@ -46,7 +48,7 @@ class PremiumCalculationApplicationServiceTest {
         service = new PremiumCalculationApplicationService(
                 quoteService, repository, new PremiumAdjustmentService(),
                 new PremiumCalculationBreakdownService(new CalculationTotalsService()),
-                new PricingEvidenceHasher());
+                new PricingEvidenceHasher(), new PremiumCalculationCommandValidator());
         when(quoteService.quote(any())).thenReturn(quote());
     }
 

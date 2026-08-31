@@ -21,7 +21,7 @@ public class ProductMaintenanceOfferingException extends DomainException {
     public ProductMaintenanceOfferingException(
             ProductMaintenanceOfferingFailureReason reason,
             String message) {
-        super(errorCode(reason).getCode(), message);
+        super(errorCode(reason), message);
         this.reason = reason;
         this.offeringErrorCode = errorCode(reason);
     }

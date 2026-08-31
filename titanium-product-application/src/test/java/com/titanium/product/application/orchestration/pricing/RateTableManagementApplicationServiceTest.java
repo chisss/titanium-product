@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,11 +17,11 @@ import org.junit.jupiter.api.Test;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.aggregate.RateTableDefinition;
-import com.titanium.product.application.command.pricing.CreateRateTableDraftCommand;
+import com.titanium.product.command.pricing.CreateRateTableDraftCommand;
 import com.titanium.product.common.enums.RateUnit;
-import com.titanium.product.port.RateTableManagementRepository;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
+import com.titanium.product.repository.RateTableManagementRepository;
 
 class RateTableManagementApplicationServiceTest {
 
@@ -61,30 +60,6 @@ class RateTableManagementApplicationServiceTest {
 
         assertEquals(ProductErrorCode.RATE_TABLE_ALREADY_EXISTS.getCode(), exception.getErrorCode());
         verify(rateTableManagementRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldHideRateTableWhenTenantDoesNotOwnProduct() {
-        when(productQueryService.findProductById("PRODUCT-1", "OTHER-TENANT")).thenReturn(null);
-
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> service.get("OTHER-TENANT", "PRODUCT-1", "TABLE-1"));
-
-        assertEquals(ProductErrorCode.PRODUCT_NOT_EXIST.getCode(), exception.getErrorCode());
-        verify(rateTableManagementRepository, never()).findById(any(), any(), any());
-    }
-
-    @Test
-    void shouldReturnNotFoundForUnknownTableInOwnedProduct() {
-        when(productQueryService.findProductById("PRODUCT-1", "TENANT-1"))
-                .thenReturn(new ProductQueryResult());
-        when(rateTableManagementRepository.findById("TENANT-1", "PRODUCT-1", "TABLE-1"))
-                .thenReturn(Optional.empty());
-
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> service.get("TENANT-1", "PRODUCT-1", "TABLE-1"));
-
-        assertEquals(ProductErrorCode.RATE_TABLE_NOT_FOUND.getCode(), exception.getErrorCode());
     }
 
     private CreateRateTableDraftCommand createCommand() {

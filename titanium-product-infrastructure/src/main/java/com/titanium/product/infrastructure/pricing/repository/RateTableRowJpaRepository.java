@@ -6,19 +6,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.titanium.product.infrastructure.pricing.entity.RateTableRowEntity;
+import com.titanium.product.infrastructure.pricing.entity.RateTableRowDO;
 
 /**
  * 费率表行 JPA 仓储。
  */
-public interface RateTableRowJpaRepository extends JpaRepository<RateTableRowEntity, String> {
+public interface RateTableRowJpaRepository extends JpaRepository<RateTableRowDO, String> {
 
-    List<RateTableRowEntity> findByTableIdAndTenantIdOrderByCreateTimeAsc(String tableId, String tenantId);
+    List<RateTableRowDO> findByTableIdAndTenantIdOrderByCreateTimeAsc(String tableId, String tenantId);
 
     void deleteByTableIdAndTenantId(String tableId, String tenantId);
 
     @Query("""
-            select rateRow from RateTableRowEntity rateRow
+            select rateRow from RateTableRowDO rateRow
              where rateRow.tableId = :tableId
                and rateRow.tenantId = :tenantId
                and (rateRow.ageFrom is null or rateRow.ageFrom <= :age)
@@ -28,7 +28,7 @@ public interface RateTableRowJpaRepository extends JpaRepository<RateTableRowEnt
                and (rateRow.paymentTermYears is null or rateRow.paymentTermYears = :paymentTermYears)
                and (rateRow.coverageTermYears is null or rateRow.coverageTermYears = :coverageTermYears)
             """)
-    List<RateTableRowEntity> findCandidateRows(
+    List<RateTableRowDO> findCandidateRows(
             @Param("tableId") String tableId,
             @Param("tenantId") String tenantId,
             @Param("age") int age,

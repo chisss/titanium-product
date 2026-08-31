@@ -9,31 +9,31 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
-import com.titanium.product.infrastructure.pricing.entity.TaxPolicyEntity;
+import com.titanium.product.infrastructure.pricing.entity.TaxPolicyDO;
 
-public interface TaxPolicyJpaRepository extends JpaRepository<TaxPolicyEntity, String> {
+public interface TaxPolicyJpaRepository extends JpaRepository<TaxPolicyDO, String> {
 
     boolean existsByTenantIdAndProductIdAndPolicyCodeAndPolicyVersion(
             String tenantId, String productId, String policyCode, String policyVersion);
 
-    Optional<TaxPolicyEntity> findByPolicyIdAndTenantIdAndProductId(
+    Optional<TaxPolicyDO> findByPolicyIdAndTenantIdAndProductId(
             String policyId, String tenantId, String productId);
 
-    List<TaxPolicyEntity> findByTenantIdAndProductIdOrderByPolicyCodeAscPolicyVersionDesc(
+    List<TaxPolicyDO> findByTenantIdAndProductIdOrderByPolicyCodeAscPolicyVersionDesc(
             String tenantId, String productId);
 
-    List<TaxPolicyEntity> findByTenantIdAndProductIdAndStatusOrderByPolicyCodeAscPolicyVersionDesc(
+    List<TaxPolicyDO> findByTenantIdAndProductIdAndStatusOrderByPolicyCodeAscPolicyVersionDesc(
             String tenantId, String productId, ActuarialDefinitionStatus status);
 
     @Query("""
-            select p from TaxPolicyEntity p
+            select p from TaxPolicyDO p
             where p.tenantId = :tenantId and p.productId = :productId
               and p.policyCode = :policyCode and p.policyVersion = :policyVersion
               and p.status = com.titanium.product.common.enums.ActuarialDefinitionStatus.PUBLISHED
               and p.effectiveFrom <= :businessTime
               and (p.effectiveTo is null or p.effectiveTo > :businessTime)
             """)
-    Optional<TaxPolicyEntity> findPublished(
+    Optional<TaxPolicyDO> findPublished(
             @Param("tenantId") String tenantId,
             @Param("productId") String productId,
             @Param("policyCode") String policyCode,

@@ -24,6 +24,7 @@ import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.entity.ProductClauseRel;
 import com.titanium.product.query.handler.query.ProductClauseQueryHandler;
 import com.titanium.product.query.handler.query.ProductConditionQueryHandler;
+import com.titanium.product.query.mapper.ProductClauseQueryResultMapperImpl;
 import com.titanium.product.query.query.FindProductByConditionQuery;
 import com.titanium.product.query.query.FindProductClauseByProductIdQuery;
 import com.titanium.product.query.repository.ProductClauseRelViewRepository;
@@ -82,7 +83,7 @@ class ProductQueryHandlerTest {
                 JSON.toJSONString(List.of(
                         new ProductClauseRel("CLAUSE_A", "1.0", true),
                         new ProductClauseRel("CLAUSE_B", "2.0", false))));
-        ProductClauseQueryService service = new ProductClauseQueryServiceImpl(repository);
+        ProductClauseQueryService service = new ProductClauseQueryServiceImpl(repository, new ProductClauseQueryResultMapperImpl());
 
         List<ProductClauseQueryResult> results = service.findByProductId("PROD_001");
 
@@ -100,7 +101,7 @@ class ProductQueryHandlerTest {
     void clauseServiceShouldReturnEmptyWhenViewMissing() {
         ProductClauseRelViewRepository repository = mock(ProductClauseRelViewRepository.class);
         when(repository.findById(any())).thenReturn(Optional.empty());
-        ProductClauseQueryService service = new ProductClauseQueryServiceImpl(repository);
+        ProductClauseQueryService service = new ProductClauseQueryServiceImpl(repository, new ProductClauseQueryResultMapperImpl());
 
         assertTrue(service.findByProductId("PROD_404").isEmpty());
     }
@@ -109,7 +110,7 @@ class ProductQueryHandlerTest {
     @DisplayName("条款查询服务：JSON 为空时返回空列表")
     void clauseServiceShouldReturnEmptyWhenJsonNull() {
         ProductClauseRelViewRepository repository = mockRepositoryWith("PROD_002", null);
-        ProductClauseQueryService service = new ProductClauseQueryServiceImpl(repository);
+        ProductClauseQueryService service = new ProductClauseQueryServiceImpl(repository, new ProductClauseQueryResultMapperImpl());
 
         assertTrue(service.findByProductId("PROD_002").isEmpty());
     }

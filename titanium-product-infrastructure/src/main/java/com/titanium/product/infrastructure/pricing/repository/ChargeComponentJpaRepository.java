@@ -9,27 +9,27 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
-import com.titanium.product.infrastructure.pricing.entity.ChargeComponentEntity;
+import com.titanium.product.infrastructure.pricing.entity.ChargeComponentDO;
 
 /**
  * 费用项目录 JPA 仓储。
  */
-public interface ChargeComponentJpaRepository extends JpaRepository<ChargeComponentEntity, String> {
+public interface ChargeComponentJpaRepository extends JpaRepository<ChargeComponentDO, String> {
 
     boolean existsByTenantIdAndProductIdAndComponentCodeAndComponentVersion(
             String tenantId, String productId, String componentCode, String componentVersion);
 
-    Optional<ChargeComponentEntity> findByComponentIdAndTenantIdAndProductId(
+    Optional<ChargeComponentDO> findByComponentIdAndTenantIdAndProductId(
             String componentId, String tenantId, String productId);
 
-    List<ChargeComponentEntity> findByTenantIdAndProductIdOrderByCreateTimeDesc(
+    List<ChargeComponentDO> findByTenantIdAndProductIdOrderByCreateTimeDesc(
             String tenantId, String productId);
 
-    List<ChargeComponentEntity> findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
+    List<ChargeComponentDO> findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
             String tenantId, String productId, ActuarialDefinitionStatus status);
 
     @Query("""
-            select component from ChargeComponentEntity component
+            select component from ChargeComponentDO component
              where component.tenantId = :tenantId
                and component.productId = :productId
                and component.componentCode = :componentCode
@@ -38,7 +38,7 @@ public interface ChargeComponentJpaRepository extends JpaRepository<ChargeCompon
                and component.effectiveFrom <= :businessTime
                and (component.effectiveTo is null or :businessTime < component.effectiveTo)
             """)
-    Optional<ChargeComponentEntity> findPublished(
+    Optional<ChargeComponentDO> findPublished(
             @Param("tenantId") String tenantId,
             @Param("productId") String productId,
             @Param("componentCode") String componentCode,

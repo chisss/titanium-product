@@ -17,6 +17,7 @@ import com.titanium.product.aggregate.CalculationModelDefinition;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
 import com.titanium.product.common.enums.CalculationNodeType;
 import com.titanium.product.common.enums.CalculationOperator;
+import com.titanium.product.infrastructure.mapper.CalculationModelPersistenceMapper;
 import com.titanium.product.infrastructure.pricing.adapter.JpaCalculationModelRepository;
 import com.titanium.product.infrastructure.pricing.repository.CalculationEdgeJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.CalculationModelJpaRepository;
@@ -33,6 +34,8 @@ class JpaCalculationModelRepositoryTest {
     private CalculationNodeJpaRepository nodeJpaRepository;
     @Mock
     private CalculationEdgeJpaRepository edgeJpaRepository;
+    @Mock
+    private CalculationModelPersistenceMapper persistenceMapper;
 
     @InjectMocks
     private JpaCalculationModelRepository repository;

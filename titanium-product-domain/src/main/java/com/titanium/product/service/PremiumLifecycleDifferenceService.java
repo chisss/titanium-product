@@ -15,6 +15,7 @@ import com.titanium.metadata.enums.pricing.ChargeDirection;
 import com.titanium.metadata.enums.pricing.ChargePayerType;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.aggregate.PremiumCalculation;
+import com.titanium.product.common.constant.ProductConstants;
 import com.titanium.product.common.enums.PremiumBalanceDirection;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
 import com.titanium.product.exception.PricingDomainException;
@@ -93,7 +94,7 @@ public class PremiumLifecycleDifferenceService {
                 AmountChannel.CUSTOMER_PRICE, chargeDirection(delta), ChargePayerType.POLICYHOLDER,
                 "PREMIUM", original.getCurrency(), ChargeDirection.DEBIT, original.getTotalPremium(),
                 ChargeDirection.DEBIT, replacement.getTotalPremium(), delta.abs(), true, true,
-                "兼容历史确认计算的客户应付差额"));
+                ProductConstants.LEGACY_DIFFERENCE_LINE_DESCRIPTION));
     }
 
     private void validateCalculations(PremiumCalculation original, PremiumCalculation replacement) {

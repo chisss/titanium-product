@@ -4,14 +4,14 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.titanium.product.infrastructure.pricing.entity.CalculationEdgeEntity;
+import com.titanium.product.infrastructure.pricing.entity.CalculationEdgeDO;
 
 /**
  * 计算依赖边 JPA 仓储。
  */
-public interface CalculationEdgeJpaRepository extends JpaRepository<CalculationEdgeEntity, String> {
+public interface CalculationEdgeJpaRepository extends JpaRepository<CalculationEdgeDO, String> {
 
-    List<CalculationEdgeEntity> findByModelIdOrderByFromNodeCodeAscToNodeCodeAsc(String modelId);
+    List<CalculationEdgeDO> findByModelIdOrderByFromNodeCodeAscToNodeCodeAsc(String modelId);
 
     void deleteByModelId(String modelId);
 }

@@ -10,11 +10,12 @@ import com.alibaba.fastjson2.JSON;
 
 import com.titanium.product.aggregate.RateTableDefinition;
 import com.titanium.product.common.enums.RateTableStatus;
-import com.titanium.product.infrastructure.pricing.entity.RateTableEntity;
-import com.titanium.product.infrastructure.pricing.entity.RateTableRowEntity;
+import com.titanium.product.infrastructure.mapper.RateTablePersistenceMapper;
+import com.titanium.product.infrastructure.pricing.entity.RateTableDO;
+import com.titanium.product.infrastructure.pricing.entity.RateTableRowDO;
 import com.titanium.product.infrastructure.pricing.repository.RateTableJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.RateTableRowJpaRepository;
-import com.titanium.product.port.RateTableManagementRepository;
+import com.titanium.product.repository.RateTableManagementRepository;
 import com.titanium.product.valueobject.RateTableRow;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class JpaRateTableManagementRepository implements RateTableManagementRepo
 
     private final RateTableJpaRepository rateTableJpaRepository;
     private final RateTableRowJpaRepository rateTableRowJpaRepository;
+    private final RateTablePersistenceMapper persistenceMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -47,78 +49,44 @@ public class JpaRateTableManagementRepository implements RateTableManagementRepo
     @Override
     @Transactional(readOnly = true)
     public List<RateTableDefinition> findAll(String tenantId, String productId, RateTableStatus status) {
-        List<RateTableEntity> entities = status == null
+        List<RateTableDO> dataObjects = status == null
                 ? rateTableJpaRepository.findByTenantIdAndProductIdOrderByCreateTimeDesc(tenantId, productId)
                 : rateTableJpaRepository.findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
                         tenantId, productId, status);
-        return entities.stream().map(this::toDomain).toList();
+        return dataObjects.stream().map(this::toDomain).toList();
     }
 
     @Override
     @Transactional
     public void save(RateTableDefinition rateTable) {
-        rateTableJpaRepository.save(toEntity(rateTable));
+        rateTableJpaRepository.save(persistenceMapper.toDO(rateTable));
         if (rateTable.status() == RateTableStatus.DRAFT) {
             rateTableRowJpaRepository.deleteByTableIdAndTenantId(rateTable.tableId(), rateTable.tenantId());
             rateTableRowJpaRepository.flush();
             rateTableRowJpaRepository.saveAll(rateTable.rows().stream()
-                    .map(row -> toEntity(rateTable, row))
+                    .map(row -> persistenceMapper.toDO(rateTable, row))
                     .toList());
         }
     }
 
-    private RateTableDefinition toDomain(RateTableEntity entity) {
+    private RateTableDefinition toDomain(RateTableDO dataObject) {
         List<RateTableRow> rows = rateTableRowJpaRepository
-                .findByTableIdAndTenantIdOrderByCreateTimeAsc(entity.getTableId(), entity.getTenantId())
+                .findByTableIdAndTenantIdOrderByCreateTimeAsc(dataObject.getTableId(), dataObject.getTenantId())
                 .stream()
                 .map(this::toDomainRow)
                 .toList();
-        List<String> dimensionKeys = JSON.parseArray(entity.getDimensionKeysJson(), String.class);
+        List<String> dimensionKeys = JSON.parseArray(dataObject.getDimensionKeysJson(), String.class);
         return RateTableDefinition.restore(
-                entity.getTableId(), entity.getProductId(), entity.getTableCode(), entity.getTableVersion(),
-                entity.getStatus(), entity.getRateUnit(), entity.getCurrency(), entity.getEffectiveFrom(),
-                entity.getEffectiveTo(), dimensionKeys, entity.getTenantId(), rows, entity.getContentHash());
+                dataObject.getTableId(), dataObject.getProductId(), dataObject.getTableCode(),
+                dataObject.getTableVersion(), dataObject.getStatus(), dataObject.getRateUnit(),
+                dataObject.getCurrency(), dataObject.getEffectiveFrom(), dataObject.getEffectiveTo(),
+                dimensionKeys, dataObject.getTenantId(), rows, dataObject.getContentHash());
     }
 
-    private RateTableEntity toEntity(RateTableDefinition rateTable) {
-        RateTableEntity entity = new RateTableEntity();
-        entity.setTableId(rateTable.tableId());
-        entity.setProductId(rateTable.productId());
-        entity.setTableCode(rateTable.tableCode());
-        entity.setTableVersion(rateTable.tableVersion());
-        entity.setStatus(rateTable.status());
-        entity.setRateUnit(rateTable.rateUnit());
-        entity.setCurrency(rateTable.currency());
-        entity.setEffectiveFrom(rateTable.effectiveFrom());
-        entity.setEffectiveTo(rateTable.effectiveTo());
-        entity.setDimensionKeysJson(JSON.toJSONString(rateTable.dimensionKeys()));
-        entity.setContentHash(rateTable.contentHash());
-        entity.setRowCount(rateTable.rows().size());
-        entity.setTenantId(rateTable.tenantId());
-        return entity;
-    }
-
-    private RateTableRow toDomainRow(RateTableRowEntity entity) {
+    private RateTableRow toDomainRow(RateTableRowDO dataObject) {
         return new RateTableRow(
-                entity.getRowId(), entity.getAgeFrom(), entity.getAgeToExclusive(), entity.getGender(),
-                entity.getPaymentTermYears(), entity.getCoverageTermYears(), entity.getRate(),
-                entity.getMinimumPremium(), entity.getMaximumPremium());
-    }
-
-    private RateTableRowEntity toEntity(RateTableDefinition rateTable, RateTableRow row) {
-        RateTableRowEntity entity = new RateTableRowEntity();
-        entity.setRowId(row.rowId());
-        entity.setTableId(rateTable.tableId());
-        entity.setDimensionHash(row.dimensionHash());
-        entity.setAgeFrom(row.ageFrom());
-        entity.setAgeToExclusive(row.ageToExclusive());
-        entity.setGender(row.gender());
-        entity.setPaymentTermYears(row.paymentTermYears());
-        entity.setCoverageTermYears(row.coverageTermYears());
-        entity.setRate(row.rate());
-        entity.setMinimumPremium(row.minimumPremium());
-        entity.setMaximumPremium(row.maximumPremium());
-        entity.setTenantId(rateTable.tenantId());
-        return entity;
+                dataObject.getRowId(), dataObject.getAgeFrom(), dataObject.getAgeToExclusive(),
+                dataObject.getGender(), dataObject.getPaymentTermYears(), dataObject.getCoverageTermYears(),
+                dataObject.getRate(), dataObject.getMinimumPremium(), dataObject.getMaximumPremium());
     }
 }

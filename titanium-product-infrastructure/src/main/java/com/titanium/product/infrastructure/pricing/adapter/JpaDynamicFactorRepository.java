@@ -9,7 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.product.aggregate.DynamicFactorDefinition;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
-import com.titanium.product.infrastructure.pricing.entity.DynamicFactorEntity;
+import com.titanium.product.infrastructure.mapper.DynamicFactorPersistenceMapper;
+import com.titanium.product.infrastructure.pricing.entity.DynamicFactorDO;
 import com.titanium.product.infrastructure.pricing.repository.DynamicFactorJpaRepository;
 import com.titanium.product.repository.DynamicFactorRepository;
 
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class JpaDynamicFactorRepository implements DynamicFactorRepository {
 
     private final DynamicFactorJpaRepository jpaRepository;
+    private final DynamicFactorPersistenceMapper persistenceMapper;
 
     @Override
     public boolean existsByBusinessKey(
@@ -49,55 +51,28 @@ public class JpaDynamicFactorRepository implements DynamicFactorRepository {
     @Transactional(readOnly = true)
     public List<DynamicFactorDefinition> findAll(
             String tenantId, String productId, ActuarialDefinitionStatus status) {
-        List<DynamicFactorEntity> entities = status == null
+        List<DynamicFactorDO> dataObjects = status == null
                 ? jpaRepository.findByTenantIdAndProductIdOrderByFactorCodeAscFactorVersionDesc(tenantId, productId)
                 : jpaRepository.findByTenantIdAndProductIdAndStatusOrderByFactorCodeAscFactorVersionDesc(
                         tenantId, productId, status);
-        return entities.stream().map(this::toDomain).toList();
+        return dataObjects.stream().map(this::toDomain).toList();
     }
 
     @Override
     @Transactional
     public void save(DynamicFactorDefinition factor) {
-        jpaRepository.save(toEntity(factor));
+        jpaRepository.save(persistenceMapper.toDO(factor));
     }
 
-    private DynamicFactorDefinition toDomain(DynamicFactorEntity entity) {
+    private DynamicFactorDefinition toDomain(DynamicFactorDO dataObject) {
         return DynamicFactorDefinition.restore(
-                entity.getFactorId(), entity.getProductId(), entity.getFactorCode(), entity.getFactorVersion(),
-                entity.getFactorName(), entity.getDescription(), entity.getFeatureCode(),
-                entity.getFeatureDefinitionVersion(), entity.getSourceType(), entity.getValueTimePolicy(),
-                entity.getLowerBound(), entity.getUpperBound(), entity.getMissingPolicy(), entity.getDefaultValue(),
-                entity.getTransformType(), entity.getMultiplier(), entity.getOffset(), entity.isReplayable(),
-                entity.getEffectiveFrom(), entity.getEffectiveTo(), entity.getTenantId(), entity.getStatus(),
-                entity.getContentHash());
-    }
-
-    private DynamicFactorEntity toEntity(DynamicFactorDefinition factor) {
-        DynamicFactorEntity entity = new DynamicFactorEntity();
-        entity.setFactorId(factor.getFactorId());
-        entity.setProductId(factor.getProductId());
-        entity.setFactorCode(factor.getFactorCode());
-        entity.setFactorVersion(factor.getFactorVersion());
-        entity.setFactorName(factor.getFactorName());
-        entity.setDescription(factor.getDescription());
-        entity.setFeatureCode(factor.getFeatureCode());
-        entity.setFeatureDefinitionVersion(factor.getFeatureDefinitionVersion());
-        entity.setSourceType(factor.getSourceType());
-        entity.setValueTimePolicy(factor.getValueTimePolicy());
-        entity.setLowerBound(factor.getLowerBound());
-        entity.setUpperBound(factor.getUpperBound());
-        entity.setMissingPolicy(factor.getMissingPolicy());
-        entity.setDefaultValue(factor.getDefaultValue());
-        entity.setTransformType(factor.getTransformType());
-        entity.setMultiplier(factor.getMultiplier());
-        entity.setOffset(factor.getOffset());
-        entity.setReplayable(factor.isReplayable());
-        entity.setEffectiveFrom(factor.getEffectiveFrom());
-        entity.setEffectiveTo(factor.getEffectiveTo());
-        entity.setTenantId(factor.getTenantId());
-        entity.setStatus(factor.getStatus());
-        entity.setContentHash(factor.getContentHash());
-        return entity;
+                dataObject.getFactorId(), dataObject.getProductId(), dataObject.getFactorCode(),
+                dataObject.getFactorVersion(), dataObject.getFactorName(), dataObject.getDescription(),
+                dataObject.getFeatureCode(), dataObject.getFeatureDefinitionVersion(), dataObject.getSourceType(),
+                dataObject.getValueTimePolicy(), dataObject.getLowerBound(), dataObject.getUpperBound(),
+                dataObject.getMissingPolicy(), dataObject.getDefaultValue(), dataObject.getTransformType(),
+                dataObject.getMultiplier(), dataObject.getOffset(), dataObject.isReplayable(),
+                dataObject.getEffectiveFrom(), dataObject.getEffectiveTo(), dataObject.getTenantId(),
+                dataObject.getStatus(), dataObject.getContentHash());
     }
 }

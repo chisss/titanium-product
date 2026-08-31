@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.titanium.product.application.model.pricing.MaintenancePremiumQuoteResult;
 import com.titanium.product.application.orchestration.pricing.maintenance.MaintenancePremiumQuoteApplicationService;
+import com.titanium.product.command.maintenance.CreateMaintenancePremiumQuoteCommand;
 
 import lombok.RequiredArgsConstructor;
 

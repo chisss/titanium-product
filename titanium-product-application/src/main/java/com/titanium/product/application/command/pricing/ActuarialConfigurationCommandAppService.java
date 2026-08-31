@@ -3,6 +3,10 @@ package com.titanium.product.application.command.pricing;
 import org.springframework.stereotype.Service;
 
 import com.titanium.product.application.orchestration.pricing.ActuarialConfigurationApplicationService;
+import com.titanium.product.command.pricing.CreateCalculationModelCommand;
+import com.titanium.product.command.pricing.CreateChargeComponentCommand;
+import com.titanium.product.command.pricing.CreateDynamicFactorCommand;
+import com.titanium.product.command.pricing.CreateTaxPolicyCommand;
 
 import lombok.RequiredArgsConstructor;
 

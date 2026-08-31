@@ -21,9 +21,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.application.command.pricing.CreatePricingPlanDraftCommand;
 import com.titanium.product.application.command.pricing.PricingPlanCommandAppService;
 import com.titanium.product.application.query.pricing.PricingPlanQueryAppService;
+import com.titanium.product.command.pricing.CreatePricingPlanDraftCommand;
 import com.titanium.product.valueobject.pricing.PricingPlanValidationResult;
 import com.titanium.product.valueobject.pricing.PricingTestCaseResult;
 import com.titanium.product.web.handler.ProductExceptionHandler;

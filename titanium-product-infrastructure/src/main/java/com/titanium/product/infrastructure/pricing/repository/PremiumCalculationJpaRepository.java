@@ -5,16 +5,16 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.titanium.product.common.enums.PricingCalculationPurpose;
-import com.titanium.product.infrastructure.pricing.entity.PremiumCalculationEntity;
+import com.titanium.product.infrastructure.pricing.entity.PremiumCalculationDO;
 
 /**
  * Product 确认计算 JPA 仓储。
  */
-public interface PremiumCalculationJpaRepository extends JpaRepository<PremiumCalculationEntity, String> {
+public interface PremiumCalculationJpaRepository extends JpaRepository<PremiumCalculationDO, String> {
 
-    Optional<PremiumCalculationEntity> findByCalculationIdAndTenantId(
+    Optional<PremiumCalculationDO> findByCalculationIdAndTenantId(
             String calculationId, String tenantId);
 
-    Optional<PremiumCalculationEntity> findByTenantIdAndCalculationRequestIdAndPurpose(
+    Optional<PremiumCalculationDO> findByTenantIdAndCalculationRequestIdAndPurpose(
             String tenantId, String calculationRequestId, PricingCalculationPurpose purpose);
 }

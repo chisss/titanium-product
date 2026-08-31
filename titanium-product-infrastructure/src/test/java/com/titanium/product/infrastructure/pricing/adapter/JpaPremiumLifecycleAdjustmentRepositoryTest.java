@@ -25,8 +25,9 @@ import com.titanium.metadata.enums.pricing.ChargePayerType;
 import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.common.enums.PremiumBalanceDirection;
 import com.titanium.product.common.enums.PremiumLifecycleType;
-import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleAdjustmentEntity;
-import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleDifferenceLineEntity;
+import com.titanium.product.infrastructure.mapper.PremiumLifecycleAdjustmentPersistenceMapperImpl;
+import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleAdjustmentDO;
+import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleDifferenceLineDO;
 import com.titanium.product.infrastructure.pricing.repository.PremiumLifecycleAdjustmentJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.PremiumLifecycleDifferenceLineJpaRepository;
 import com.titanium.product.valueobject.pricing.lifecycle.PremiumLifecycleDifference;
@@ -42,16 +43,17 @@ class JpaPremiumLifecycleAdjustmentRepositoryTest {
     void setUp() {
         adjustmentJpaRepository = mock(PremiumLifecycleAdjustmentJpaRepository.class);
         lineJpaRepository = mock(PremiumLifecycleDifferenceLineJpaRepository.class);
-        repository = new JpaPremiumLifecycleAdjustmentRepository(adjustmentJpaRepository, lineJpaRepository);
+        repository = new JpaPremiumLifecycleAdjustmentRepository(
+                adjustmentJpaRepository, lineJpaRepository, new PremiumLifecycleAdjustmentPersistenceMapperImpl());
     }
 
     @Test
     void shouldPersistAndRestoreLifecycleAdjustmentHeaderAndLines() {
         PremiumLifecycleAdjustment source = adjustment();
-        AtomicReference<List<PremiumLifecycleDifferenceLineEntity>> savedLines = new AtomicReference<>();
+        AtomicReference<List<PremiumLifecycleDifferenceLineDO>> savedLines = new AtomicReference<>();
         when(lineJpaRepository.saveAll(any())).thenAnswer(invocation -> {
-            Iterable<PremiumLifecycleDifferenceLineEntity> entities = invocation.getArgument(0);
-            List<PremiumLifecycleDifferenceLineEntity> values =
+            Iterable<PremiumLifecycleDifferenceLineDO> entities = invocation.getArgument(0);
+            List<PremiumLifecycleDifferenceLineDO> values =
                     StreamSupport.stream(entities.spliterator(), false).toList();
             savedLines.set(values);
             return values;
@@ -59,11 +61,11 @@ class JpaPremiumLifecycleAdjustmentRepositoryTest {
 
         repository.save(source);
 
-        ArgumentCaptor<PremiumLifecycleAdjustmentEntity> headerCaptor =
-                ArgumentCaptor.forClass(PremiumLifecycleAdjustmentEntity.class);
+        ArgumentCaptor<PremiumLifecycleAdjustmentDO> headerCaptor =
+                ArgumentCaptor.forClass(PremiumLifecycleAdjustmentDO.class);
         verify(adjustmentJpaRepository).saveAndFlush(headerCaptor.capture());
         verify(lineJpaRepository).saveAll(any());
-        PremiumLifecycleAdjustmentEntity savedHeader = headerCaptor.getValue();
+        PremiumLifecycleAdjustmentDO savedHeader = headerCaptor.getValue();
         assertSavedHeader(source, savedHeader);
         assertSavedLines(source, savedLines.get());
 
@@ -85,7 +87,7 @@ class JpaPremiumLifecycleAdjustmentRepositoryTest {
     }
 
     private void assertSavedHeader(
-            PremiumLifecycleAdjustment source, PremiumLifecycleAdjustmentEntity savedHeader) {
+            PremiumLifecycleAdjustment source, PremiumLifecycleAdjustmentDO savedHeader) {
         assertAll(
                 () -> assertEquals(source.getAdjustmentId(), savedHeader.getAdjustmentId()),
                 () -> assertEquals(source.getAdjustmentRequestId(), savedHeader.getAdjustmentRequestId()),
@@ -101,7 +103,7 @@ class JpaPremiumLifecycleAdjustmentRepositoryTest {
     }
 
     private void assertSavedLines(
-            PremiumLifecycleAdjustment source, List<PremiumLifecycleDifferenceLineEntity> savedLines) {
+            PremiumLifecycleAdjustment source, List<PremiumLifecycleDifferenceLineDO> savedLines) {
         assertEquals(3, savedLines.size());
         assertAll(
                 () -> assertEquals(source.getAdjustmentId(), savedLines.getFirst().getId().getAdjustmentId()),

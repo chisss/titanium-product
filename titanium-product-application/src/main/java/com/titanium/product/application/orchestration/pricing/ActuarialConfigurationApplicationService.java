@@ -1,6 +1,5 @@
 package com.titanium.product.application.orchestration.pricing;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -12,10 +11,10 @@ import com.titanium.product.aggregate.CalculationModelDefinition;
 import com.titanium.product.aggregate.ChargeComponentDefinition;
 import com.titanium.product.aggregate.DynamicFactorDefinition;
 import com.titanium.product.aggregate.TaxPolicyDefinition;
-import com.titanium.product.application.command.pricing.CreateCalculationModelCommand;
-import com.titanium.product.application.command.pricing.CreateChargeComponentCommand;
-import com.titanium.product.application.command.pricing.CreateDynamicFactorCommand;
-import com.titanium.product.application.command.pricing.CreateTaxPolicyCommand;
+import com.titanium.product.command.pricing.CreateCalculationModelCommand;
+import com.titanium.product.command.pricing.CreateChargeComponentCommand;
+import com.titanium.product.command.pricing.CreateDynamicFactorCommand;
+import com.titanium.product.command.pricing.CreateTaxPolicyCommand;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.CalculationModelRepository;
@@ -77,18 +76,6 @@ public class ActuarialConfigurationApplicationService {
         chargeComponentRepository.save(component);
     }
 
-    @Transactional(readOnly = true)
-    public ChargeComponentDefinition getChargeComponent(String tenantId, String productId, String componentId) {
-        return requireComponent(tenantId, productId, componentId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<ChargeComponentDefinition> listChargeComponents(
-            String tenantId, String productId, ActuarialDefinitionStatus status) {
-        requireProduct(tenantId, productId);
-        return chargeComponentRepository.findAll(tenantId, productId, status);
-    }
-
     @Transactional
     public String createCalculationModel(CreateCalculationModelCommand command) {
         requireProduct(command.tenantId(), command.productId());
@@ -125,18 +112,6 @@ public class ActuarialConfigurationApplicationService {
         CalculationModelDefinition model = requireModel(tenantId, productId, modelId);
         model.retire();
         calculationModelRepository.save(model);
-    }
-
-    @Transactional(readOnly = true)
-    public CalculationModelDefinition getCalculationModel(String tenantId, String productId, String modelId) {
-        return requireModel(tenantId, productId, modelId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<CalculationModelDefinition> listCalculationModels(
-            String tenantId, String productId, ActuarialDefinitionStatus status) {
-        requireProduct(tenantId, productId);
-        return calculationModelRepository.findAll(tenantId, productId, status);
     }
 
     @Transactional
@@ -179,18 +154,6 @@ public class ActuarialConfigurationApplicationService {
         taxPolicyRepository.save(policy);
     }
 
-    @Transactional(readOnly = true)
-    public TaxPolicyDefinition getTaxPolicy(String tenantId, String productId, String policyId) {
-        return requireTaxPolicy(tenantId, productId, policyId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<TaxPolicyDefinition> listTaxPolicies(
-            String tenantId, String productId, ActuarialDefinitionStatus status) {
-        requireProduct(tenantId, productId);
-        return taxPolicyRepository.findAll(tenantId, productId, status);
-    }
-
     @Transactional
     public String createDynamicFactor(CreateDynamicFactorCommand command) {
         requireProduct(command.tenantId(), command.productId());
@@ -229,18 +192,6 @@ public class ActuarialConfigurationApplicationService {
         DynamicFactorDefinition factor = requireDynamicFactor(tenantId, productId, factorId);
         factor.retire();
         dynamicFactorRepository.save(factor);
-    }
-
-    @Transactional(readOnly = true)
-    public DynamicFactorDefinition getDynamicFactor(String tenantId, String productId, String factorId) {
-        return requireDynamicFactor(tenantId, productId, factorId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<DynamicFactorDefinition> listDynamicFactors(
-            String tenantId, String productId, ActuarialDefinitionStatus status) {
-        requireProduct(tenantId, productId);
-        return dynamicFactorRepository.findAll(tenantId, productId, status);
     }
 
     private void validatePublishedComponents(CalculationModelDefinition model) {

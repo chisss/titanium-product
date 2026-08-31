@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.product.aggregate.surrender.SurrenderValuePolicy;
-import com.titanium.product.infrastructure.pricing.entity.SurrenderValuePolicyEntity;
+import com.titanium.product.infrastructure.pricing.entity.SurrenderValuePolicyDO;
 import com.titanium.product.infrastructure.pricing.repository.SurrenderValuePolicyJpaRepository;
 import com.titanium.product.repository.SurrenderValuePolicyRepository;
 
@@ -27,7 +27,7 @@ public class JpaSurrenderValuePolicyRepository implements SurrenderValuePolicyRe
         return jpaRepository.findPublished(tenantId, productId, policyYear, businessTime).map(this::toDomain);
     }
 
-    private SurrenderValuePolicy toDomain(SurrenderValuePolicyEntity entity) {
+    private SurrenderValuePolicy toDomain(SurrenderValuePolicyDO entity) {
         return SurrenderValuePolicy.restore(
                 entity.getPolicyId(), entity.getProductId(), entity.getPolicyCode(), entity.getPolicyVersion(),
                 entity.getPolicyYear(), entity.getCoolingOffDays(), entity.getCashValueRate(),

@@ -1,21 +1,20 @@
 package com.titanium.product.application.orchestration.maintenance;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.product.aggregate.PricingPlanDefinition;
-import com.titanium.product.application.command.maintenance.CreateProductMaintenanceOfferingCommand;
+import com.titanium.product.command.maintenance.CreateProductMaintenanceOfferingCommand;
 import com.titanium.product.common.enums.PricingPlanStatus;
 import com.titanium.product.common.enums.ProductMaintenanceOfferingFailureReason;
 import com.titanium.product.exception.ProductMaintenanceOfferingException;
 import com.titanium.product.maintenance.aggregate.ProductMaintenanceOffering;
 import com.titanium.product.maintenance.repository.ProductMaintenanceOfferingRepository;
-import com.titanium.product.port.PricingPlanRepository;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
+import com.titanium.product.repository.PricingPlanRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -74,36 +73,6 @@ public class ProductMaintenanceOfferingManagementApplicationService {
         ProductMaintenanceOffering offering = requireOffering(tenantId, productId, offeringId);
         offering.retire();
         offeringRepository.save(offering);
-        return offering;
-    }
-
-    /** 查询指定 Offering。 */
-    @Transactional(readOnly = true)
-    public ProductMaintenanceOffering get(String tenantId, String productId, String offeringId) {
-        return requireOffering(tenantId, productId, offeringId);
-    }
-
-    /** 按完整业务上下文解析唯一已发布 Offering。 */
-    @Transactional(readOnly = true)
-    public ProductMaintenanceOffering resolve(
-            String tenantId,
-            String productId,
-            String productVersion,
-            String planVersion,
-            String policyStatus,
-            String source,
-            LocalDateTime businessTime) {
-        validateProductVersion(tenantId, productId, productVersion);
-        validatePlanVersion(tenantId, productId, productVersion, planVersion, true);
-        ProductMaintenanceOffering offering = offeringRepository.findEffective(
-                        tenantId, productId, productVersion, planVersion, businessTime)
-                .orElseThrow(() -> failure(
-                        ProductMaintenanceOfferingFailureReason.NOT_FOUND,
-                        "当前产品、计划和业务时点不存在已发布Offering"));
-        if (!offering.appliesTo(policyStatus, source, businessTime)) {
-            throw failure(ProductMaintenanceOfferingFailureReason.NOT_APPLICABLE,
-                    "当前保单状态或受理渠道不适用该Offering");
-        }
         return offering;
     }
 

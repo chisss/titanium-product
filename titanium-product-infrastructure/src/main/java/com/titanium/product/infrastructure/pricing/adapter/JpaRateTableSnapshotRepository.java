@@ -7,11 +7,11 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.titanium.product.infrastructure.pricing.entity.RateTableEntity;
-import com.titanium.product.infrastructure.pricing.entity.RateTableRowEntity;
+import com.titanium.product.infrastructure.pricing.entity.RateTableDO;
+import com.titanium.product.infrastructure.pricing.entity.RateTableRowDO;
 import com.titanium.product.infrastructure.pricing.repository.RateTableJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.RateTableRowJpaRepository;
-import com.titanium.product.port.RateTableSnapshotRepository;
+import com.titanium.product.repository.RateTableSnapshotRepository;
 import com.titanium.product.valueobject.RateTableCriteria;
 import com.titanium.product.valueobject.RateTableRow;
 import com.titanium.product.valueobject.RateTableSnapshot;
@@ -42,7 +42,7 @@ public class JpaRateTableSnapshotRepository implements RateTableSnapshotReposito
                 .map(table -> toSnapshot(table, criteria));
     }
 
-    private RateTableSnapshot toSnapshot(RateTableEntity table, RateTableCriteria criteria) {
+    private RateTableSnapshot toSnapshot(RateTableDO table, RateTableCriteria criteria) {
         List<RateTableRow> rows = rateTableRowJpaRepository.findCandidateRows(
                         table.getTableId(), table.getTenantId(), criteria.age(), criteria.gender(),
                         criteria.paymentTermYears(), criteria.coverageTermYears())
@@ -55,7 +55,7 @@ public class JpaRateTableSnapshotRepository implements RateTableSnapshotReposito
                 table.getContentHash(), rows);
     }
 
-    private RateTableRow toDomainRow(RateTableRowEntity row) {
+    private RateTableRow toDomainRow(RateTableRowDO row) {
         return new RateTableRow(
                 row.getRowId(), row.getAgeFrom(), row.getAgeToExclusive(), row.getGender(),
                 row.getPaymentTermYears(), row.getCoverageTermYears(), row.getRate(),

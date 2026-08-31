@@ -8,7 +8,8 @@ import org.springframework.stereotype.Repository;
 
 import com.titanium.product.aggregate.ChargeComponentDefinition;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
-import com.titanium.product.infrastructure.pricing.entity.ChargeComponentEntity;
+import com.titanium.product.infrastructure.mapper.ChargeComponentPersistenceMapper;
+import com.titanium.product.infrastructure.pricing.entity.ChargeComponentDO;
 import com.titanium.product.infrastructure.pricing.repository.ChargeComponentJpaRepository;
 import com.titanium.product.repository.ChargeComponentRepository;
 
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class JpaChargeComponentRepository implements ChargeComponentRepository {
 
     private final ChargeComponentJpaRepository jpaRepository;
+    private final ChargeComponentPersistenceMapper persistenceMapper;
 
     @Override
     public boolean existsByBusinessKey(
@@ -52,48 +54,25 @@ public class JpaChargeComponentRepository implements ChargeComponentRepository {
     @Override
     public List<ChargeComponentDefinition> findAll(
             String tenantId, String productId, ActuarialDefinitionStatus status) {
-        List<ChargeComponentEntity> entities = status == null
+        List<ChargeComponentDO> dataObjects = status == null
                 ? jpaRepository.findByTenantIdAndProductIdOrderByCreateTimeDesc(tenantId, productId)
                 : jpaRepository.findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
                         tenantId, productId, status);
-        return entities.stream().map(this::toDomain).toList();
+        return dataObjects.stream().map(this::toDomain).toList();
     }
 
     @Override
     public void save(ChargeComponentDefinition component) {
-        jpaRepository.save(toEntity(component));
+        jpaRepository.save(persistenceMapper.toDO(component));
     }
 
-    private ChargeComponentEntity toEntity(ChargeComponentDefinition component) {
-        ChargeComponentEntity entity = new ChargeComponentEntity();
-        entity.setComponentId(component.getComponentId());
-        entity.setProductId(component.getProductId());
-        entity.setComponentCode(component.getComponentCode());
-        entity.setComponentVersion(component.getComponentVersion());
-        entity.setComponentName(component.getComponentName());
-        entity.setDescription(component.getDescription());
-        entity.setCategory(component.getCategory());
-        entity.setAmountChannel(component.getAmountChannel());
-        entity.setDirection(component.getDirection());
-        entity.setPayerType(component.getPayerType());
-        entity.setCalculationSource(component.getCalculationSource());
-        entity.setAccountingClass(component.getAccountingClass());
-        entity.setCustomerVisible(component.isCustomerVisible());
-        entity.setEffectiveFrom(component.getEffectiveFrom());
-        entity.setEffectiveTo(component.getEffectiveTo());
-        entity.setTenantId(component.getTenantId());
-        entity.setStatus(component.getStatus());
-        entity.setContentHash(component.getContentHash());
-        return entity;
-    }
-
-    private ChargeComponentDefinition toDomain(ChargeComponentEntity entity) {
+    private ChargeComponentDefinition toDomain(ChargeComponentDO dataObject) {
         return ChargeComponentDefinition.restore(
-                entity.getComponentId(), entity.getProductId(), entity.getComponentCode(),
-                entity.getComponentVersion(), entity.getComponentName(), entity.getDescription(),
-                entity.getCategory(), entity.getAmountChannel(), entity.getDirection(), entity.getPayerType(),
-                entity.getCalculationSource(), entity.getAccountingClass(), entity.isCustomerVisible(),
-                entity.getEffectiveFrom(), entity.getEffectiveTo(), entity.getTenantId(), entity.getStatus(),
-                entity.getContentHash());
+                dataObject.getComponentId(), dataObject.getProductId(), dataObject.getComponentCode(),
+                dataObject.getComponentVersion(), dataObject.getComponentName(), dataObject.getDescription(),
+                dataObject.getCategory(), dataObject.getAmountChannel(), dataObject.getDirection(),
+                dataObject.getPayerType(), dataObject.getCalculationSource(), dataObject.getAccountingClass(),
+                dataObject.isCustomerVisible(), dataObject.getEffectiveFrom(), dataObject.getEffectiveTo(),
+                dataObject.getTenantId(), dataObject.getStatus(), dataObject.getContentHash());
     }
 }

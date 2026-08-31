@@ -23,11 +23,14 @@ import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.aggregate.PricingPlanDefinition;
+import com.titanium.product.application.service.pricing.PremiumQuoteApplicationService;
+import com.titanium.product.application.service.pricing.validation.PremiumQuoteCommandValidator;
+import com.titanium.product.command.pricing.PremiumQuoteCommand;
 import com.titanium.product.common.enums.RateUnit;
-import com.titanium.product.port.PricingPlanRepository;
-import com.titanium.product.port.RateTableSnapshotRepository;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
+import com.titanium.product.repository.PricingPlanRepository;
+import com.titanium.product.repository.RateTableSnapshotRepository;
 import com.titanium.product.service.CalculationModelExecutionService;
 import com.titanium.product.service.CalculationTotalsService;
 import com.titanium.product.service.PremiumCompositionService;
@@ -58,7 +61,8 @@ class PremiumQuoteApplicationServiceTest {
         service = new PremiumQuoteApplicationService(
                 productQueryService, pricingPlanRepository, pricingPlanCalculator, rateTableRepository,
                 new RateTableMatchingService(), new PremiumCompositionService(), new PricingEvidenceHasher(),
-                new CalculationModelExecutionService(new CalculationTotalsService()));
+                new CalculationModelExecutionService(new CalculationTotalsService()),
+                new PremiumQuoteCommandValidator());
     }
 
     @Test

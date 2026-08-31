@@ -2,6 +2,7 @@ package com.titanium.product.exception;
 
 import java.io.Serial;
 
+import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.exception.DomainException;
 
 /**
@@ -16,14 +17,24 @@ public class ProductStatusPreconditionException extends DomainException {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 构造产品状态前置条件异常
+     * 以错误码枚举构造产品状态前置条件异常。
+     *
+     * @param errorCode 产品域错误码（60 段）
+     * @param message 异常消息
+     */
+    public ProductStatusPreconditionException(ProductErrorCode errorCode, String message) {
+        super(errorCode, message);
+    }
+
+    /**
+     * 构造产品状态前置条件异常。
      *
      * @param productId 产品ID
      * @param currentStatus 当前状态
      * @param operation 正在执行的操作名称
      */
     public ProductStatusPreconditionException(String productId, String currentStatus, String operation) {
-        super("PRODUCT_STATUS_PRECONDITION_FAILED",
+        this(ProductErrorCode.PRODUCT_STATUS_PRECONDITION_FAILED,
                 String.format("产品[%s]当前状态[%s]不满足操作[%s]的前置条件", productId, currentStatus, operation));
     }
 }

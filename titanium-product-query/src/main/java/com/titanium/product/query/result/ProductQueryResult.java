@@ -58,6 +58,9 @@ public class ProductQueryResult {
     private CoveragePeriodConfig coveragePeriod;
     private PaymentConfig paymentConfig;
     private PricingBasicRule pricingBasicRule;
+    /** 定价规则展示边界（兼容历史 JSON 中未进入领域值对象的字段）。 */
+    private Double minPremium;
+    private Double maxPremium;
     private IssuanceProcessConfig issuanceProcessConfig;
     private PolicyFormConfig policyFormConfig;
     private UnderwritingConfig underwritingConfig;

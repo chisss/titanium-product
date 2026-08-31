@@ -14,6 +14,6 @@ public class PricingDomainException extends DomainException {
     private static final long serialVersionUID = 1L;
 
     public PricingDomainException(ProductErrorCode errorCode, String detail) {
-        super(errorCode.getCode(), errorCode.getMessage() + ": " + detail);
+        super(errorCode, errorCode.getMessage() + ": " + detail);
     }
 }

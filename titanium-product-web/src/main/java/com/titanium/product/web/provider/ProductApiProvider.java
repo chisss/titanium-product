@@ -9,15 +9,17 @@ import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductApi;
 import com.titanium.product.api.request.AuditProductRequest;
 import com.titanium.product.api.request.CreateProductRequest;
-import com.titanium.product.api.response.PricingBasicRuleResponse;
-import com.titanium.product.api.response.ProductResponse;
+import com.titanium.product.api.response.InsuranceProductDefinitionResponse;
 import com.titanium.product.api.response.IssuanceProcessConfigResponse;
 import com.titanium.product.api.response.PolicyFormConfigResponse;
+import com.titanium.product.api.response.PricingBasicRuleResponse;
+import com.titanium.product.api.response.ProductResponse;
 import com.titanium.product.api.response.UnderwritingConfigResponse;
 import com.titanium.product.application.command.ProductCommandAppService;
 import com.titanium.product.application.query.ProductQueryAppService;
 import com.titanium.product.command.CreateProductCommand;
 import com.titanium.product.query.result.ProductQueryResult;
+import com.titanium.product.web.catalog.InsuranceProductDefinitionCatalog;
 import com.titanium.product.web.mapper.ProductWebMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,13 @@ public class ProductApiProvider implements ProductApi {
     private final ProductQueryAppService   productQueryAppService;
 
     private final ProductWebMapper         productWebMapper;
+
+    private final InsuranceProductDefinitionCatalog definitionCatalog;
+
+    @Override
+    public ApiResponse<List<InsuranceProductDefinitionResponse>> listDefinitions() {
+        return ApiResponse.success(definitionCatalog.list());
+    }
 
     @Override
     public ApiResponse<String> createProduct(CreateProductRequest dto, String tenantId) {

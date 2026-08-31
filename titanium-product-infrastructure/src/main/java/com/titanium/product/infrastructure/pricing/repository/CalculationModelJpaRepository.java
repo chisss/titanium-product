@@ -9,27 +9,27 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
-import com.titanium.product.infrastructure.pricing.entity.CalculationModelEntity;
+import com.titanium.product.infrastructure.pricing.entity.CalculationModelDO;
 
 /**
  * 结构化计算模型 JPA 仓储。
  */
-public interface CalculationModelJpaRepository extends JpaRepository<CalculationModelEntity, String> {
+public interface CalculationModelJpaRepository extends JpaRepository<CalculationModelDO, String> {
 
     boolean existsByTenantIdAndProductIdAndModelCodeAndModelVersion(
             String tenantId, String productId, String modelCode, String modelVersion);
 
-    Optional<CalculationModelEntity> findByModelIdAndTenantIdAndProductId(
+    Optional<CalculationModelDO> findByModelIdAndTenantIdAndProductId(
             String modelId, String tenantId, String productId);
 
-    List<CalculationModelEntity> findByTenantIdAndProductIdOrderByCreateTimeDesc(
+    List<CalculationModelDO> findByTenantIdAndProductIdOrderByCreateTimeDesc(
             String tenantId, String productId);
 
-    List<CalculationModelEntity> findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
+    List<CalculationModelDO> findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
             String tenantId, String productId, ActuarialDefinitionStatus status);
 
     @Query("""
-            select model from CalculationModelEntity model
+            select model from CalculationModelDO model
              where model.tenantId = :tenantId
                and model.productId = :productId
                and model.modelCode = :modelCode
@@ -38,7 +38,7 @@ public interface CalculationModelJpaRepository extends JpaRepository<Calculation
                and model.effectiveFrom <= :businessTime
                and (model.effectiveTo is null or :businessTime < model.effectiveTo)
             """)
-    Optional<CalculationModelEntity> findPublished(
+    Optional<CalculationModelDO> findPublished(
             @Param("tenantId") String tenantId,
             @Param("productId") String productId,
             @Param("modelCode") String modelCode,

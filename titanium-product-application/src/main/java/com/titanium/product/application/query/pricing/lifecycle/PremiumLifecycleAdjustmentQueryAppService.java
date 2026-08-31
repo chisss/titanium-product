@@ -2,8 +2,10 @@ package com.titanium.product.application.query.pricing.lifecycle;
 
 import org.springframework.stereotype.Service;
 
+import com.titanium.common.exception.BusinessException;
+import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
-import com.titanium.product.application.orchestration.pricing.lifecycle.PremiumLifecycleAdjustmentApplicationService;
+import com.titanium.product.repository.PremiumLifecycleAdjustmentRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,9 +16,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PremiumLifecycleAdjustmentQueryAppService {
 
-    private final PremiumLifecycleAdjustmentApplicationService applicationService;
+    private final PremiumLifecycleAdjustmentRepository adjustmentRepository;
 
     public PremiumLifecycleAdjustment get(String tenantId, String adjustmentId) {
-        return applicationService.get(tenantId, adjustmentId);
+        return adjustmentRepository.findById(tenantId, adjustmentId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.PRICING_CALCULATION_NOT_FOUND));
     }
 }

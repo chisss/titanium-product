@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.response.ApiResponse;
-import com.titanium.product.application.command.maintenance.CreateProductMaintenanceOfferingCommand;
 import com.titanium.product.application.command.maintenance.ProductMaintenanceOfferingCommandService;
 import com.titanium.product.application.query.maintenance.ProductMaintenanceOfferingQueryService;
+import com.titanium.product.command.maintenance.CreateProductMaintenanceOfferingCommand;
 import com.titanium.product.maintenance.aggregate.ProductMaintenanceOffering;
 import com.titanium.product.web.dto.maintenance.CreateProductMaintenanceOfferingDTO;
 import com.titanium.product.web.dto.maintenance.ProductMaintenanceOfferingVO;

@@ -18,6 +18,7 @@ import com.titanium.metadata.enums.pricing.ChargePayerType;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.aggregate.CalculationModelDefinition;
 import com.titanium.product.aggregate.ChargeComponentDefinition;
+import com.titanium.product.common.constant.ProductConstants;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
 import com.titanium.product.common.enums.CalculationOperator;
 import com.titanium.product.exception.PricingDomainException;
@@ -84,7 +85,7 @@ public class CalculationModelExecutionService {
                 "LEGACY_BASE_PREMIUM", "LEGACY_BASE_PREMIUM", "V1",
                 ChargeCategory.RISK_PREMIUM, AmountChannel.CUSTOMER_PRICE, ChargeDirection.DEBIT,
                 ChargePayerType.POLICYHOLDER, "PREMIUM", currency.toUpperCase(Locale.ROOT),
-                amount, null, amount, "LEGACY_BASE_PREMIUM", true, "兼容基础保费");
+                amount, null, amount, "LEGACY_BASE_PREMIUM", true, ProductConstants.LEGACY_BASE_PREMIUM_DESCRIPTION);
         return new CalculationModelExecutionResult(
                 List.of(line), CalculationTotals.customerPremium(amount), "LEGACY_CUSTOMER_PAYABLE");
     }

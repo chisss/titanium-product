@@ -4,12 +4,12 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanDynamicFactorRefEntity;
+import com.titanium.product.infrastructure.pricing.entity.PricingPlanDynamicFactorRefDO;
 
 public interface PricingPlanDynamicFactorRefJpaRepository
-        extends JpaRepository<PricingPlanDynamicFactorRefEntity, String> {
+        extends JpaRepository<PricingPlanDynamicFactorRefDO, String> {
 
-    List<PricingPlanDynamicFactorRefEntity> findByPlanIdOrderBySortOrderAsc(String planId);
+    List<PricingPlanDynamicFactorRefDO> findByPlanIdOrderBySortOrderAsc(String planId);
 
     void deleteByPlanId(String planId);
 }

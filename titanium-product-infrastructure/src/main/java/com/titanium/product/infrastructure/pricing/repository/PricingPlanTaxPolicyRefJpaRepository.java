@@ -4,12 +4,12 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanTaxPolicyRefEntity;
+import com.titanium.product.infrastructure.pricing.entity.PricingPlanTaxPolicyRefDO;
 
 public interface PricingPlanTaxPolicyRefJpaRepository
-        extends JpaRepository<PricingPlanTaxPolicyRefEntity, String> {
+        extends JpaRepository<PricingPlanTaxPolicyRefDO, String> {
 
-    List<PricingPlanTaxPolicyRefEntity> findByPlanIdOrderBySortOrderAsc(String planId);
+    List<PricingPlanTaxPolicyRefDO> findByPlanIdOrderBySortOrderAsc(String planId);
 
     void deleteByPlanId(String planId);
 }

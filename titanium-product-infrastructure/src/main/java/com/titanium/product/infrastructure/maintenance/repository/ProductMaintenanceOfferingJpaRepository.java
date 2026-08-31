@@ -8,11 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.titanium.product.infrastructure.maintenance.entity.ProductMaintenanceOfferingEntity;
+import com.titanium.product.infrastructure.maintenance.entity.ProductMaintenanceOfferingDO;
 
 /** Product 保全 Offering JPA Repository。 */
 public interface ProductMaintenanceOfferingJpaRepository
-        extends JpaRepository<ProductMaintenanceOfferingEntity, String> {
+        extends JpaRepository<ProductMaintenanceOfferingDO, String> {
 
     boolean existsByTenantIdAndProductIdAndProductVersionAndPlanVersionAndOfferingVersion(
             String tenantId,
@@ -21,11 +21,11 @@ public interface ProductMaintenanceOfferingJpaRepository
             String planVersion,
             String offeringVersion);
 
-    Optional<ProductMaintenanceOfferingEntity> findByOfferingIdAndTenantIdAndProductId(
+    Optional<ProductMaintenanceOfferingDO> findByOfferingIdAndTenantIdAndProductId(
             String offeringId, String tenantId, String productId);
 
     @Query("""
-            select offering from ProductMaintenanceOfferingEntity offering
+            select offering from ProductMaintenanceOfferingDO offering
              where offering.tenantId = :tenantId
                and offering.productId = :productId
                and offering.productVersion = :productVersion
@@ -34,7 +34,7 @@ public interface ProductMaintenanceOfferingJpaRepository
                and offering.effectiveFrom <= :businessTime
                and (offering.effectiveTo is null or :businessTime < offering.effectiveTo)
             """)
-    List<ProductMaintenanceOfferingEntity> findEffectiveOfferings(
+    List<ProductMaintenanceOfferingDO> findEffectiveOfferings(
             @Param("tenantId") String tenantId,
             @Param("productId") String productId,
             @Param("productVersion") String productVersion,
@@ -42,7 +42,7 @@ public interface ProductMaintenanceOfferingJpaRepository
             @Param("businessTime") LocalDateTime businessTime);
 
     @Query("""
-            select count(offering) from ProductMaintenanceOfferingEntity offering
+            select count(offering) from ProductMaintenanceOfferingDO offering
              where offering.tenantId = :tenantId
                and offering.productId = :productId
                and offering.productVersion = :productVersion

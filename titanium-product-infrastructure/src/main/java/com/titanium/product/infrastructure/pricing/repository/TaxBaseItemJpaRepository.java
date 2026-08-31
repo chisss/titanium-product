@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.titanium.product.infrastructure.pricing.entity.TaxBaseItemEntity;
+import com.titanium.product.infrastructure.pricing.entity.TaxBaseItemDO;
 
-public interface TaxBaseItemJpaRepository extends JpaRepository<TaxBaseItemEntity, String> {
+public interface TaxBaseItemJpaRepository extends JpaRepository<TaxBaseItemDO, String> {
 
-    List<TaxBaseItemEntity> findByPolicyIdOrderBySortOrderAsc(String policyId);
+    List<TaxBaseItemDO> findByPolicyIdOrderBySortOrderAsc(String policyId);
 }

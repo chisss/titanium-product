@@ -9,30 +9,30 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.titanium.product.common.enums.PricingPlanStatus;
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanEntity;
+import com.titanium.product.infrastructure.pricing.entity.PricingPlanDO;
 
 /**
  * 定价方案 JPA 仓储。
  */
-public interface PricingPlanJpaRepository extends JpaRepository<PricingPlanEntity, String> {
+public interface PricingPlanJpaRepository extends JpaRepository<PricingPlanDO, String> {
 
     boolean existsByTenantIdAndProductIdAndPlanVersion(
             String tenantId, String productId, String planVersion);
 
-    Optional<PricingPlanEntity> findByPlanIdAndTenantIdAndProductId(
+    Optional<PricingPlanDO> findByPlanIdAndTenantIdAndProductId(
             String planId, String tenantId, String productId);
 
-    Optional<PricingPlanEntity> findByTenantIdAndProductIdAndPlanVersion(
+    Optional<PricingPlanDO> findByTenantIdAndProductIdAndPlanVersion(
             String tenantId, String productId, String planVersion);
 
-    List<PricingPlanEntity> findByTenantIdAndProductIdOrderByCreateTimeDesc(
+    List<PricingPlanDO> findByTenantIdAndProductIdOrderByCreateTimeDesc(
             String tenantId, String productId);
 
-    List<PricingPlanEntity> findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
+    List<PricingPlanDO> findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
             String tenantId, String productId, PricingPlanStatus status);
 
     @Query("""
-            select plan from PricingPlanEntity plan
+            select plan from PricingPlanDO plan
              where plan.tenantId = :tenantId
                and plan.productId = :productId
                and plan.currency = :currency
@@ -40,14 +40,14 @@ public interface PricingPlanJpaRepository extends JpaRepository<PricingPlanEntit
                and plan.effectiveFrom <= :businessTime
                and (plan.effectiveTo is null or :businessTime < plan.effectiveTo)
             """)
-    List<PricingPlanEntity> findEffectivePlans(
+    List<PricingPlanDO> findEffectivePlans(
             @Param("tenantId") String tenantId,
             @Param("productId") String productId,
             @Param("currency") String currency,
             @Param("businessTime") LocalDateTime businessTime);
 
     @Query("""
-            select count(plan) from PricingPlanEntity plan
+            select count(plan) from PricingPlanDO plan
              where plan.tenantId = :tenantId
                and plan.productId = :productId
                and plan.planId <> :excludedPlanId

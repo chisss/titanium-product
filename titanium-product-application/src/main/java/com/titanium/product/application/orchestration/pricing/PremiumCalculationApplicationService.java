@@ -14,8 +14,10 @@ import org.springframework.stereotype.Service;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.aggregate.PremiumCalculation;
-import com.titanium.product.application.command.pricing.PremiumCalculationCommand;
-import com.titanium.product.common.enums.PricingCalculationPurpose;
+import com.titanium.product.application.orchestration.pricing.validation.PremiumCalculationCommandValidator;
+import com.titanium.product.application.service.pricing.PremiumQuoteApplicationService;
+import com.titanium.product.command.pricing.PremiumCalculationCommand;
+import com.titanium.product.command.pricing.PremiumQuoteCommand;
 import com.titanium.product.exception.PremiumCalculationConcurrentConflictException;
 import com.titanium.product.repository.PremiumCalculationRepository;
 import com.titanium.product.service.PremiumAdjustmentService;
@@ -45,10 +47,11 @@ public class PremiumCalculationApplicationService {
     private final PremiumAdjustmentService premiumAdjustmentService;
     private final PremiumCalculationBreakdownService breakdownService;
     private final PricingEvidenceHasher pricingEvidenceHasher;
+    private final PremiumCalculationCommandValidator commandValidator;
 
     /** 执行确认计算并固化不可变事实。 */
     public PremiumCalculation confirm(PremiumCalculationCommand command) {
-        validateCommand(command);
+        commandValidator.validate(command);
         String requestHash = requestHash(command);
         Optional<PremiumCalculation> existing = premiumCalculationRepository.findByIdempotencyKey(
                 command.tenantId(), command.calculationRequestId(), command.purpose());
@@ -63,13 +66,13 @@ public class PremiumCalculationApplicationService {
                 command.paymentTermYears(), command.coverageTermYears(), command.paymentPeriods(),
                 command.requestSnapshot(), command.channelId(), command.policyYear()));
         if (!command.productVersion().equals(quote.productVersion())) {
-            throw new BusinessException("确认请求产品版本与当前产品不一致",
-                    ProductErrorCode.PRICING_PLAN_VALIDATION_FAILED);
+            throw new BusinessException(ProductErrorCode.CALCULATION_VERSION_MISMATCH,
+                    "确认请求产品版本与当前产品不一致: 请求=" + command.productVersion() + ", 实际=" + quote.productVersion());
         }
         if (command.expectedPricingPlanVersion() != null
                 && !command.expectedPricingPlanVersion().equals(quote.pricingPlanVersion())) {
-            throw new BusinessException("确认请求计划版本与当前定价计划不一致",
-                    ProductErrorCode.PRICING_PLAN_VALIDATION_FAILED);
+            throw new BusinessException(ProductErrorCode.CALCULATION_VERSION_MISMATCH,
+                    "确认请求计划版本与当前定价计划不一致: 请求=" + command.expectedPricingPlanVersion() + ", 实际=" + quote.pricingPlanVersion());
         }
 
         PricingRoundingRule roundingRule = new PricingRoundingRule(
@@ -79,8 +82,8 @@ public class PremiumCalculationApplicationService {
         CalculationModelExecutionResult breakdown = breakdownService.applyAdjustments(
                 quote.calculationLines(), quote.totalPremium(), adjustmentResult.adjustments(), quote.currency());
         if (breakdown.totals().customerPayable().compareTo(adjustmentResult.totalPremium()) != 0) {
-            throw new BusinessException("结构化费用汇总与核保调整结果不一致",
-                    ProductErrorCode.ACTUARIAL_MODEL_VALIDATION_FAILED);
+            throw new BusinessException(ProductErrorCode.CALCULATION_BREAKDOWN_MISMATCH,
+                    "结构化费用汇总与核保调整结果不一致: 汇总=" + breakdown.totals().customerPayable() + ", 调整后=" + adjustmentResult.totalPremium());
         }
         String adjustmentHash = pricingEvidenceHasher.hash(canonicalAdjustments(command.underwritingAdjustments()));
         String inputHash = pricingEvidenceHasher.hash(quote.inputHash() + '|' + adjustmentHash);
@@ -175,33 +178,5 @@ public class PremiumCalculationApplicationService {
 
     private BigDecimal installment(BigDecimal total, int periods, PricingRoundingRule roundingRule) {
         return total.divide(BigDecimal.valueOf(periods), roundingRule.scale(), roundingRule.roundingMode());
-    }
-
-    private void validateCommand(PremiumCalculationCommand command) {
-        if (command == null || blank(command.tenantId()) || blank(command.productId())
-                || blank(command.calculationRequestId()) || blank(command.bizNo())
-                || unsupportedPurpose(command.purpose())
-                || blank(command.productVersion()) || command.businessTime() == null || blank(command.currency())
-                || command.sumInsured() == null || command.sumInsured().signum() <= 0
-                || command.age() < 0 || command.age() > 120 || blank(command.gender())
-                || command.paymentTermYears() <= 0 || command.coverageTermYears() <= 0
-                || command.paymentPeriods() <= 0 || hasInvalidAdjustment(command)) {
-            throw new BusinessException(ProductErrorCode.PRICING_INPUT_INVALID);
-        }
-    }
-
-    private boolean hasInvalidAdjustment(PremiumCalculationCommand command) {
-        return command.underwritingAdjustments().stream().anyMatch(adjustment -> adjustment == null
-                || blank(adjustment.adjustmentCode()) || adjustment.type() == null
-                || adjustment.value() == null || adjustment.value().signum() < 0);
-    }
-
-    private boolean unsupportedPurpose(PricingCalculationPurpose purpose) {
-        return purpose != PricingCalculationPurpose.ISSUANCE_CONFIRM
-                && purpose != PricingCalculationPurpose.MAINTENANCE;
-    }
-
-    private boolean blank(String value) {
-        return value == null || value.isBlank();
     }
 }

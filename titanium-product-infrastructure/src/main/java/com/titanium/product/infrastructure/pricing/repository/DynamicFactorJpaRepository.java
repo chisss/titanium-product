@@ -9,31 +9,31 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
-import com.titanium.product.infrastructure.pricing.entity.DynamicFactorEntity;
+import com.titanium.product.infrastructure.pricing.entity.DynamicFactorDO;
 
-public interface DynamicFactorJpaRepository extends JpaRepository<DynamicFactorEntity, String> {
+public interface DynamicFactorJpaRepository extends JpaRepository<DynamicFactorDO, String> {
 
     boolean existsByTenantIdAndProductIdAndFactorCodeAndFactorVersion(
             String tenantId, String productId, String factorCode, String factorVersion);
 
-    Optional<DynamicFactorEntity> findByFactorIdAndTenantIdAndProductId(
+    Optional<DynamicFactorDO> findByFactorIdAndTenantIdAndProductId(
             String factorId, String tenantId, String productId);
 
-    List<DynamicFactorEntity> findByTenantIdAndProductIdOrderByFactorCodeAscFactorVersionDesc(
+    List<DynamicFactorDO> findByTenantIdAndProductIdOrderByFactorCodeAscFactorVersionDesc(
             String tenantId, String productId);
 
-    List<DynamicFactorEntity> findByTenantIdAndProductIdAndStatusOrderByFactorCodeAscFactorVersionDesc(
+    List<DynamicFactorDO> findByTenantIdAndProductIdAndStatusOrderByFactorCodeAscFactorVersionDesc(
             String tenantId, String productId, ActuarialDefinitionStatus status);
 
     @Query("""
-            select f from DynamicFactorEntity f
+            select f from DynamicFactorDO f
             where f.tenantId = :tenantId and f.productId = :productId
               and f.factorCode = :factorCode and f.factorVersion = :factorVersion
               and f.status = com.titanium.product.common.enums.ActuarialDefinitionStatus.PUBLISHED
               and f.effectiveFrom <= :businessTime
               and (f.effectiveTo is null or f.effectiveTo > :businessTime)
             """)
-    Optional<DynamicFactorEntity> findPublished(
+    Optional<DynamicFactorDO> findPublished(
             @Param("tenantId") String tenantId,
             @Param("productId") String productId,
             @Param("factorCode") String factorCode,

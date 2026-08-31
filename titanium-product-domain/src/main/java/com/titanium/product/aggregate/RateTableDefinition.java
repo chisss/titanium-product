@@ -294,4 +294,58 @@ public class RateTableDefinition {
     public String contentHash() {
         return contentHash;
     }
+
+    // ==================== 持久化映射访问器（MapStruct getXxx 约定） ====================
+
+    public String getTableId() {
+        return tableId;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public String getTableCode() {
+        return tableCode;
+    }
+
+    public String getTableVersion() {
+        return tableVersion;
+    }
+
+    public RateUnit getRateUnit() {
+        return rateUnit;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public LocalDateTime getEffectiveFrom() {
+        return effectiveFrom;
+    }
+
+    public LocalDateTime getEffectiveTo() {
+        return effectiveTo;
+    }
+
+    public List<String> getDimensionKeys() {
+        return dimensionKeys;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public RateTableStatus getStatus() {
+        return status;
+    }
+
+    public List<RateTableRow> getRows() {
+        return rows;
+    }
+
+    public String getContentHash() {
+        return contentHash;
+    }
 }

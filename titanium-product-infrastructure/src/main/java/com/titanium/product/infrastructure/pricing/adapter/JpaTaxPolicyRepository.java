@@ -5,14 +5,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.product.aggregate.TaxPolicyDefinition;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
-import com.titanium.product.infrastructure.pricing.entity.TaxBaseItemEntity;
-import com.titanium.product.infrastructure.pricing.entity.TaxPolicyEntity;
+import com.titanium.product.infrastructure.mapper.TaxPolicyPersistenceMapper;
+import com.titanium.product.infrastructure.pricing.entity.TaxBaseItemDO;
+import com.titanium.product.infrastructure.pricing.entity.TaxPolicyDO;
 import com.titanium.product.infrastructure.pricing.repository.TaxBaseItemJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.TaxPolicyJpaRepository;
 import com.titanium.product.repository.TaxPolicyRepository;
@@ -28,6 +30,7 @@ public class JpaTaxPolicyRepository implements TaxPolicyRepository {
 
     private final TaxPolicyJpaRepository policyRepository;
     private final TaxBaseItemJpaRepository baseItemRepository;
+    private final TaxPolicyPersistenceMapper persistenceMapper;
 
     @Override
     public boolean existsByBusinessKey(String tenantId, String productId, String policyCode, String policyVersion) {
@@ -54,71 +57,45 @@ public class JpaTaxPolicyRepository implements TaxPolicyRepository {
     @Transactional(readOnly = true)
     public List<TaxPolicyDefinition> findAll(
             String tenantId, String productId, ActuarialDefinitionStatus status) {
-        List<TaxPolicyEntity> entities = status == null
+        List<TaxPolicyDO> dataObjects = status == null
                 ? policyRepository.findByTenantIdAndProductIdOrderByPolicyCodeAscPolicyVersionDesc(tenantId, productId)
                 : policyRepository.findByTenantIdAndProductIdAndStatusOrderByPolicyCodeAscPolicyVersionDesc(
                         tenantId, productId, status);
-        return entities.stream().map(this::toDomain).toList();
+        return dataObjects.stream().map(this::toDomain).toList();
     }
 
     @Override
     @Transactional
     public void save(TaxPolicyDefinition policy) {
         boolean existing = policyRepository.existsById(policy.getPolicyId());
-        policyRepository.save(toEntity(policy));
+        policyRepository.save(persistenceMapper.toDO(policy));
         if (!existing) {
             baseItemRepository.saveAll(toBaseItems(policy));
         }
     }
 
-    private TaxPolicyDefinition toDomain(TaxPolicyEntity entity) {
-        List<String> baseCodes = baseItemRepository.findByPolicyIdOrderBySortOrderAsc(entity.getPolicyId()).stream()
-                .map(TaxBaseItemEntity::getComponentCode)
+    private TaxPolicyDefinition toDomain(TaxPolicyDO dataObject) {
+        List<String> baseCodes = baseItemRepository.findByPolicyIdOrderBySortOrderAsc(dataObject.getPolicyId())
+                .stream()
+                .map(TaxBaseItemDO::getComponentCode)
                 .toList();
         return TaxPolicyDefinition.restore(
-                entity.getPolicyId(), entity.getProductId(), entity.getPolicyCode(), entity.getPolicyVersion(),
-                entity.getPolicyName(), entity.getDescription(), entity.getJurisdictionCode(), entity.getCategory(),
-                entity.getPayerType(), entity.getPriceMode(), entity.getTaxRate(), baseCodes,
-                entity.getAccountingClass(), entity.getRegulatoryReferenceId(), entity.getExemptionFeatureCode(),
-                entity.getEffectiveFrom(), entity.getEffectiveTo(), entity.getTenantId(), entity.getStatus(),
-                entity.getContentHash());
+                dataObject.getPolicyId(), dataObject.getProductId(), dataObject.getPolicyCode(),
+                dataObject.getPolicyVersion(), dataObject.getPolicyName(), dataObject.getDescription(),
+                dataObject.getJurisdictionCode(), dataObject.getCategory(), dataObject.getPayerType(),
+                dataObject.getPriceMode(), dataObject.getTaxRate(), baseCodes,
+                dataObject.getAccountingClass(), dataObject.getRegulatoryReferenceId(),
+                dataObject.getExemptionFeatureCode(), dataObject.getEffectiveFrom(), dataObject.getEffectiveTo(),
+                dataObject.getTenantId(), dataObject.getStatus(), dataObject.getContentHash());
     }
 
-    private TaxPolicyEntity toEntity(TaxPolicyDefinition policy) {
-        TaxPolicyEntity entity = new TaxPolicyEntity();
-        entity.setPolicyId(policy.getPolicyId());
-        entity.setProductId(policy.getProductId());
-        entity.setPolicyCode(policy.getPolicyCode());
-        entity.setPolicyVersion(policy.getPolicyVersion());
-        entity.setPolicyName(policy.getPolicyName());
-        entity.setDescription(policy.getDescription());
-        entity.setJurisdictionCode(policy.getJurisdictionCode());
-        entity.setCategory(policy.getCategory());
-        entity.setPayerType(policy.getPayerType());
-        entity.setPriceMode(policy.getPriceMode());
-        entity.setTaxRate(policy.getTaxRate());
-        entity.setAccountingClass(policy.getAccountingClass());
-        entity.setRegulatoryReferenceId(policy.getRegulatoryReferenceId());
-        entity.setExemptionFeatureCode(policy.getExemptionFeatureCode());
-        entity.setEffectiveFrom(policy.getEffectiveFrom());
-        entity.setEffectiveTo(policy.getEffectiveTo());
-        entity.setTenantId(policy.getTenantId());
-        entity.setStatus(policy.getStatus());
-        entity.setContentHash(policy.getContentHash());
-        return entity;
-    }
-
-    private List<TaxBaseItemEntity> toBaseItems(TaxPolicyDefinition policy) {
-        return java.util.stream.IntStream.range(0, policy.getBaseComponentCodes().size())
+    private List<TaxBaseItemDO> toBaseItems(TaxPolicyDefinition policy) {
+        return IntStream.range(0, policy.getBaseComponentCodes().size())
                 .mapToObj(index -> {
                     String code = policy.getBaseComponentCodes().get(index);
-                    TaxBaseItemEntity entity = new TaxBaseItemEntity();
-                    entity.setItemId(UUID.nameUUIDFromBytes(
-                            (policy.getPolicyId() + ':' + code).getBytes(StandardCharsets.UTF_8)).toString());
-                    entity.setPolicyId(policy.getPolicyId());
-                    entity.setComponentCode(code);
-                    entity.setSortOrder(index);
-                    return entity;
+                    String itemId = UUID.nameUUIDFromBytes(
+                            (policy.getPolicyId() + ':' + code).getBytes(StandardCharsets.UTF_8)).toString();
+                    return persistenceMapper.toDO(policy, itemId, code, index);
                 })
                 .toList();
     }

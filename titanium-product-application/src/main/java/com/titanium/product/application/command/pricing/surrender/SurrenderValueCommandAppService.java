@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.titanium.product.application.model.pricing.surrender.SurrenderValueCalculationResult;
 import com.titanium.product.application.orchestration.pricing.surrender.SurrenderValueApplicationService;
+import com.titanium.product.command.pricing.surrender.CalculateSurrenderValueCommand;
 
 import lombok.RequiredArgsConstructor;
 

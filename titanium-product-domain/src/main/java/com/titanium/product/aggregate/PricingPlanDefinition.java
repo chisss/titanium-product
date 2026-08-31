@@ -637,4 +637,86 @@ public class PricingPlanDefinition {
     public String contentHash() {
         return contentHash;
     }
+
+    // ==================== 持久化映射访问器（MapStruct getXxx 约定） ====================
+
+    public String getPlanId() {
+        return planId;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public String getProductVersion() {
+        return productVersion;
+    }
+
+    public String getPlanVersion() {
+        return planVersion;
+    }
+
+    public PricingMode getMode() {
+        return mode;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public LocalDateTime getEffectiveFrom() {
+        return effectiveFrom;
+    }
+
+    public LocalDateTime getEffectiveTo() {
+        return effectiveTo;
+    }
+
+    public RateTableRef getRateTableRef() {
+        return rateTableRef;
+    }
+
+    public PricingFeatureContract getFeatureContract() {
+        return featureContract;
+    }
+
+    public PricingRuleArtifactRef getArtifactRef() {
+        return artifactRef;
+    }
+
+    public CalculationModelRef getCalculationModelRef() {
+        return calculationModelRef;
+    }
+
+    public List<TaxPolicyRef> getTaxPolicyRefs() {
+        return taxPolicyRefs;
+    }
+
+    public List<CommissionSchemeRef> getCommissionSchemeRefs() {
+        return commissionSchemeRefs;
+    }
+
+    public List<DynamicFactorRef> getDynamicFactorRefs() {
+        return dynamicFactorRefs;
+    }
+
+    public PricingRoundingRule getRoundingRule() {
+        return roundingRule;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public PricingPlanStatus getStatus() {
+        return status;
+    }
+
+    public List<PricingTestCase> getTestCases() {
+        return testCases;
+    }
+
+    public String getContentHash() {
+        return contentHash;
+    }
 }

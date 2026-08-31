@@ -4,12 +4,12 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanCommissionSchemeRefEntity;
+import com.titanium.product.infrastructure.pricing.entity.PricingPlanCommissionSchemeRefDO;
 
 public interface PricingPlanCommissionSchemeRefJpaRepository
-        extends JpaRepository<PricingPlanCommissionSchemeRefEntity, String> {
+        extends JpaRepository<PricingPlanCommissionSchemeRefDO, String> {
 
-    List<PricingPlanCommissionSchemeRefEntity> findByPlanIdOrderBySortOrderAsc(String planId);
+    List<PricingPlanCommissionSchemeRefDO> findByPlanIdOrderBySortOrderAsc(String planId);
 
     void deleteByPlanId(String planId);
 }

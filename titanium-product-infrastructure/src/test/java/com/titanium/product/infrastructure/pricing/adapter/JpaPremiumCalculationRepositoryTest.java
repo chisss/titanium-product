@@ -22,7 +22,8 @@ import com.titanium.product.aggregate.PremiumCalculation;
 import com.titanium.product.common.enums.PremiumAdjustmentType;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
 import com.titanium.product.exception.PremiumCalculationConcurrentConflictException;
-import com.titanium.product.infrastructure.pricing.entity.PremiumCalculationEntity;
+import com.titanium.product.infrastructure.mapper.PremiumCalculationPersistenceMapperImpl;
+import com.titanium.product.infrastructure.pricing.entity.PremiumCalculationDO;
 import com.titanium.product.infrastructure.pricing.repository.CalculationLineJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.CalculationTotalJpaRepository;
 import com.titanium.product.infrastructure.pricing.repository.PremiumCalculationJpaRepository;
@@ -42,7 +43,8 @@ class JpaPremiumCalculationRepositoryTest {
         calculationTotalJpaRepository = mock(CalculationTotalJpaRepository.class);
         calculationLineJpaRepository = mock(CalculationLineJpaRepository.class);
         repository = new JpaPremiumCalculationRepository(
-                jpaRepository, calculationTotalJpaRepository, calculationLineJpaRepository);
+                jpaRepository, calculationTotalJpaRepository, calculationLineJpaRepository,
+                new PremiumCalculationPersistenceMapperImpl());
     }
 
     @Test
@@ -51,11 +53,11 @@ class JpaPremiumCalculationRepositoryTest {
 
         repository.save(source);
 
-        ArgumentCaptor<PremiumCalculationEntity> captor = ArgumentCaptor.forClass(PremiumCalculationEntity.class);
+        ArgumentCaptor<PremiumCalculationDO> captor = ArgumentCaptor.forClass(PremiumCalculationDO.class);
         verify(jpaRepository).saveAndFlush(captor.capture());
         verify(calculationTotalJpaRepository).save(any());
         verify(calculationLineJpaRepository).saveAll(any());
-        PremiumCalculationEntity entity = captor.getValue();
+        PremiumCalculationDO entity = captor.getValue();
         assertEquals("V1.0", entity.getProductVersion());
         assertEquals("P1", entity.getPricingPlanVersion());
         assertEquals(source.getCreatedAt(), entity.getCreateTime());

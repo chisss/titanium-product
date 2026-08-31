@@ -7,6 +7,7 @@ import com.titanium.metadata.enums.pricing.AmountChannel;
 import com.titanium.metadata.enums.pricing.ChargeCategory;
 import com.titanium.metadata.enums.pricing.ChargeDirection;
 import com.titanium.metadata.enums.pricing.ChargePayerType;
+import com.titanium.product.common.constant.ProductConstants;
 
 /**
  * 生命周期变更前后的单项费用差额。
@@ -57,7 +58,7 @@ public record PremiumLifecycleDifferenceLine(
                 lineId, componentCode, replacementComponentVersion, originalComponentVersion,
                 category, amountChannel, reverse(direction), payerType, accountingClass, currency,
                 replacementDirection, afterAmount, originalDirection, beforeAmount, differenceAmount,
-                customerVisible, affectsCustomerPayable, "冲正: " + description);
+                customerVisible, affectsCustomerPayable, ProductConstants.REVERSED_DIFFERENCE_LINE_PREFIX + description);
     }
 
     private ChargeDirection reverse(ChargeDirection value) {

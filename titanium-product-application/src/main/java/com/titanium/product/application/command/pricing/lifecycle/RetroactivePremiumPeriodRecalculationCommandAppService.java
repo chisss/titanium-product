@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.titanium.product.application.model.RetroactivePremiumPeriodRecalculationResult;
 import com.titanium.product.application.orchestration.pricing.lifecycle.RetroactivePremiumPeriodRecalculationApplicationService;
+import com.titanium.product.command.pricing.lifecycle.RecalculateRetroactivePremiumPeriodsCommand;
 
 import lombok.RequiredArgsConstructor;
 

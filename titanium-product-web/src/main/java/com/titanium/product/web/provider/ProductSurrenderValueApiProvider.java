@@ -9,9 +9,9 @@ import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.api.ProductSurrenderValueApi;
 import com.titanium.product.api.request.SurrenderValueCalculationRequest;
 import com.titanium.product.api.response.SurrenderValueCalculationResponse;
-import com.titanium.product.application.command.pricing.surrender.CalculateSurrenderValueCommand;
 import com.titanium.product.application.command.pricing.surrender.SurrenderValueCommandAppService;
 import com.titanium.product.application.model.pricing.surrender.SurrenderValueCalculationResult;
+import com.titanium.product.command.pricing.surrender.CalculateSurrenderValueCommand;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -9,26 +9,26 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.titanium.product.common.enums.RateTableStatus;
-import com.titanium.product.infrastructure.pricing.entity.RateTableEntity;
+import com.titanium.product.infrastructure.pricing.entity.RateTableDO;
 
 /**
  * 费率表元数据 JPA 仓储。
  */
-public interface RateTableJpaRepository extends JpaRepository<RateTableEntity, String> {
+public interface RateTableJpaRepository extends JpaRepository<RateTableDO, String> {
 
     boolean existsByTenantIdAndProductIdAndTableCodeAndTableVersion(
             String tenantId, String productId, String tableCode, String tableVersion);
 
-    Optional<RateTableEntity> findByTableIdAndTenantIdAndProductId(
+    Optional<RateTableDO> findByTableIdAndTenantIdAndProductId(
             String tableId, String tenantId, String productId);
 
-    List<RateTableEntity> findByTenantIdAndProductIdOrderByCreateTimeDesc(String tenantId, String productId);
+    List<RateTableDO> findByTenantIdAndProductIdOrderByCreateTimeDesc(String tenantId, String productId);
 
-    List<RateTableEntity> findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
+    List<RateTableDO> findByTenantIdAndProductIdAndStatusOrderByCreateTimeDesc(
             String tenantId, String productId, RateTableStatus status);
 
     @Query("""
-            select tableMeta from RateTableEntity tableMeta
+            select tableMeta from RateTableDO tableMeta
              where tableMeta.tenantId = :tenantId
                and tableMeta.productId = :productId
                and tableMeta.tableCode = :tableCode
@@ -37,7 +37,7 @@ public interface RateTableJpaRepository extends JpaRepository<RateTableEntity, S
                and tableMeta.effectiveFrom <= :businessTime
                and (tableMeta.effectiveTo is null or :businessTime < tableMeta.effectiveTo)
             """)
-    Optional<RateTableEntity> findEffectiveTable(
+    Optional<RateTableDO> findEffectiveTable(
             @Param("tenantId") String tenantId,
             @Param("productId") String productId,
             @Param("tableCode") String tableCode,
