@@ -15,20 +15,20 @@ import com.titanium.metadata.enums.pricing.AmountChannel;
 import com.titanium.metadata.enums.pricing.ChargeCategory;
 import com.titanium.metadata.enums.pricing.ChargeDirection;
 import com.titanium.metadata.enums.pricing.ChargePayerType;
-import com.titanium.product.aggregate.CalculationModelDefinition;
-import com.titanium.product.aggregate.ChargeComponentDefinition;
-import com.titanium.product.aggregate.PremiumCalculation;
 import com.titanium.product.common.enums.CalculationNodeType;
 import com.titanium.product.common.enums.CalculationOperator;
 import com.titanium.product.common.enums.ChargeCalculationSource;
 import com.titanium.product.common.enums.PremiumBalanceDirection;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
-import com.titanium.product.valueobject.pricing.CalculationEdge;
-import com.titanium.product.valueobject.pricing.CalculationModelExecutionResult;
-import com.titanium.product.valueobject.pricing.CalculationNode;
-import com.titanium.product.valueobject.pricing.PremiumCalculationEvidence;
-import com.titanium.product.valueobject.pricing.PricingRoundingRule;
-import com.titanium.product.valueobject.pricing.lifecycle.PremiumLifecycleDifference;
+import com.titanium.product.pricing.aggregate.CalculationModelDefinition;
+import com.titanium.product.pricing.aggregate.ChargeComponentDefinition;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
+import com.titanium.product.valueobject.pricing.calculation.CalculationEdge;
+import com.titanium.product.valueobject.pricing.calculation.CalculationModelExecutionResult;
+import com.titanium.product.valueobject.pricing.calculation.CalculationNode;
+import com.titanium.product.valueobject.pricing.premium.PremiumCalculationEvidence;
+import com.titanium.product.valueobject.pricing.premium.PremiumLifecycleDifference;
+import com.titanium.product.valueobject.pricing.pricing.PricingRoundingRule;
 
 class CalculationModelExecutionServiceTest {
 

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.titanium.metadata.response.ApiResponse;
-import com.titanium.product.api.response.ProductTemplateResponse;
+import com.titanium.product.api.response.product.ProductTemplateResponse;
 
 /**
  * 产品模板 Feign 客户端

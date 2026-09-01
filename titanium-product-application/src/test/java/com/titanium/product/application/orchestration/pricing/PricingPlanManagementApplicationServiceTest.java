@@ -22,23 +22,23 @@ import org.junit.jupiter.api.Test;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.CalculationModelDefinition;
-import com.titanium.product.aggregate.PricingPlanDefinition;
 import com.titanium.product.application.service.pricing.PricingPlanTestRunner;
 import com.titanium.product.command.pricing.CreatePricingPlanDraftCommand;
-import com.titanium.product.port.CommissionResolutionPort;
+import com.titanium.product.port.pricing.CommissionResolutionPort;
+import com.titanium.product.pricing.aggregate.CalculationModelDefinition;
+import com.titanium.product.pricing.aggregate.PricingPlanDefinition;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.CalculationModelRepository;
 import com.titanium.product.repository.DynamicFactorRepository;
 import com.titanium.product.repository.PricingPlanRepository;
 import com.titanium.product.repository.TaxPolicyRepository;
-import com.titanium.product.valueobject.RateTableRef;
-import com.titanium.product.valueobject.pricing.CalculationModelRef;
-import com.titanium.product.valueobject.pricing.CommissionSchemeRef;
-import com.titanium.product.valueobject.pricing.PricingPlanValidationResult;
-import com.titanium.product.valueobject.pricing.PricingRoundingRule;
-import com.titanium.product.valueobject.pricing.PricingTestCase;
+import com.titanium.product.valueobject.pricing.calculation.CalculationModelRef;
+import com.titanium.product.valueobject.pricing.commission.CommissionSchemeRef;
+import com.titanium.product.valueobject.pricing.pricing.PricingPlanValidationResult;
+import com.titanium.product.valueobject.pricing.pricing.PricingRoundingRule;
+import com.titanium.product.valueobject.pricing.pricing.PricingTestCase;
+import com.titanium.product.valueobject.rate.RateTableRef;
 
 class PricingPlanManagementApplicationServiceTest {
 

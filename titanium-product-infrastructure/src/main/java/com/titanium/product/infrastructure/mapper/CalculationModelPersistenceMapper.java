@@ -6,12 +6,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
-import com.titanium.product.aggregate.CalculationModelDefinition;
-import com.titanium.product.infrastructure.pricing.entity.CalculationEdgeDO;
-import com.titanium.product.infrastructure.pricing.entity.CalculationModelDO;
-import com.titanium.product.infrastructure.pricing.entity.CalculationNodeDO;
-import com.titanium.product.valueobject.pricing.CalculationEdge;
-import com.titanium.product.valueobject.pricing.CalculationNode;
+import com.titanium.product.infrastructure.pricing.entity.calculation.CalculationEdgeDO;
+import com.titanium.product.infrastructure.pricing.entity.calculation.CalculationModelDO;
+import com.titanium.product.infrastructure.pricing.entity.calculation.CalculationNodeDO;
+import com.titanium.product.pricing.aggregate.CalculationModelDefinition;
+import com.titanium.product.valueobject.pricing.calculation.CalculationEdge;
+import com.titanium.product.valueobject.pricing.calculation.CalculationNode;
 
 
 /**

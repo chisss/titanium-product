@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
+import com.titanium.product.pricing.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.repository.PremiumLifecycleAdjustmentRepository;
 
 import lombok.RequiredArgsConstructor;

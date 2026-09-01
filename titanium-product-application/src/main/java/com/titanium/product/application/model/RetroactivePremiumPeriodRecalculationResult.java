@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.titanium.product.common.enums.PremiumBalanceDirection;
-import com.titanium.product.valueobject.pricing.lifecycle.RetroactivePremiumPeriodDifference;
+import com.titanium.product.valueobject.pricing.premium.RetroactivePremiumPeriodDifference;
 
 /** Product 追溯期间重算应用结果。 */
 public record RetroactivePremiumPeriodRecalculationResult(

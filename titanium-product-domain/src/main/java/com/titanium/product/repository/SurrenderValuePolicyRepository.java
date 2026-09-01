@@ -3,7 +3,7 @@ package com.titanium.product.repository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import com.titanium.product.aggregate.surrender.SurrenderValuePolicy;
+import com.titanium.product.pricing.aggregate.surrender.SurrenderValuePolicy;
 
 /** 退保价值策略仓储端口。 */
 public interface SurrenderValuePolicyRepository {

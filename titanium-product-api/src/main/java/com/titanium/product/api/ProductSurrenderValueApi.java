@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.titanium.metadata.response.ApiResponse;
-import com.titanium.product.api.request.SurrenderValueCalculationRequest;
-import com.titanium.product.api.response.SurrenderValueCalculationResponse;
+import com.titanium.product.api.request.premium.SurrenderValueCalculationRequest;
+import com.titanium.product.api.response.premium.SurrenderValueCalculationResponse;
 
 import jakarta.validation.Valid;
 

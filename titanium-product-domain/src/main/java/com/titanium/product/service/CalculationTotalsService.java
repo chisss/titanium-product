@@ -9,8 +9,8 @@ import com.titanium.metadata.enums.pricing.AmountChannel;
 import com.titanium.metadata.enums.pricing.ChargeCategory;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.exception.PricingDomainException;
-import com.titanium.product.valueobject.pricing.CalculationLine;
-import com.titanium.product.valueobject.pricing.CalculationTotals;
+import com.titanium.product.valueobject.pricing.calculation.CalculationLine;
+import com.titanium.product.valueobject.pricing.calculation.CalculationTotals;
 
 /**
  * 按金额通道和费用分类汇总结构化计算明细。

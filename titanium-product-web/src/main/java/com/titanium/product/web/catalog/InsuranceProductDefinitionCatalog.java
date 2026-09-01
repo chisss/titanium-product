@@ -8,7 +8,7 @@ import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.insurance.SubjectType;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.api.response.InsuranceProductDefinitionResponse;
+import com.titanium.product.api.response.product.InsuranceProductDefinitionResponse;
 
 /**
  * 九类险种的标准产品定义目录。

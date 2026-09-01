@@ -16,17 +16,17 @@ import com.titanium.metadata.enums.pricing.ChargeCategory;
 import com.titanium.metadata.enums.pricing.ChargeDirection;
 import com.titanium.metadata.enums.pricing.ChargePayerType;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.CalculationModelDefinition;
-import com.titanium.product.aggregate.ChargeComponentDefinition;
 import com.titanium.product.common.constant.ProductConstants;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
 import com.titanium.product.common.enums.CalculationOperator;
 import com.titanium.product.exception.PricingDomainException;
-import com.titanium.product.valueobject.pricing.CalculationLine;
-import com.titanium.product.valueobject.pricing.CalculationModelExecutionResult;
-import com.titanium.product.valueobject.pricing.CalculationNode;
-import com.titanium.product.valueobject.pricing.CalculationTotals;
-import com.titanium.product.valueobject.pricing.PricingRoundingRule;
+import com.titanium.product.pricing.aggregate.CalculationModelDefinition;
+import com.titanium.product.pricing.aggregate.ChargeComponentDefinition;
+import com.titanium.product.valueobject.pricing.calculation.CalculationLine;
+import com.titanium.product.valueobject.pricing.calculation.CalculationModelExecutionResult;
+import com.titanium.product.valueobject.pricing.calculation.CalculationNode;
+import com.titanium.product.valueobject.pricing.calculation.CalculationTotals;
+import com.titanium.product.valueobject.pricing.pricing.PricingRoundingRule;
 
 import lombok.RequiredArgsConstructor;
 

@@ -17,8 +17,8 @@ import com.titanium.product.event.ProductTemplateCreatedEvent;
 import com.titanium.product.query.mapper.ProductViewMapper;
 import com.titanium.product.query.mapper.ProductViewMapperImpl;
 import com.titanium.product.query.view.ProductTemplateView;
-import com.titanium.product.valueobject.ClaimConfig;
-import com.titanium.product.valueobject.PolicyFormConfig;
+import com.titanium.product.valueobject.config.ClaimConfig;
+import com.titanium.product.valueobject.config.PolicyFormConfig;
 
 /**
  * 产品模板创建事件投影映射测试（覆盖 GAP C 回归）

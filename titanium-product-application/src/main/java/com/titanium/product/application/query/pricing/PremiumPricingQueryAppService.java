@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.titanium.product.application.service.pricing.PremiumQuoteApplicationService;
 import com.titanium.product.command.pricing.PremiumQuoteCommand;
-import com.titanium.product.valueobject.PremiumQuote;
+import com.titanium.product.valueobject.pricing.premium.PremiumQuote;
 
 import lombok.RequiredArgsConstructor;
 

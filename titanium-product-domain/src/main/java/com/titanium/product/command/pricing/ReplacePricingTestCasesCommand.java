@@ -2,7 +2,7 @@ package com.titanium.product.command.pricing;
 
 import java.util.List;
 
-import com.titanium.product.valueobject.pricing.PricingTestCaseDraft;
+import com.titanium.product.valueobject.pricing.pricing.PricingTestCaseDraft;
 
 /**
  * 整体替换定价测试用例命令。

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.valueobject.PricingFactor;
+import com.titanium.product.valueobject.pricing.pricing.PricingFactor;
 
 import lombok.Data;
 

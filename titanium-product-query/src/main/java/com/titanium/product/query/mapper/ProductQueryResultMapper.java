@@ -10,16 +10,16 @@ import com.alibaba.fastjson2.JSON;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.view.ProductView;
-import com.titanium.product.valueobject.ActuarialBasis;
-import com.titanium.product.valueobject.CoveragePeriodConfig;
-import com.titanium.product.valueobject.DocumentConfig;
-import com.titanium.product.valueobject.InsureCondition;
-import com.titanium.product.valueobject.IssuanceProcessConfig;
-import com.titanium.product.valueobject.PaymentConfig;
-import com.titanium.product.valueobject.PolicyFormConfig;
-import com.titanium.product.valueobject.PricingBasicRule;
-import com.titanium.product.valueobject.RateTableRef;
-import com.titanium.product.valueobject.UnderwritingConfig;
+import com.titanium.product.valueobject.config.CoveragePeriodConfig;
+import com.titanium.product.valueobject.config.DocumentConfig;
+import com.titanium.product.valueobject.config.InsureCondition;
+import com.titanium.product.valueobject.config.IssuanceProcessConfig;
+import com.titanium.product.valueobject.config.PaymentConfig;
+import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.UnderwritingConfig;
+import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
+import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
+import com.titanium.product.valueobject.rate.RateTableRef;
 
 /**
  * 产品读模型 → 查询结果声明式映射（MapStruct）。

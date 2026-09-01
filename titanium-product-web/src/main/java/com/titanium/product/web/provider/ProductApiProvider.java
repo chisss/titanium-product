@@ -7,14 +7,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductApi;
-import com.titanium.product.api.request.AuditProductRequest;
-import com.titanium.product.api.request.CreateProductRequest;
-import com.titanium.product.api.response.InsuranceProductDefinitionResponse;
-import com.titanium.product.api.response.IssuanceProcessConfigResponse;
-import com.titanium.product.api.response.PolicyFormConfigResponse;
-import com.titanium.product.api.response.PricingBasicRuleResponse;
-import com.titanium.product.api.response.ProductResponse;
-import com.titanium.product.api.response.UnderwritingConfigResponse;
+import com.titanium.product.api.request.product.AuditProductRequest;
+import com.titanium.product.api.request.product.CreateProductRequest;
+import com.titanium.product.api.response.clause.ProductClauseResponse;
+import com.titanium.product.api.response.config.IssuanceProcessConfigResponse;
+import com.titanium.product.api.response.config.PolicyFormConfigResponse;
+import com.titanium.product.api.response.config.UnderwritingConfigResponse;
+import com.titanium.product.api.response.pricing.PricingBasicRuleResponse;
+import com.titanium.product.api.response.product.InsuranceProductDefinitionResponse;
+import com.titanium.product.api.response.product.ProductResponse;
 import com.titanium.product.application.command.ProductCommandAppService;
 import com.titanium.product.application.query.ProductQueryAppService;
 import com.titanium.product.command.CreateProductCommand;
@@ -120,9 +121,9 @@ public class ProductApiProvider implements ProductApi {
     }
 
     @Override
-    public ApiResponse<List<com.titanium.product.api.response.ProductClauseResponse>> getProductClauses(
+    public ApiResponse<List<ProductClauseResponse>> getProductClauses(
             String productId, String tenantId) {
-        List<com.titanium.product.api.response.ProductClauseResponse> responses = productQueryAppService
+        List<ProductClauseResponse> responses = productQueryAppService
                 .queryProductClauses(productId).stream()
                 .map(productWebMapper::toProductClauseResponse)
                 .toList();

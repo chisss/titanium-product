@@ -7,10 +7,10 @@ import org.mapstruct.ReportingPolicy;
 
 import com.alibaba.fastjson2.JSON;
 
-import com.titanium.product.aggregate.RateTableDefinition;
-import com.titanium.product.infrastructure.pricing.entity.RateTableDO;
-import com.titanium.product.infrastructure.pricing.entity.RateTableRowDO;
-import com.titanium.product.valueobject.RateTableRow;
+import com.titanium.product.infrastructure.pricing.entity.premium.RateTableDO;
+import com.titanium.product.infrastructure.pricing.entity.premium.RateTableRowDO;
+import com.titanium.product.pricing.aggregate.RateTableDefinition;
+import com.titanium.product.valueobject.rate.RateTableRow;
 
 /**
  * 费率表领域对象 → 持久化对象声明式映射。

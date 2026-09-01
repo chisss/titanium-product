@@ -2,9 +2,9 @@ package com.titanium.product.application.command.pricing;
 
 import org.springframework.stereotype.Service;
 
-import com.titanium.product.aggregate.PremiumCalculation;
 import com.titanium.product.application.orchestration.pricing.PremiumCalculationApplicationService;
 import com.titanium.product.command.pricing.PremiumCalculationCommand;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
 
 import lombok.RequiredArgsConstructor;
 

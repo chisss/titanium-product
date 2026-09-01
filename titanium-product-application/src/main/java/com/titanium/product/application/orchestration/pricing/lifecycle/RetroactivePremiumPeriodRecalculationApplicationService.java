@@ -12,15 +12,15 @@ import org.springframework.stereotype.Service;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.PremiumCalculation;
 import com.titanium.product.application.model.RetroactivePremiumPeriodRecalculationResult;
 import com.titanium.product.application.orchestration.pricing.PricingEvidenceHasher;
 import com.titanium.product.command.pricing.lifecycle.RecalculateRetroactivePremiumPeriodsCommand;
 import com.titanium.product.command.pricing.lifecycle.RecalculateRetroactivePremiumPeriodsCommand.AffectedPeriod;
 import com.titanium.product.common.enums.PremiumBalanceDirection;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
 import com.titanium.product.repository.PremiumCalculationRepository;
 import com.titanium.product.service.RetroactivePremiumPeriodDifferenceService;
-import com.titanium.product.valueobject.pricing.lifecycle.RetroactivePremiumPeriodDifference;
+import com.titanium.product.valueobject.pricing.premium.RetroactivePremiumPeriodDifference;
 
 import lombok.RequiredArgsConstructor;
 

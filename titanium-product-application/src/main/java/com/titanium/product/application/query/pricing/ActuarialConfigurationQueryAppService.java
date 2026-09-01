@@ -7,11 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.CalculationModelDefinition;
-import com.titanium.product.aggregate.ChargeComponentDefinition;
-import com.titanium.product.aggregate.DynamicFactorDefinition;
-import com.titanium.product.aggregate.TaxPolicyDefinition;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
+import com.titanium.product.pricing.aggregate.CalculationModelDefinition;
+import com.titanium.product.pricing.aggregate.ChargeComponentDefinition;
+import com.titanium.product.pricing.aggregate.DynamicFactorDefinition;
+import com.titanium.product.pricing.aggregate.TaxPolicyDefinition;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.CalculationModelRepository;
 import com.titanium.product.repository.ChargeComponentRepository;

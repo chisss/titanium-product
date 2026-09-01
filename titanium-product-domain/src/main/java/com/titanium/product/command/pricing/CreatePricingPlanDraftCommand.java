@@ -4,14 +4,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.titanium.metadata.enums.product.PricingMode;
-import com.titanium.product.valueobject.RateTableRef;
-import com.titanium.product.valueobject.pricing.CalculationModelRef;
-import com.titanium.product.valueobject.pricing.CommissionSchemeRef;
-import com.titanium.product.valueobject.pricing.DynamicFactorRef;
-import com.titanium.product.valueobject.pricing.PricingFeatureContract;
-import com.titanium.product.valueobject.pricing.PricingRoundingRule;
-import com.titanium.product.valueobject.pricing.PricingRuleArtifactRef;
-import com.titanium.product.valueobject.pricing.TaxPolicyRef;
+import com.titanium.product.valueobject.pricing.calculation.CalculationModelRef;
+import com.titanium.product.valueobject.pricing.commission.CommissionSchemeRef;
+import com.titanium.product.valueobject.pricing.premium.TaxPolicyRef;
+import com.titanium.product.valueobject.pricing.pricing.DynamicFactorRef;
+import com.titanium.product.valueobject.pricing.pricing.PricingFeatureContract;
+import com.titanium.product.valueobject.pricing.pricing.PricingRoundingRule;
+import com.titanium.product.valueobject.pricing.pricing.PricingRuleArtifactRef;
+import com.titanium.product.valueobject.rate.RateTableRef;
 
 /**
  * 创建定价方案草稿命令。

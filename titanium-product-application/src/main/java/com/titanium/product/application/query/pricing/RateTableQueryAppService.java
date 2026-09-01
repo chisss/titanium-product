@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.RateTableDefinition;
 import com.titanium.product.common.enums.RateTableStatus;
+import com.titanium.product.pricing.aggregate.RateTableDefinition;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.RateTableManagementRepository;

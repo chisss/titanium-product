@@ -9,10 +9,10 @@ import java.util.Set;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.common.enums.PremiumAdjustmentType;
 import com.titanium.product.exception.PricingDomainException;
-import com.titanium.product.valueobject.pricing.PremiumAdjustment;
-import com.titanium.product.valueobject.pricing.PremiumAdjustmentRequest;
-import com.titanium.product.valueobject.pricing.PremiumAdjustmentResult;
-import com.titanium.product.valueobject.pricing.PricingRoundingRule;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustment;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustmentRequest;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustmentResult;
+import com.titanium.product.valueobject.pricing.pricing.PricingRoundingRule;
 
 /**
  * 按顺序应用核保加费和折扣的纯领域服务。

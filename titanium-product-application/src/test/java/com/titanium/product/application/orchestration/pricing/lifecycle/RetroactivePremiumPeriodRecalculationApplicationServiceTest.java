@@ -15,14 +15,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.titanium.common.exception.BusinessException;
-import com.titanium.product.aggregate.PremiumCalculation;
 import com.titanium.product.application.orchestration.pricing.PricingEvidenceHasher;
 import com.titanium.product.command.pricing.lifecycle.RecalculateRetroactivePremiumPeriodsCommand;
 import com.titanium.product.command.pricing.lifecycle.RecalculateRetroactivePremiumPeriodsCommand.AffectedPeriod;
 import com.titanium.product.common.enums.PremiumBalanceDirection;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
 import com.titanium.product.repository.PremiumCalculationRepository;
-import com.titanium.product.valueobject.pricing.PremiumCalculationEvidence;
+import com.titanium.product.valueobject.pricing.premium.PremiumCalculationEvidence;
 
 class RetroactivePremiumPeriodRecalculationApplicationServiceTest {
 

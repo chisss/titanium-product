@@ -22,8 +22,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import com.titanium.product.api.request.MaintenancePremiumQuoteRequest;
-import com.titanium.product.api.request.MaintenancePremiumQuoteRequest.SnapshotReferenceRequest;
+import com.titanium.product.api.request.premium.MaintenancePremiumQuoteRequest;
+import com.titanium.product.api.request.premium.MaintenancePremiumQuoteRequest.SnapshotReferenceRequest;
 import com.titanium.product.application.command.maintenance.ProductMaintenancePremiumQuoteCommandService;
 import com.titanium.product.application.model.pricing.MaintenancePremiumQuoteResult;
 import com.titanium.product.web.handler.ProductExceptionHandler;

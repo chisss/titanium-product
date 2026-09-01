@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.titanium.metadata.response.ApiResponse;
-import com.titanium.product.api.request.PremiumQuoteRequest;
-import com.titanium.product.api.response.PremiumQuoteResponse;
+import com.titanium.product.api.request.premium.PremiumQuoteRequest;
+import com.titanium.product.api.response.premium.PremiumQuoteResponse;
 
 import jakarta.validation.Valid;
 

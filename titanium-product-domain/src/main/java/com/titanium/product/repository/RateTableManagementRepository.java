@@ -3,8 +3,8 @@ package com.titanium.product.repository;
 import java.util.List;
 import java.util.Optional;
 
-import com.titanium.product.aggregate.RateTableDefinition;
 import com.titanium.product.common.enums.RateTableStatus;
+import com.titanium.product.pricing.aggregate.RateTableDefinition;
 
 /**
  * Product 费率表管理端口。

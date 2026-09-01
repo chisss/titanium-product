@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.titanium.product.application.orchestration.pricing.PricingPlanManagementApplicationService;
 import com.titanium.product.command.pricing.CreatePricingPlanDraftCommand;
 import com.titanium.product.command.pricing.ReplacePricingTestCasesCommand;
-import com.titanium.product.valueobject.pricing.PricingPlanValidationResult;
+import com.titanium.product.valueobject.pricing.pricing.PricingPlanValidationResult;
 
 import lombok.RequiredArgsConstructor;
 

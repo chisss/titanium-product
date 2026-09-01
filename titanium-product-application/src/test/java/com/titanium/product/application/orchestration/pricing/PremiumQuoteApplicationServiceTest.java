@@ -22,11 +22,11 @@ import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.PricingPlanDefinition;
 import com.titanium.product.application.service.pricing.PremiumQuoteApplicationService;
 import com.titanium.product.application.service.pricing.validation.PremiumQuoteCommandValidator;
 import com.titanium.product.command.pricing.PremiumQuoteCommand;
 import com.titanium.product.common.enums.RateUnit;
+import com.titanium.product.pricing.aggregate.PricingPlanDefinition;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.PricingPlanRepository;
@@ -35,12 +35,12 @@ import com.titanium.product.service.CalculationModelExecutionService;
 import com.titanium.product.service.CalculationTotalsService;
 import com.titanium.product.service.PremiumCompositionService;
 import com.titanium.product.service.RateTableMatchingService;
-import com.titanium.product.valueobject.PremiumQuote;
-import com.titanium.product.valueobject.RateTableCriteria;
-import com.titanium.product.valueobject.RateTableRef;
-import com.titanium.product.valueobject.RateTableRow;
-import com.titanium.product.valueobject.RateTableSnapshot;
-import com.titanium.product.valueobject.pricing.PricingRoundingRule;
+import com.titanium.product.valueobject.pricing.premium.PremiumQuote;
+import com.titanium.product.valueobject.pricing.pricing.PricingRoundingRule;
+import com.titanium.product.valueobject.rate.RateTableCriteria;
+import com.titanium.product.valueobject.rate.RateTableRef;
+import com.titanium.product.valueobject.rate.RateTableRow;
+import com.titanium.product.valueobject.rate.RateTableSnapshot;
 
 class PremiumQuoteApplicationServiceTest {
 

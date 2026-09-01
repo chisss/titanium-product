@@ -9,17 +9,17 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.valueobject.ActuarialBasis;
-import com.titanium.product.valueobject.CoveragePeriodConfig;
-import com.titanium.product.valueobject.DocumentConfig;
-import com.titanium.product.valueobject.InsureCondition;
-import com.titanium.product.valueobject.IssuanceProcessConfig;
-import com.titanium.product.valueobject.PaymentConfig;
-import com.titanium.product.valueobject.PolicyFormConfig;
-import com.titanium.product.valueobject.PricingBasicRule;
-import com.titanium.product.valueobject.RateTableRef;
-import com.titanium.product.valueobject.SalesChannelConfig;
-import com.titanium.product.valueobject.UnderwritingConfig;
+import com.titanium.product.valueobject.config.CoveragePeriodConfig;
+import com.titanium.product.valueobject.config.DocumentConfig;
+import com.titanium.product.valueobject.config.InsureCondition;
+import com.titanium.product.valueobject.config.IssuanceProcessConfig;
+import com.titanium.product.valueobject.config.PaymentConfig;
+import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.SalesChannelConfig;
+import com.titanium.product.valueobject.config.UnderwritingConfig;
+import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
+import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
+import com.titanium.product.valueobject.rate.RateTableRef;
 
 /**
  * 创建产品命令 用于创建新的保险产品，包含完整的产品配置信息

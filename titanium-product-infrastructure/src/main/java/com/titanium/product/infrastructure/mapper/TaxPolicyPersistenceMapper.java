@@ -4,9 +4,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
-import com.titanium.product.aggregate.TaxPolicyDefinition;
-import com.titanium.product.infrastructure.pricing.entity.TaxBaseItemDO;
-import com.titanium.product.infrastructure.pricing.entity.TaxPolicyDO;
+import com.titanium.product.infrastructure.pricing.entity.premium.TaxBaseItemDO;
+import com.titanium.product.infrastructure.pricing.entity.premium.TaxPolicyDO;
+import com.titanium.product.pricing.aggregate.TaxPolicyDefinition;
 
 /**
  * 税务政策领域对象 → 持久化对象声明式映射（同名字段自动映射）。

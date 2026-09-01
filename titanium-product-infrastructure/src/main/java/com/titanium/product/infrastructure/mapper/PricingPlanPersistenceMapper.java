@@ -9,16 +9,16 @@ import org.mapstruct.ReportingPolicy;
 
 import com.alibaba.fastjson2.JSON;
 
-import com.titanium.product.aggregate.PricingPlanDefinition;
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanCommissionSchemeRefDO;
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanDO;
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanDynamicFactorRefDO;
-import com.titanium.product.infrastructure.pricing.entity.PricingPlanTaxPolicyRefDO;
-import com.titanium.product.infrastructure.pricing.entity.PricingTestCaseDO;
-import com.titanium.product.valueobject.pricing.CommissionSchemeRef;
-import com.titanium.product.valueobject.pricing.DynamicFactorRef;
-import com.titanium.product.valueobject.pricing.PricingTestCase;
-import com.titanium.product.valueobject.pricing.TaxPolicyRef;
+import com.titanium.product.infrastructure.pricing.entity.pricing.PricingPlanCommissionSchemeRefDO;
+import com.titanium.product.infrastructure.pricing.entity.pricing.PricingPlanDO;
+import com.titanium.product.infrastructure.pricing.entity.pricing.PricingPlanDynamicFactorRefDO;
+import com.titanium.product.infrastructure.pricing.entity.pricing.PricingPlanTaxPolicyRefDO;
+import com.titanium.product.infrastructure.pricing.entity.pricing.PricingTestCaseDO;
+import com.titanium.product.pricing.aggregate.PricingPlanDefinition;
+import com.titanium.product.valueobject.pricing.commission.CommissionSchemeRef;
+import com.titanium.product.valueobject.pricing.premium.TaxPolicyRef;
+import com.titanium.product.valueobject.pricing.pricing.DynamicFactorRef;
+import com.titanium.product.valueobject.pricing.pricing.PricingTestCase;
 
 /**
  * 定价方案领域对象 → 持久化对象声明式映射。

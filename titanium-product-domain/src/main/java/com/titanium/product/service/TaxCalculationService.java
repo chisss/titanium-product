@@ -13,13 +13,13 @@ import org.springframework.stereotype.Service;
 import com.titanium.metadata.enums.pricing.AmountChannel;
 import com.titanium.metadata.enums.pricing.ChargeDirection;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.TaxPolicyDefinition;
 import com.titanium.product.common.enums.TaxPriceMode;
 import com.titanium.product.exception.PricingDomainException;
-import com.titanium.product.valueobject.pricing.CalculationLine;
-import com.titanium.product.valueobject.pricing.CalculationModelExecutionResult;
-import com.titanium.product.valueobject.pricing.PricingRoundingRule;
-import com.titanium.product.valueobject.pricing.TaxLineEvidence;
+import com.titanium.product.pricing.aggregate.TaxPolicyDefinition;
+import com.titanium.product.valueobject.pricing.calculation.CalculationLine;
+import com.titanium.product.valueobject.pricing.calculation.CalculationModelExecutionResult;
+import com.titanium.product.valueobject.pricing.premium.TaxLineEvidence;
+import com.titanium.product.valueobject.pricing.pricing.PricingRoundingRule;
 
 import lombok.RequiredArgsConstructor;
 

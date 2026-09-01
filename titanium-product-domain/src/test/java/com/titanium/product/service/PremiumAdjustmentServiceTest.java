@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.common.enums.PremiumAdjustmentType;
 import com.titanium.product.exception.PricingDomainException;
-import com.titanium.product.valueobject.pricing.PremiumAdjustmentRequest;
-import com.titanium.product.valueobject.pricing.PricingRoundingRule;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustmentRequest;
+import com.titanium.product.valueobject.pricing.pricing.PricingRoundingRule;
 
 class PremiumAdjustmentServiceTest {
 

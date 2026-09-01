@@ -19,19 +19,19 @@ import org.junit.jupiter.api.Test;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.PremiumCalculation;
 import com.titanium.product.application.orchestration.pricing.validation.PremiumCalculationCommandValidator;
 import com.titanium.product.application.service.pricing.PremiumQuoteApplicationService;
 import com.titanium.product.command.pricing.PremiumCalculationCommand;
 import com.titanium.product.common.enums.PremiumAdjustmentType;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
 import com.titanium.product.exception.PricingDomainException;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
 import com.titanium.product.repository.PremiumCalculationRepository;
 import com.titanium.product.service.CalculationTotalsService;
 import com.titanium.product.service.PremiumAdjustmentService;
 import com.titanium.product.service.PremiumCalculationBreakdownService;
-import com.titanium.product.valueobject.PremiumQuote;
-import com.titanium.product.valueobject.pricing.PremiumAdjustmentRequest;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustmentRequest;
+import com.titanium.product.valueobject.pricing.premium.PremiumQuote;
 
 class PremiumCalculationApplicationServiceTest {
 

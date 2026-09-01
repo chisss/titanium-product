@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.common.enums.RateUnit;
 import com.titanium.product.exception.PricingDomainException;
-import com.titanium.product.valueobject.RateTableCriteria;
-import com.titanium.product.valueobject.RateTableRow;
-import com.titanium.product.valueobject.RateTableSnapshot;
+import com.titanium.product.valueobject.rate.RateTableCriteria;
+import com.titanium.product.valueobject.rate.RateTableRow;
+import com.titanium.product.valueobject.rate.RateTableSnapshot;
 
 class RateTableMatchingServiceTest {
 

@@ -4,11 +4,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
-import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
-import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleAdjustmentDO;
-import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleDifferenceLineDO;
-import com.titanium.product.infrastructure.pricing.entity.PremiumLifecycleDifferenceLineId;
-import com.titanium.product.valueobject.pricing.lifecycle.PremiumLifecycleDifferenceLine;
+import com.titanium.product.infrastructure.pricing.entity.premium.PremiumLifecycleAdjustmentDO;
+import com.titanium.product.infrastructure.pricing.entity.premium.PremiumLifecycleDifferenceLineDO;
+import com.titanium.product.infrastructure.pricing.entity.premium.PremiumLifecycleDifferenceLineId;
+import com.titanium.product.pricing.aggregate.lifecycle.PremiumLifecycleAdjustment;
+import com.titanium.product.valueobject.pricing.premium.PremiumLifecycleDifferenceLine;
 
 /**
  * 保费生命周期调整领域对象 → 持久化对象声明式映射。

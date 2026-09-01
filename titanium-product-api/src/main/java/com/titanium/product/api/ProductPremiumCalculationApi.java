@@ -8,13 +8,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.titanium.metadata.response.ApiResponse;
-import com.titanium.product.api.request.PremiumCalculationRequest;
-import com.titanium.product.api.request.PremiumLifecycleAdjustmentRequest;
-import com.titanium.product.api.request.PremiumLifecycleReversalRequest;
-import com.titanium.product.api.request.RetroactivePremiumPeriodRecalculationRequest;
-import com.titanium.product.api.response.PremiumCalculationResponse;
-import com.titanium.product.api.response.PremiumLifecycleAdjustmentResponse;
-import com.titanium.product.api.response.RetroactivePremiumPeriodRecalculationResponse;
+import com.titanium.product.api.request.premium.PremiumCalculationRequest;
+import com.titanium.product.api.request.premium.PremiumLifecycleAdjustmentRequest;
+import com.titanium.product.api.request.premium.PremiumLifecycleReversalRequest;
+import com.titanium.product.api.request.premium.RetroactivePremiumPeriodRecalculationRequest;
+import com.titanium.product.api.response.premium.PremiumCalculationResponse;
+import com.titanium.product.api.response.premium.PremiumLifecycleAdjustmentResponse;
+import com.titanium.product.api.response.premium.RetroactivePremiumPeriodRecalculationResponse;
 
 import jakarta.validation.Valid;
 

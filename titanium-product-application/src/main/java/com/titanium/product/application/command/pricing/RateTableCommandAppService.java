@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.titanium.product.application.orchestration.pricing.RateTableManagementApplicationService;
 import com.titanium.product.command.pricing.CreateRateTableDraftCommand;
 import com.titanium.product.command.pricing.ReplaceRateTableRowsCommand;
-import com.titanium.product.valueobject.RateTableValidationResult;
+import com.titanium.product.valueobject.rate.RateTableValidationResult;
 
 import lombok.RequiredArgsConstructor;
 

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.titanium.metadata.response.ApiResponse;
-import com.titanium.product.api.response.ProductMaintenanceOfferingResolutionResponse;
+import com.titanium.product.api.response.maintenance.ProductMaintenanceOfferingResolutionResponse;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

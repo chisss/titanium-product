@@ -3,8 +3,8 @@ package com.titanium.product.repository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import com.titanium.product.valueobject.RateTableCriteria;
-import com.titanium.product.valueobject.RateTableSnapshot;
+import com.titanium.product.valueobject.rate.RateTableCriteria;
+import com.titanium.product.valueobject.rate.RateTableSnapshot;
 
 /**
  * Product 费率表运行时快照仓储端口。

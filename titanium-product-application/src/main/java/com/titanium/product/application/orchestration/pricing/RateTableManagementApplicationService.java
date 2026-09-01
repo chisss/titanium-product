@@ -8,15 +8,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.RateTableDefinition;
 import com.titanium.product.command.pricing.CreateRateTableDraftCommand;
 import com.titanium.product.command.pricing.ReplaceRateTableRowsCommand;
+import com.titanium.product.pricing.aggregate.RateTableDefinition;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.RateTableManagementRepository;
-import com.titanium.product.valueobject.RateTableRow;
-import com.titanium.product.valueobject.RateTableValidationResult;
 import com.titanium.product.valueobject.pricing.RateTableRowDraft;
+import com.titanium.product.valueobject.rate.RateTableRow;
+import com.titanium.product.valueobject.rate.RateTableValidationResult;
 
 import lombok.RequiredArgsConstructor;
 

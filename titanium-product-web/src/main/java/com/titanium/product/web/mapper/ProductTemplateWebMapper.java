@@ -8,15 +8,15 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.api.response.ProductTemplateResponse;
+import com.titanium.product.api.response.product.ProductTemplateResponse;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.command.UpdateProductTemplateCommand;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
-import com.titanium.product.valueobject.ClaimConfig;
-import com.titanium.product.valueobject.IssuanceProcessConfig;
-import com.titanium.product.valueobject.MaintenanceConfig;
 import com.titanium.product.valueobject.PolicyStage;
-import com.titanium.product.valueobject.UnderwritingConfig;
+import com.titanium.product.valueobject.config.ClaimConfig;
+import com.titanium.product.valueobject.config.IssuanceProcessConfig;
+import com.titanium.product.valueobject.config.MaintenanceConfig;
+import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.web.dto.CreateProductTemplateDTO;
 import com.titanium.product.web.dto.UpdateProductTemplateDTO;
 

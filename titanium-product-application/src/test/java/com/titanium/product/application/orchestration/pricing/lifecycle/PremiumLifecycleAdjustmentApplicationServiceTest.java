@@ -20,8 +20,6 @@ import com.titanium.metadata.enums.pricing.AmountChannel;
 import com.titanium.metadata.enums.pricing.ChargeCategory;
 import com.titanium.metadata.enums.pricing.ChargeDirection;
 import com.titanium.metadata.enums.pricing.ChargePayerType;
-import com.titanium.product.aggregate.PremiumCalculation;
-import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.application.orchestration.pricing.PricingEvidenceHasher;
 import com.titanium.product.command.pricing.lifecycle.CreatePremiumLifecycleAdjustmentCommand;
 import com.titanium.product.command.pricing.lifecycle.CreatePremiumLifecycleReversalCommand;
@@ -29,12 +27,14 @@ import com.titanium.product.common.enums.PremiumBalanceDirection;
 import com.titanium.product.common.enums.PremiumLifecycleType;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
 import com.titanium.product.exception.PricingDomainException;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
+import com.titanium.product.pricing.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.repository.PremiumCalculationRepository;
 import com.titanium.product.repository.PremiumLifecycleAdjustmentRepository;
-import com.titanium.product.valueobject.pricing.CalculationLine;
-import com.titanium.product.valueobject.pricing.CalculationTotals;
-import com.titanium.product.valueobject.pricing.PremiumCalculationEvidence;
-import com.titanium.product.valueobject.pricing.lifecycle.PremiumLifecycleDifference;
+import com.titanium.product.valueobject.pricing.calculation.CalculationLine;
+import com.titanium.product.valueobject.pricing.calculation.CalculationTotals;
+import com.titanium.product.valueobject.pricing.premium.PremiumCalculationEvidence;
+import com.titanium.product.valueobject.pricing.premium.PremiumLifecycleDifference;
 
 class PremiumLifecycleAdjustmentApplicationServiceTest {
 

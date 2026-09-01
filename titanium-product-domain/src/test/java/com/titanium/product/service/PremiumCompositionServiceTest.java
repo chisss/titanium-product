@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 import com.titanium.product.common.enums.RateUnit;
-import com.titanium.product.valueobject.RateTableRow;
+import com.titanium.product.valueobject.rate.RateTableRow;
 
 class PremiumCompositionServiceTest {
 

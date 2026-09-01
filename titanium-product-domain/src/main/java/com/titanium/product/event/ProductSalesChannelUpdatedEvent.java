@@ -2,7 +2,7 @@ package com.titanium.product.event;
 
 import java.util.List;
 
-import com.titanium.product.valueobject.SalesChannelConfig;
+import com.titanium.product.valueobject.config.SalesChannelConfig;
 
 /**
  * 产品销售渠道更新事件 当产品的销售渠道配置发生变更时发布

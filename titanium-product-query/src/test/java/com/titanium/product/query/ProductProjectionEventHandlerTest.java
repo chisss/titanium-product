@@ -24,7 +24,7 @@ import com.titanium.product.query.handler.projection.ProductProjectionEventHandl
 import com.titanium.product.query.mapper.ProductViewMapper;
 import com.titanium.product.query.repository.ProductViewRepository;
 import com.titanium.product.query.view.ProductView;
-import com.titanium.product.valueobject.SalesChannelConfig;
+import com.titanium.product.valueobject.config.SalesChannelConfig;
 
 /**
  * 产品读模型销售渠道投影测试

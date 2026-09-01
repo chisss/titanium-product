@@ -7,13 +7,13 @@ import org.mapstruct.ReportingPolicy;
 
 import com.alibaba.fastjson2.JSON;
 
-import com.titanium.product.aggregate.PremiumCalculation;
-import com.titanium.product.infrastructure.pricing.entity.CalculationLineDO;
-import com.titanium.product.infrastructure.pricing.entity.CalculationLineId;
-import com.titanium.product.infrastructure.pricing.entity.CalculationTotalDO;
-import com.titanium.product.infrastructure.pricing.entity.PremiumCalculationDO;
-import com.titanium.product.valueobject.pricing.CalculationLine;
-import com.titanium.product.valueobject.pricing.CalculationTotals;
+import com.titanium.product.infrastructure.pricing.entity.calculation.CalculationLineDO;
+import com.titanium.product.infrastructure.pricing.entity.calculation.CalculationLineId;
+import com.titanium.product.infrastructure.pricing.entity.calculation.CalculationTotalDO;
+import com.titanium.product.infrastructure.pricing.entity.premium.PremiumCalculationDO;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
+import com.titanium.product.valueobject.pricing.calculation.CalculationLine;
+import com.titanium.product.valueobject.pricing.calculation.CalculationTotals;
 
 /**
  * 确认计算领域对象 → 持久化对象声明式映射。

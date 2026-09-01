@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductMaintenanceOfferingApi;
-import com.titanium.product.api.response.ProductMaintenanceOfferingResolutionResponse;
+import com.titanium.product.api.response.maintenance.ProductMaintenanceOfferingResolutionResponse;
 import com.titanium.product.application.query.maintenance.ProductMaintenanceOfferingQueryService;
 import com.titanium.product.maintenance.aggregate.ProductMaintenanceOffering;
 

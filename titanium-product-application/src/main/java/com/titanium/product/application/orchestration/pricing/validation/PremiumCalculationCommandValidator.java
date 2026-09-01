@@ -8,7 +8,7 @@ import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.command.pricing.PremiumCalculationCommand;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
-import com.titanium.product.valueobject.pricing.PremiumAdjustmentRequest;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustmentRequest;
 
 /**
  * 保费确认计算命令校验器。

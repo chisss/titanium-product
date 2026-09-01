@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.titanium.product.common.enums.PremiumLifecycleType;
-import com.titanium.product.valueobject.pricing.PremiumAdjustmentRequest;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustmentRequest;
 
 /** 创建 Product 保全版本化报价的应用命令。 */
 public record CreateMaintenancePremiumQuoteCommand(

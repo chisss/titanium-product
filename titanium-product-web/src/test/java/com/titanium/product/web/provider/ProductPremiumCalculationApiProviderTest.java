@@ -19,14 +19,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.titanium.product.aggregate.PremiumCalculation;
 import com.titanium.product.application.command.pricing.PremiumCalculationCommandAppService;
 import com.titanium.product.application.query.pricing.PremiumCalculationQueryAppService;
 import com.titanium.product.common.enums.PremiumAdjustmentType;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
 import com.titanium.product.common.enums.PricingCalculationStatus;
-import com.titanium.product.valueobject.pricing.PremiumAdjustment;
-import com.titanium.product.valueobject.pricing.PremiumCalculationEvidence;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustment;
+import com.titanium.product.valueobject.pricing.premium.PremiumCalculationEvidence;
 import com.titanium.product.web.handler.ProductExceptionHandler;
 
 class ProductPremiumCalculationApiProviderTest {

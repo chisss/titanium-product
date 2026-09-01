@@ -6,15 +6,15 @@ import java.util.Map;
 
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.valueobject.ActuarialBasis;
-import com.titanium.product.valueobject.CoveragePeriodConfig;
-import com.titanium.product.valueobject.DocumentConfig;
-import com.titanium.product.valueobject.IssuanceProcessConfig;
-import com.titanium.product.valueobject.PaymentConfig;
-import com.titanium.product.valueobject.PolicyFormConfig;
-import com.titanium.product.valueobject.RateTableRef;
-import com.titanium.product.valueobject.SalesChannelConfig;
-import com.titanium.product.valueobject.UnderwritingConfig;
+import com.titanium.product.valueobject.config.CoveragePeriodConfig;
+import com.titanium.product.valueobject.config.DocumentConfig;
+import com.titanium.product.valueobject.config.IssuanceProcessConfig;
+import com.titanium.product.valueobject.config.PaymentConfig;
+import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.SalesChannelConfig;
+import com.titanium.product.valueobject.config.UnderwritingConfig;
+import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
+import com.titanium.product.valueobject.rate.RateTableRef;
 
 import lombok.Data;
 

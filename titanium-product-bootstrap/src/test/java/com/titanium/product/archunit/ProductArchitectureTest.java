@@ -74,4 +74,54 @@ class ProductArchitectureTest extends AbstractArchitectureGuardTest {
     protected void webLayerUsesDtoVoNotRequest() {
         super.webLayerUsesDtoVoNotRequest();
     }
+
+    /**
+     * 启用「包拆分顶层清零」断言（批次 1 + 批次 2，2026-09）。
+     * <p>
+     * 批次 1（domain 出口侧）：{@code domain/port} 按对端域拆子包（{@code port/pricing}），顶层清零；
+     * {@code infrastructure/adapter} 与 {@code infrastructure/client} 本域按主题组织于
+     * {@code infrastructure/pricing/adapter} 之下，顶层无类（断言天然通过）。
+     * </p>
+     * <p>
+     * 批次 2（契约/门面包）：{@code web/dto/pricing} 按业务主题拆 9 个子包（calculation/commission/
+     * dynamicfactor/factor/pricingplan/ratetable/ruleartifact/tax/testcase）；{@code api/request} 按
+     * config/premium/product、{@code api/response} 按 calculation/clause/config/document/maintenance/
+     * premium/pricing/product 拆子包，顶层清零。
+     * </p>
+     */
+    @Test
+    @Override
+    protected void portShouldNotContainFlatClasses() {
+        super.portShouldNotContainFlatClasses();
+    }
+
+    @Test
+    @Override
+    protected void adapterShouldNotContainFlatClasses() {
+        super.adapterShouldNotContainFlatClasses();
+    }
+
+    @Test
+    @Override
+    protected void clientShouldNotContainFlatClasses() {
+        super.clientShouldNotContainFlatClasses();
+    }
+
+    @Test
+    @Override
+    protected void webDtoPricingShouldNotContainFlatClasses() {
+        super.webDtoPricingShouldNotContainFlatClasses();
+    }
+
+    @Test
+    @Override
+    protected void apiRequestShouldNotContainFlatClasses() {
+        super.apiRequestShouldNotContainFlatClasses();
+    }
+
+    @Test
+    @Override
+    protected void apiResponseShouldNotContainFlatClasses() {
+        super.apiResponseShouldNotContainFlatClasses();
+    }
 }

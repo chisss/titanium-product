@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.response.ApiResponse;
-import com.titanium.product.api.response.ProductTemplateResponse;
+import com.titanium.product.api.response.product.ProductTemplateResponse;
 import com.titanium.product.application.command.ProductTemplateCommandAppService;
 import com.titanium.product.application.query.ProductTemplateQueryAppService;
 import com.titanium.product.command.CreateProductTemplateCommand;

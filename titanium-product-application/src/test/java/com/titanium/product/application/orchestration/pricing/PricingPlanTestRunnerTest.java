@@ -21,13 +21,13 @@ import org.junit.jupiter.api.Test;
 
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.PricingPlanDefinition;
 import com.titanium.product.application.service.pricing.PricingPlanTestRunner;
 import com.titanium.product.common.enums.PricingFeatureDataType;
 import com.titanium.product.common.enums.RateUnit;
-import com.titanium.product.port.CommissionResolutionPort;
-import com.titanium.product.port.FeatureResolutionPort;
-import com.titanium.product.port.RuleComputationPort;
+import com.titanium.product.port.pricing.CommissionResolutionPort;
+import com.titanium.product.port.pricing.FeatureResolutionPort;
+import com.titanium.product.port.pricing.RuleComputationPort;
+import com.titanium.product.pricing.aggregate.PricingPlanDefinition;
 import com.titanium.product.repository.CalculationModelRepository;
 import com.titanium.product.repository.ChargeComponentRepository;
 import com.titanium.product.repository.DynamicFactorRepository;
@@ -39,18 +39,18 @@ import com.titanium.product.service.CommissionCalculationService;
 import com.titanium.product.service.PremiumCompositionService;
 import com.titanium.product.service.RateTableMatchingService;
 import com.titanium.product.service.TaxCalculationService;
-import com.titanium.product.valueobject.RateTableRef;
-import com.titanium.product.valueobject.RateTableRow;
-import com.titanium.product.valueobject.RateTableSnapshot;
-import com.titanium.product.valueobject.pricing.CommissionSchemeRef;
-import com.titanium.product.valueobject.pricing.PricingFeatureContract;
-import com.titanium.product.valueobject.pricing.PricingFeatureRequirement;
-import com.titanium.product.valueobject.pricing.PricingFeatureResolution;
-import com.titanium.product.valueobject.pricing.PricingFeatureValue;
-import com.titanium.product.valueobject.pricing.PricingRoundingRule;
-import com.titanium.product.valueobject.pricing.PricingRuleArtifactRef;
-import com.titanium.product.valueobject.pricing.PricingRuleComputationResult;
-import com.titanium.product.valueobject.pricing.PricingTestCase;
+import com.titanium.product.valueobject.pricing.commission.CommissionSchemeRef;
+import com.titanium.product.valueobject.pricing.pricing.PricingFeatureContract;
+import com.titanium.product.valueobject.pricing.pricing.PricingFeatureRequirement;
+import com.titanium.product.valueobject.pricing.pricing.PricingFeatureResolution;
+import com.titanium.product.valueobject.pricing.pricing.PricingFeatureValue;
+import com.titanium.product.valueobject.pricing.pricing.PricingRoundingRule;
+import com.titanium.product.valueobject.pricing.pricing.PricingRuleArtifactRef;
+import com.titanium.product.valueobject.pricing.pricing.PricingRuleComputationResult;
+import com.titanium.product.valueobject.pricing.pricing.PricingTestCase;
+import com.titanium.product.valueobject.rate.RateTableRef;
+import com.titanium.product.valueobject.rate.RateTableRow;
+import com.titanium.product.valueobject.rate.RateTableSnapshot;
 
 class PricingPlanTestRunnerTest {
 

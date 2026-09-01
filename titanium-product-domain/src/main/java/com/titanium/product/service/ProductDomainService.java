@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.valueobject.IssuanceProcessConfig;
+import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 
 /**
  * 产品领域服务 处理跨聚合根的纯领域校验逻辑，如产品条款绑定校验、出单配置一致性校验、附加险兼容性校验等。 无 CommandGateway、无 Port

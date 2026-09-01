@@ -6,13 +6,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductPricingApi;
-import com.titanium.product.api.request.PremiumQuoteRequest;
-import com.titanium.product.api.response.CalculationLineResponse;
-import com.titanium.product.api.response.CalculationTotalsResponse;
-import com.titanium.product.api.response.PremiumQuoteResponse;
+import com.titanium.product.api.request.premium.PremiumQuoteRequest;
+import com.titanium.product.api.response.calculation.CalculationLineResponse;
+import com.titanium.product.api.response.calculation.CalculationTotalsResponse;
+import com.titanium.product.api.response.premium.PremiumQuoteResponse;
 import com.titanium.product.application.query.pricing.PremiumPricingQueryAppService;
 import com.titanium.product.application.query.pricing.PremiumQuoteQuery;
-import com.titanium.product.valueobject.PremiumQuote;
+import com.titanium.product.valueobject.pricing.premium.PremiumQuote;
 
 import lombok.RequiredArgsConstructor;
 

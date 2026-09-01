@@ -2,7 +2,7 @@ package com.titanium.product.repository;
 
 import java.util.Optional;
 
-import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
+import com.titanium.product.pricing.aggregate.lifecycle.PremiumLifecycleAdjustment;
 
 /**
  * 生命周期费用差额事实仓储端口。

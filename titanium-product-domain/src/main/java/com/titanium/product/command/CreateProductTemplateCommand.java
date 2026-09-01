@@ -5,12 +5,12 @@ import java.util.List;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
 import com.titanium.metadata.enums.InsuranceType;
-import com.titanium.product.valueobject.ClaimConfig;
-import com.titanium.product.valueobject.IssuanceProcessConfig;
-import com.titanium.product.valueobject.MaintenanceConfig;
-import com.titanium.product.valueobject.PolicyFormConfig;
-import com.titanium.product.valueobject.PricingBasicRule;
-import com.titanium.product.valueobject.UnderwritingConfig;
+import com.titanium.product.valueobject.config.ClaimConfig;
+import com.titanium.product.valueobject.config.IssuanceProcessConfig;
+import com.titanium.product.valueobject.config.MaintenanceConfig;
+import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.UnderwritingConfig;
+import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
 
 /**
  * 创建产品模板命令

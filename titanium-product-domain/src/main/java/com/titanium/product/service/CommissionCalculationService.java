@@ -11,11 +11,11 @@ import com.titanium.metadata.enums.pricing.AmountChannel;
 import com.titanium.metadata.enums.pricing.ChargeCategory;
 import com.titanium.metadata.enums.pricing.ChargeDirection;
 import com.titanium.metadata.enums.pricing.ChargePayerType;
-import com.titanium.product.valueobject.pricing.CalculationLine;
-import com.titanium.product.valueobject.pricing.CalculationModelExecutionResult;
-import com.titanium.product.valueobject.pricing.CommissionLineEvidence;
-import com.titanium.product.valueobject.pricing.CommissionResolutionInstruction;
-import com.titanium.product.valueobject.pricing.CommissionResolutionResult;
+import com.titanium.product.valueobject.pricing.calculation.CalculationLine;
+import com.titanium.product.valueobject.pricing.calculation.CalculationModelExecutionResult;
+import com.titanium.product.valueobject.pricing.commission.CommissionLineEvidence;
+import com.titanium.product.valueobject.pricing.commission.CommissionResolutionInstruction;
+import com.titanium.product.valueobject.pricing.commission.CommissionResolutionResult;
 
 import lombok.RequiredArgsConstructor;
 

@@ -2,10 +2,10 @@ package com.titanium.product.application.command.pricing.lifecycle;
 
 import org.springframework.stereotype.Service;
 
-import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.application.orchestration.pricing.lifecycle.PremiumLifecycleAdjustmentApplicationService;
 import com.titanium.product.command.pricing.lifecycle.CreatePremiumLifecycleAdjustmentCommand;
 import com.titanium.product.command.pricing.lifecycle.CreatePremiumLifecycleReversalCommand;
+import com.titanium.product.pricing.aggregate.lifecycle.PremiumLifecycleAdjustment;
 
 import lombok.RequiredArgsConstructor;
 

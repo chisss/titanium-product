@@ -2,8 +2,8 @@ package com.titanium.product.application.model.pricing.surrender;
 
 import java.math.BigDecimal;
 
-import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.common.enums.SurrenderRefundType;
+import com.titanium.product.pricing.aggregate.lifecycle.PremiumLifecycleAdjustment;
 
 /** Product 退保价值确认结果及其账务差额事实。 */
 public record SurrenderValueCalculationResult(

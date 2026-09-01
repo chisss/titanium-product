@@ -8,10 +8,10 @@ import java.lang.reflect.Type;
 import org.junit.jupiter.api.Test;
 
 import com.titanium.product.api.ProductApi;
-import com.titanium.product.api.response.InsuranceProductDefinitionResponse;
-import com.titanium.product.api.response.IssuanceProcessConfigResponse;
-import com.titanium.product.api.response.PolicyFormConfigResponse;
-import com.titanium.product.api.response.UnderwritingConfigResponse;
+import com.titanium.product.api.response.config.IssuanceProcessConfigResponse;
+import com.titanium.product.api.response.config.PolicyFormConfigResponse;
+import com.titanium.product.api.response.config.UnderwritingConfigResponse;
+import com.titanium.product.api.response.product.InsuranceProductDefinitionResponse;
 
 /** 产品流程配置 API 的强类型契约测试，防止回退为 ApiResponse<Object>。 */
 class ProductApiContractTypeTest {

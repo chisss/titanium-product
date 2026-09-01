@@ -7,13 +7,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.PricingPlanDefinition;
 import com.titanium.product.application.service.pricing.PricingPlanTestRunner;
 import com.titanium.product.common.enums.PricingPlanStatus;
+import com.titanium.product.pricing.aggregate.PricingPlanDefinition;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.PricingPlanRepository;
-import com.titanium.product.valueobject.pricing.PricingPlanValidationResult;
+import com.titanium.product.valueobject.pricing.pricing.PricingPlanValidationResult;
 
 import lombok.RequiredArgsConstructor;
 

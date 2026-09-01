@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.PremiumCalculation;
-import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.application.model.pricing.MaintenancePremiumQuoteResult;
 import com.titanium.product.application.orchestration.pricing.PremiumCalculationApplicationService;
 import com.titanium.product.application.orchestration.pricing.PricingEvidenceHasher;
@@ -20,8 +18,10 @@ import com.titanium.product.command.maintenance.CreateMaintenancePremiumQuoteCom
 import com.titanium.product.command.pricing.PremiumCalculationCommand;
 import com.titanium.product.command.pricing.lifecycle.CreatePremiumLifecycleAdjustmentCommand;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
+import com.titanium.product.pricing.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.repository.PremiumCalculationRepository;
-import com.titanium.product.valueobject.pricing.PremiumAdjustmentRequest;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustmentRequest;
 
 import lombok.RequiredArgsConstructor;
 

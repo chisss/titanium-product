@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import com.titanium.product.aggregate.DynamicFactorDefinition;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
+import com.titanium.product.pricing.aggregate.DynamicFactorDefinition;
 
 /**
  * 动态因子仓储端口。

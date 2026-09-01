@@ -11,10 +11,10 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.titanium.product.aggregate.PricingPlanDefinition;
 import com.titanium.product.common.enums.PricingPlanStatus;
 import com.titanium.product.maintenance.aggregate.ProductMaintenanceOffering;
 import com.titanium.product.maintenance.repository.ProductMaintenanceOfferingRepository;
+import com.titanium.product.pricing.aggregate.PricingPlanDefinition;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.PricingPlanRepository;

@@ -24,9 +24,9 @@ import com.titanium.product.event.ProductTemplateCreatedEvent;
 import com.titanium.product.event.ProductTemplateDeactivatedEvent;
 import com.titanium.product.event.ProductTemplateUpdatedEvent;
 import com.titanium.product.exception.ProductStatusPreconditionException;
-import com.titanium.product.valueobject.DividendConfig;
-import com.titanium.product.valueobject.IssuanceProcessConfig;
 import com.titanium.product.valueobject.LifeProductSpec;
+import com.titanium.product.valueobject.config.DividendConfig;
+import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 
 /**
  * 产品模板聚合根测试

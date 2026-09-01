@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.titanium.product.common.enums.PricingCalculationPurpose;
-import com.titanium.product.valueobject.pricing.PremiumAdjustmentRequest;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustmentRequest;
 
 /**
  * Product 确认计算应用命令。

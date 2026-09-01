@@ -10,18 +10,18 @@ import org.springframework.stereotype.Service;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
-import com.titanium.product.aggregate.PremiumCalculation;
-import com.titanium.product.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.application.orchestration.pricing.PricingEvidenceHasher;
 import com.titanium.product.command.pricing.lifecycle.CreatePremiumLifecycleAdjustmentCommand;
 import com.titanium.product.command.pricing.lifecycle.CreatePremiumLifecycleReversalCommand;
 import com.titanium.product.common.enums.PremiumLifecycleType;
 import com.titanium.product.exception.PremiumLifecycleAdjustmentConcurrentConflictException;
 import com.titanium.product.exception.PricingDomainException;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
+import com.titanium.product.pricing.aggregate.lifecycle.PremiumLifecycleAdjustment;
 import com.titanium.product.repository.PremiumCalculationRepository;
 import com.titanium.product.repository.PremiumLifecycleAdjustmentRepository;
 import com.titanium.product.service.PremiumLifecycleDifferenceService;
-import com.titanium.product.valueobject.pricing.lifecycle.PremiumLifecycleDifference;
+import com.titanium.product.valueobject.pricing.premium.PremiumLifecycleDifference;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

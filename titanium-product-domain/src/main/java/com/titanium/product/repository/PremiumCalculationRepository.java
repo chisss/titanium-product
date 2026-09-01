@@ -2,8 +2,8 @@ package com.titanium.product.repository;
 
 import java.util.Optional;
 
-import com.titanium.product.aggregate.PremiumCalculation;
 import com.titanium.product.common.enums.PricingCalculationPurpose;
+import com.titanium.product.pricing.aggregate.PremiumCalculation;
 
 /**
  * Product 确认计算仓储端口。

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.common.enums.RateUnit;
 import com.titanium.product.exception.PricingDomainException;
-import com.titanium.product.valueobject.RateTableRow;
+import com.titanium.product.valueobject.rate.RateTableRow;
 
 /**
  * 首期费率表保费合成领域服务。

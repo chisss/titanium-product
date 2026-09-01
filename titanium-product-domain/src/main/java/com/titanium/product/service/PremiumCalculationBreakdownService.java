@@ -14,10 +14,10 @@ import com.titanium.metadata.enums.pricing.ChargePayerType;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.common.enums.PremiumAdjustmentType;
 import com.titanium.product.exception.PricingDomainException;
-import com.titanium.product.valueobject.pricing.CalculationLine;
-import com.titanium.product.valueobject.pricing.CalculationModelExecutionResult;
-import com.titanium.product.valueobject.pricing.CalculationTotals;
-import com.titanium.product.valueobject.pricing.PremiumAdjustment;
+import com.titanium.product.valueobject.pricing.calculation.CalculationLine;
+import com.titanium.product.valueobject.pricing.calculation.CalculationModelExecutionResult;
+import com.titanium.product.valueobject.pricing.calculation.CalculationTotals;
+import com.titanium.product.valueobject.pricing.premium.PremiumAdjustment;
 
 import lombok.RequiredArgsConstructor;
 
