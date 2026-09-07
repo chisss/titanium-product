@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 
 /**
@@ -122,6 +124,7 @@ public record LifeProductSpec(InsuranceProductType productType, AgeRange entryAg
      * @param toAge 缴至年龄（与 years 二选一，null 表示按年数缴费）
      * @param description 选项描述（如"趸缴""20年缴""缴至60岁"）
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record PremiumTermOption(int years, Integer toAge, String description) implements Serializable {
         /**
          * 是否趸缴（一次性缴清）。
