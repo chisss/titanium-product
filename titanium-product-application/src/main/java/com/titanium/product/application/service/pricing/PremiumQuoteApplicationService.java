@@ -111,8 +111,9 @@ public class PremiumQuoteApplicationService {
     private PremiumQuote quoteWithLegacyRateTable(PremiumQuoteCommand command, ProductQueryResult product) {
         validateLegacyPricing(product);
 
-        RateTableCriteria criteria = new RateTableCriteria(
-                command.age(), command.gender(), command.paymentTermYears(), command.coverageTermYears());
+        RateTableCriteria criteria = RateTableCriteria.fromSnapshot(
+                command.age(), command.gender(), command.paymentTermYears(), command.coverageTermYears(),
+                command.requestSnapshot());
         RateTableRef rateTableRef = product.getRateTableRef();
         RateTableSnapshot snapshot = rateTableSnapshotRepository.findEffectiveSnapshot(
                         command.tenantId(), command.productId(), rateTableRef.tableCode(), rateTableRef.version(),

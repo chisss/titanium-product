@@ -54,6 +54,40 @@ class RateTableMatchingServiceTest {
         assertEquals(ProductErrorCode.RATE_ROW_MULTIPLE_MATCHED.getCode(), exception.getErrorCode());
     }
 
+    @Test
+    void shouldMatchRowWithOccupationClassWhenCriteriaProvidesSameValue() {
+        RateTableSnapshot snapshot = snapshot(List.of(
+                rowWithOccupation("row-class-1", "1", "0.01000000"),
+                rowWithOccupation("row-class-2", "2", "0.01500000")));
+
+        RateTableRow matched = service.match(snapshot,
+                new RateTableCriteria(35, "M", 10, 20, "2", null, null));
+
+        assertEquals("row-class-2", matched.rowId());
+    }
+
+    @Test
+    void shouldNotMatchOccupationSpecificRowWhenCriteriaOmitsDimension() {
+        RateTableSnapshot snapshot = snapshot(List.of(
+                rowWithOccupation("row-class-1", "1", "0.01000000")));
+
+        PricingDomainException exception = assertThrows(PricingDomainException.class,
+                () -> service.match(snapshot, new RateTableCriteria(35, "M", 10, 20)));
+
+        assertEquals(ProductErrorCode.RATE_ROW_NOT_MATCHED.getCode(), exception.getErrorCode());
+    }
+
+    @Test
+    void shouldMatchWildcardOccupationRowWhenCriteriaProvidesValue() {
+        RateTableSnapshot snapshot = snapshot(List.of(
+                rowWithOccupation("row-occupation-wildcard", null, "0.01000000")));
+
+        RateTableRow matched = service.match(snapshot,
+                new RateTableCriteria(35, "M", 10, 20, "3", "CN", null));
+
+        assertEquals("row-occupation-wildcard", matched.rowId());
+    }
+
     private RateTableSnapshot snapshot(List<RateTableRow> rows) {
         return new RateTableSnapshot(
                 "table-1", "product-1", "LIFE_BASE", "V1", RateUnit.SUM_INSURED_RATIO, "CNY",
@@ -66,5 +100,11 @@ class RateTableMatchingServiceTest {
         return new RateTableRow(
                 rowId, ageFrom, ageToExclusive, gender, paymentTerm, coverageTerm,
                 new BigDecimal(rate), null, null);
+    }
+
+    private RateTableRow rowWithOccupation(String rowId, String occupationClass, String rate) {
+        return new RateTableRow(
+                rowId, 18, 61, "M", 10, 20, new BigDecimal(rate), null, null,
+                occupationClass, null, null);
     }
 }

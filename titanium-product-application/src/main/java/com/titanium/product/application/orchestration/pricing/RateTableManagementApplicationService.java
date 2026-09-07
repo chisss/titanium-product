@@ -97,6 +97,6 @@ public class RateTableManagementApplicationService {
         return new RateTableRow(
                 UUID.randomUUID().toString(), draft.ageFrom(), draft.ageToExclusive(), draft.gender(),
                 draft.paymentTermYears(), draft.coverageTermYears(), draft.rate(), draft.minimumPremium(),
-                draft.maximumPremium());
+                draft.maximumPremium(), draft.occupationClass(), draft.region(), draft.vehicleType());
     }
 }

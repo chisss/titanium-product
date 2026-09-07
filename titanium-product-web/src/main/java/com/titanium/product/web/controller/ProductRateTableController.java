@@ -125,7 +125,8 @@ public class ProductRateTableController {
     private RateTableRowDraft toDraft(RateTableRowDTO request) {
         return new RateTableRowDraft(
                 request.ageFrom(), request.ageToExclusive(), request.gender(), request.paymentTermYears(),
-                request.coverageTermYears(), request.rate(), request.minimumPremium(), request.maximumPremium());
+                request.coverageTermYears(), request.rate(), request.minimumPremium(), request.maximumPremium(),
+                request.occupationClass(), request.region(), request.vehicleType());
     }
 
     private RateTableValidationVO toValidationResponse(RateTableValidationResult validation) {
@@ -143,7 +144,8 @@ public class ProductRateTableController {
     private RateTableRowVO toRowResponse(RateTableRow row) {
         return new RateTableRowVO(
                 row.rowId(), row.ageFrom(), row.ageToExclusive(), row.gender(), row.paymentTermYears(),
-                row.coverageTermYears(), row.rate(), row.minimumPremium(), row.maximumPremium(), row.dimensionHash());
+                row.coverageTermYears(), row.rate(), row.minimumPremium(), row.maximumPremium(),
+                row.occupationClass(), row.region(), row.vehicleType(), row.dimensionHash());
     }
 
     private RateTableStatus parseStatus(String status) {

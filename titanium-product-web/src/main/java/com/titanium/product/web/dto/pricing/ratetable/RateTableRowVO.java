@@ -13,5 +13,8 @@ public record RateTableRowVO(
         BigDecimal rate,
         BigDecimal minimumPremium,
         BigDecimal maximumPremium,
+        String occupationClass,
+        String region,
+        String vehicleType,
         String dimensionHash) {
 }

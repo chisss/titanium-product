@@ -15,5 +15,8 @@ public record RateTableRowDTO(
         @Min(1) Integer coverageTermYears,
         @NotNull @DecimalMin("0") BigDecimal rate,
         @DecimalMin("0") BigDecimal minimumPremium,
-        @DecimalMin("0") BigDecimal maximumPremium) {
+        @DecimalMin("0") BigDecimal maximumPremium,
+        String occupationClass,
+        String region,
+        String vehicleType) {
 }

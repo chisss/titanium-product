@@ -18,4 +18,7 @@
     <include file="classpath:liquibase/ddl/product_surrender_value_v2d3_202608210900_weisun_ddl.sql"/>
     <include file="classpath:liquibase/ddl/product_lifecycle_reversal_v2d3b_202608211000_weisun_ddl.sql"/>
     <include file="classpath:liquibase/ddl/product_maintenance_offering_202608241730_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/business_number_sequence_202609041030_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_view_policy_structure_202609041956_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/rate_table_row_dimensions_202609071000_weisun_ddl.sql"/>
 </databaseChangeLog>

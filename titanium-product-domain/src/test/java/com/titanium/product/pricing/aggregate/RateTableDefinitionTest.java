@@ -75,6 +75,35 @@ class RateTableDefinitionTest {
         assertEquals(ProductErrorCode.RATE_TABLE_STATUS_INVALID.getCode(), exception.getErrorCode());
     }
 
+    @Test
+    void shouldAcceptExtendedDimensionKeys() {
+        RateTableDefinition table = RateTableDefinition.createDraft(
+                "TABLE-1", "PRODUCT-1", "RATE-ACCIDENT", "V1.0", RateUnit.SUM_INSURED_RATIO, "cny",
+                LocalDateTime.of(2026, 1, 1, 0, 0), null,
+                List.of("age", "gender", "paymentTerm", "coverageTerm", "occupationClass", "region"),
+                "TENANT-1");
+        table.replaceRows(List.of(
+                occupationRow("CLS-1", "1", new BigDecimal("0.0015")),
+                occupationRow("CLS-2", "2", new BigDecimal("0.0025"))));
+
+        RateTableValidationResult validation = table.validateForPublish();
+
+        assertEquals(2, validation.rowCount());
+    }
+
+    @Test
+    void shouldRejectRowsWhoseOccupationDimensionOverlaps() {
+        RateTableDefinition table = draft();
+        table.replaceRows(List.of(
+                occupationRow("CLS-WILD", null, new BigDecimal("0.0010")),
+                occupationRow("CLS-1", "1", new BigDecimal("0.0015"))));
+
+        PricingDomainException exception = assertThrows(
+                PricingDomainException.class, table::validateForPublish);
+
+        assertEquals(ProductErrorCode.RATE_TABLE_ROW_CONFLICT.getCode(), exception.getErrorCode());
+    }
+
     private RateTableDefinition draft() {
         return RateTableDefinition.createDraft(
                 "TABLE-1", "PRODUCT-1", "RATE-LIFE", "V1.0", RateUnit.SUM_INSURED_RATIO, "cny",
@@ -84,5 +113,10 @@ class RateTableDefinitionTest {
 
     private RateTableRow row(String rowId, int ageFrom, int ageToExclusive, String gender, BigDecimal rate) {
         return new RateTableRow(rowId, ageFrom, ageToExclusive, gender, 20, 20, rate, null, null);
+    }
+
+    private RateTableRow occupationRow(String rowId, String occupationClass, BigDecimal rate) {
+        return new RateTableRow(rowId, 18, 61, "ALL", 20, 20, rate, null, null,
+                occupationClass, null, null);
     }
 }

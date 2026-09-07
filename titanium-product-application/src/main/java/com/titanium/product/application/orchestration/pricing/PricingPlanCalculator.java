@@ -315,8 +315,9 @@ public class PricingPlanCalculator {
         if (plan.rateTableRef() == null) {
             return RateCalculation.empty();
         }
-        RateTableCriteria criteria = new RateTableCriteria(
-                input.age(), input.gender(), input.paymentTermYears(), input.coverageTermYears());
+        RateTableCriteria criteria = RateTableCriteria.fromSnapshot(
+                input.age(), input.gender(), input.paymentTermYears(), input.coverageTermYears(),
+                input.requestSnapshot());
         RateTableSnapshot snapshot = rateTableSnapshotRepository.findEffectiveSnapshot(
                 plan.tenantId(), plan.productId(), plan.rateTableRef().tableCode(),
                         plan.rateTableRef().version(), input.businessTime(), criteria)

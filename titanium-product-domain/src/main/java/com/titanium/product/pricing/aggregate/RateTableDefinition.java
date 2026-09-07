@@ -27,7 +27,8 @@ import com.titanium.product.valueobject.rate.RateTableValidationResult;
 public class RateTableDefinition {
 
     private static final Set<String> SUPPORTED_DIMENSIONS =
-            Set.of("age", "gender", "paymentTerm", "coverageTerm");
+            Set.of("age", "gender", "paymentTerm", "coverageTerm",
+                    "occupationClass", "region", "vehicleType");
 
     private final String tableId;
     private final String productId;
@@ -165,7 +166,10 @@ public class RateTableDefinition {
         return ageOverlaps(left, right)
                 && textOverlaps(left.gender(), right.gender())
                 && valueOverlaps(left.paymentTermYears(), right.paymentTermYears())
-                && valueOverlaps(left.coverageTermYears(), right.coverageTermYears());
+                && valueOverlaps(left.coverageTermYears(), right.coverageTermYears())
+                && textOverlaps(left.occupationClass(), right.occupationClass())
+                && textOverlaps(left.region(), right.region())
+                && textOverlaps(left.vehicleType(), right.vehicleType());
     }
 
     private boolean ageOverlaps(RateTableRow left, RateTableRow right) {
@@ -201,6 +205,7 @@ public class RateTableDefinition {
         return String.join("|",
                 nullable(row.ageFrom()), nullable(row.ageToExclusive()), nullable(row.gender()),
                 nullable(row.paymentTermYears()), nullable(row.coverageTermYears()),
+                nullable(row.occupationClass()), nullable(row.region()), nullable(row.vehicleType()),
                 row.rate().stripTrailingZeros().toPlainString(), nullableDecimal(row.minimumPremium()),
                 nullableDecimal(row.maximumPremium()));
     }

@@ -87,6 +87,7 @@ public class JpaRateTableManagementRepository implements RateTableManagementRepo
         return new RateTableRow(
                 dataObject.getRowId(), dataObject.getAgeFrom(), dataObject.getAgeToExclusive(),
                 dataObject.getGender(), dataObject.getPaymentTermYears(), dataObject.getCoverageTermYears(),
-                dataObject.getRate(), dataObject.getMinimumPremium(), dataObject.getMaximumPremium());
+                dataObject.getRate(), dataObject.getMinimumPremium(), dataObject.getMaximumPremium(),
+                dataObject.getOccupationClass(), dataObject.getRegion(), dataObject.getVehicleType());
     }
 }

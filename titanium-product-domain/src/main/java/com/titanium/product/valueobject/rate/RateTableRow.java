@@ -22,6 +22,9 @@ import com.titanium.product.exception.PricingDomainException;
  * @param rate 费率或固定金额
  * @param minimumPremium 最低保费
  * @param maximumPremium 最高保费
+ * @param occupationClass 职业类别（如意外险1-6类），null/ALL 表示通配
+ * @param region 地区代码，null/ALL 表示通配
+ * @param vehicleType 车型代码，null/ALL 表示通配
  */
 public record RateTableRow(
         String rowId,
@@ -32,7 +35,25 @@ public record RateTableRow(
         Integer coverageTermYears,
         BigDecimal rate,
         BigDecimal minimumPremium,
-        BigDecimal maximumPremium) {
+        BigDecimal maximumPremium,
+        String occupationClass,
+        String region,
+        String vehicleType) {
+
+    /** 兼容构造器：未配置新维度（职业/地区/车型）时按通配处理。 */
+    public RateTableRow(
+            String rowId,
+            Integer ageFrom,
+            Integer ageToExclusive,
+            String gender,
+            Integer paymentTermYears,
+            Integer coverageTermYears,
+            BigDecimal rate,
+            BigDecimal minimumPremium,
+            BigDecimal maximumPremium) {
+        this(rowId, ageFrom, ageToExclusive, gender, paymentTermYears, coverageTermYears,
+                rate, minimumPremium, maximumPremium, null, null, null);
+    }
 
     public RateTableRow {
         if (rowId == null || rowId.isBlank()) {
@@ -48,6 +69,9 @@ public record RateTableRow(
         if (gender != null && !"M".equals(gender) && !"F".equals(gender) && !"ALL".equals(gender)) {
             throw invalid("性别维度仅支持M、F或ALL");
         }
+        occupationClass = normalizeText(occupationClass);
+        region = normalizeText(region);
+        vehicleType = normalizeText(vehicleType);
         if ((paymentTermYears != null && paymentTermYears <= 0)
                 || (coverageTermYears != null && coverageTermYears <= 0)) {
             throw invalid("缴费期和保障期必须大于0");
@@ -69,6 +93,10 @@ public record RateTableRow(
         return gender == null || gender.isBlank() ? null : gender.trim().toUpperCase(Locale.ROOT);
     }
 
+    private static String normalizeText(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
     /**
      * 判断当前费率行是否匹配输入条件。
      */
@@ -81,7 +109,19 @@ public record RateTableRow(
                 || paymentTermYears == criteria.paymentTermYears();
         boolean coverageMatched = coverageTermYears == null
                 || coverageTermYears == criteria.coverageTermYears();
-        return ageMatched && genderMatched && paymentMatched && coverageMatched;
+        boolean occupationMatched = textMatched(occupationClass, criteria.occupationClass());
+        boolean regionMatched = textMatched(region, criteria.region());
+        boolean vehicleMatched = textMatched(vehicleType, criteria.vehicleType());
+        return ageMatched && genderMatched && paymentMatched && coverageMatched
+                && occupationMatched && regionMatched && vehicleMatched;
+    }
+
+    /** 新维度匹配语义：行通配（null/ALL）恒匹配；行有值时要求请求同值，请求缺省不匹配（防意外命中）。 */
+    private static boolean textMatched(String rowValue, String criteriaValue) {
+        if (rowValue == null || "ALL".equalsIgnoreCase(rowValue)) {
+            return true;
+        }
+        return criteriaValue != null && rowValue.equalsIgnoreCase(criteriaValue);
     }
 
     /**
@@ -90,7 +130,8 @@ public record RateTableRow(
     public String dimensionHash() {
         String dimensions = String.join("|",
                 nullable(ageFrom), nullable(ageToExclusive), nullable(gender),
-                nullable(paymentTermYears), nullable(coverageTermYears));
+                nullable(paymentTermYears), nullable(coverageTermYears),
+                nullable(occupationClass), nullable(region), nullable(vehicleType));
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return HexFormat.of().formatHex(digest.digest(dimensions.getBytes(StandardCharsets.UTF_8)));

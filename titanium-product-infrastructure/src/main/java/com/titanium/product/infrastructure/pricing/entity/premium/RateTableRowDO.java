@@ -44,6 +44,15 @@ public class RateTableRowDO {
     @Column(name = "coverage_term_years")
     private Integer coverageTermYears;
 
+    @Column(name = "occupation_class", length = 32)
+    private String occupationClass;
+
+    @Column(name = "region", length = 64)
+    private String region;
+
+    @Column(name = "vehicle_type", length = 64)
+    private String vehicleType;
+
     @Column(name = "rate", nullable = false, precision = 18, scale = 8)
     private BigDecimal rate;
 

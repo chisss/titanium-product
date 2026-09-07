@@ -59,6 +59,7 @@ public class JpaRateTableSnapshotRepository implements RateTableSnapshotReposito
         return new RateTableRow(
                 row.getRowId(), row.getAgeFrom(), row.getAgeToExclusive(), row.getGender(),
                 row.getPaymentTermYears(), row.getCoverageTermYears(), row.getRate(),
-                row.getMinimumPremium(), row.getMaximumPremium());
+                row.getMinimumPremium(), row.getMaximumPremium(),
+                row.getOccupationClass(), row.getRegion(), row.getVehicleType());
     }
 }
