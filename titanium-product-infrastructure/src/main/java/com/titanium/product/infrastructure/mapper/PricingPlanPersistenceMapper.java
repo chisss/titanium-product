@@ -32,6 +32,7 @@ import com.titanium.product.valueobject.pricing.pricing.PricingTestCase;
 public interface PricingPlanPersistenceMapper {
 
     /** 定价方案主表映射：嵌套引用平铺，roundingMode 枚举名落库，行数冗余列由领域对象计算。 */
+    @Mapping(target = "pricingMode", source = "mode")
     @Mapping(target = "rateTableCode", source = "rateTableRef.tableCode")
     @Mapping(target = "rateTableVersion", source = "rateTableRef.version")
     @Mapping(target = "rateDimensionKeysJson", source = "rateTableRef.dimensionKeys", qualifiedByName = "toJson")

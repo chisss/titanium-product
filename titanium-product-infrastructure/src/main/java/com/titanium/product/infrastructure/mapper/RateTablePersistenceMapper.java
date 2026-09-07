@@ -25,9 +25,10 @@ public interface RateTablePersistenceMapper {
     @Mapping(target = "rowCount", expression = "java(rateTable.rows().size())")
     RateTableDO toDO(RateTableDefinition rateTable);
 
-    /** 费率行映射：租户ID/表ID沿用主表，其余同名字段自动映射。 */
+    /** 费率行映射：租户ID/表ID沿用主表，dimensionHash 由领域计算方法生成，其余同名字段自动映射。 */
     @Mapping(target = "tenantId", source = "rateTable.tenantId")
     @Mapping(target = "tableId", source = "rateTable.tableId")
+    @Mapping(target = "dimensionHash", expression = "java(row.dimensionHash())")
     RateTableRowDO toDO(RateTableDefinition rateTable, RateTableRow row);
 
     /** 任意对象 → JSON 字符串。 */
