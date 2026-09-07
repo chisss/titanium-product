@@ -15,6 +15,7 @@ import com.titanium.common.domain.BaseAggregate;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
+import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.exception.CommandValidationException;
 import com.titanium.product.command.AuditProductCommand;
 import com.titanium.product.command.CreateProductCommand;
@@ -496,6 +497,14 @@ public class InsuranceProduct extends BaseAggregate {
         }
         if (command.insureCondition() == null) {
             throw new CommandValidationException(commandName, "insureCondition", "投保条件不能为空");
+        }
+        // G7 收口：产品级 factors 系数链无消费方（两套定价体系未打通），创建时配置将误导运营以为生效；
+        // 动态因子（定价计划 dynamicFactorRefs）才是真实消费路径，此处拦截并引导。
+        if (command.pricingBasicRule() != null && command.pricingBasicRule().factors() != null
+                && !command.pricingBasicRule().factors().isEmpty()) {
+            throw new CommandValidationException(
+                    ProductErrorCode.PRICING_FACTORS_DEPRECATED, commandName, "pricingBasicRule.factors",
+                    "产品级 factors 系数不参与试算，请改为在定价计划中配置动态因子");
         }
         if (command.tenantId() == null || command.tenantId().isBlank()) {
             throw new CommandValidationException(commandName, "tenantId", "租户ID不能为空");
