@@ -47,6 +47,7 @@ public interface ProductViewMapper {
     @Mapping(target = "policyFormConfigJson", source = "policyFormConfig", qualifiedByName = "toJson")
     @Mapping(target = "underwritingConfigJson", source = "underwritingConfig", qualifiedByName = "toJson")
     @Mapping(target = "documentConfigJson", source = "documentConfig", qualifiedByName = "toJson")
+    @Mapping(target = "policyStructureJson", source = "policyStructureConfig", qualifiedByName = "toJson")
     @Mapping(target = "pricingMode", source = "pricingMode", qualifiedByName = "pricingModeCode")
     @Mapping(target = "rateTableRefJson", source = "rateTableRef", qualifiedByName = "toJson")
     @Mapping(target = "actuarialBasisJson", source = "actuarialBasis", qualifiedByName = "toJson")
@@ -93,9 +94,9 @@ public interface ProductViewMapper {
     @Mapping(target = "underwritingConfigJson", source = "underwritingConfig", qualifiedByName = "toJson")
     @Mapping(target = "maintenanceConfigJson", source = "maintenanceConfig", qualifiedByName = "toJson")
     @Mapping(target = "claimConfigJson", source = "claimsConfig", qualifiedByName = "toJson")
-    // policyStructureJson 是保单结构配置(PolicyStructureConfig)列，仅由 UpdateProductTemplateCommand 写入；
-    // 创建事件不承载 policyStructureConfig（原误将 policyFormConfig 序列化入此列，与读侧 PolicyStructureConfig 反序列化类型冲突），故创建期忽略
-    @Mapping(target = "policyStructureJson", ignore = true)
+    // policyStructureJson 是保单结构配置(PolicyStructureConfig)列：由 CreateProductTemplateCommand 携带的
+    // policyStructure 序列化写入（dev-506c 起创建事件承载），也可由 UpdateProductTemplateCommand 更新覆盖
+    @Mapping(target = "policyStructureJson", source = "policyStructure", qualifiedByName = "toJson")
     @Mapping(target = "issuanceMode", ignore = true)
     @Mapping(target = "createTime", ignore = true)
     @Mapping(target = "updateTime", ignore = true)

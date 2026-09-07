@@ -1,7 +1,9 @@
 package com.titanium.product.api.response.product;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
+import com.titanium.metadata.enums.insurance.SubjectType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.api.response.config.AuditInfoResponse;
 import com.titanium.product.api.response.config.CoveragePeriodConfigResponse;
@@ -12,6 +14,7 @@ import com.titanium.product.api.response.config.PaymentConfigResponse;
 import com.titanium.product.api.response.config.PolicyFormConfigResponse;
 import com.titanium.product.api.response.config.UnderwritingConfigResponse;
 import com.titanium.product.api.response.pricing.PricingBasicRuleResponse;
+import com.titanium.product.common.enums.LiabilityStructure;
 
 import lombok.Data;
 
@@ -55,6 +58,8 @@ public class ProductResponse {
     private UnderwritingConfigResponse underwritingConfig;
     /** 文档配置（所需投保材料清单 + 生成文档模板清单） */
     private DocumentConfigResponse documentConfig;
+    /** 保单结构配置（标的类型/标的字段Schema/多标的/参与方角色，宠物险等非人险标的产品的标的结构定义） */
+    private PolicyStructureConfigDTO policyStructureConfig;
     /** 审核信息 */
     private AuditInfoResponse auditInfo;
 
@@ -62,4 +67,23 @@ public class ProductResponse {
     private String createdBy;
     private LocalDateTime updatedAt;
     private String updatedBy;
+
+    /**
+     * 保单结构配置DTO（与模板层 ProductTemplateResponse.PolicyStructureConfigDTO 结构对齐）
+     */
+    @Data
+    public static class PolicyStructureConfigDTO {
+        /** 标的类型 */
+        private SubjectType subjectType;
+        /** 标的必填字段Schema（JSON Schema） */
+        private String subjectFieldsSchema;
+        /** 是否允许多标的（团险/多宠物） */
+        private boolean allowMultipleSubjects;
+        /** 参与方角色列表 */
+        private List<String> partyRoles;
+        /** 必需的参与方角色 */
+        private List<String> requiredPartyRoles;
+        /** 责任结构类型 */
+        private LiabilityStructure liabilityStructure;
+    }
 }

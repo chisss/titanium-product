@@ -12,6 +12,7 @@ import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.PaymentConfig;
 import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.PolicyStructureConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
 import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
@@ -66,6 +67,8 @@ public class ProductQueryResult {
     private UnderwritingConfig underwritingConfig;
     /** 文档配置（所需投保材料清单 + 生成文档模板清单） */
     private DocumentConfig documentConfig;
+    /** 保单结构配置（标的类型/标的字段Schema/多标的/参与方角色） */
+    private PolicyStructureConfig policyStructureConfig;
 
     // ====== 寿险双模式定价配置（PROD-3读侧） ======
     /** 定价模式（RATE_TABLE/ACTUARIAL_FORMULA） */

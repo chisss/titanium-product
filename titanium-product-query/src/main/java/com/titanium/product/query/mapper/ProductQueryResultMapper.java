@@ -16,6 +16,7 @@ import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.PaymentConfig;
 import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.PolicyStructureConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
 import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
@@ -44,6 +45,7 @@ public interface ProductQueryResultMapper {
     @Mapping(target = "policyFormConfig", source = "policyFormConfigJson", qualifiedByName = "parsePolicyFormConfig")
     @Mapping(target = "underwritingConfig", source = "underwritingConfigJson", qualifiedByName = "parseUnderwritingConfig")
     @Mapping(target = "documentConfig", source = "documentConfigJson", qualifiedByName = "parseDocumentConfig")
+    @Mapping(target = "policyStructureConfig", source = "policyStructureJson", qualifiedByName = "parsePolicyStructure")
     @Mapping(target = "pricingMode", source = "pricingMode", qualifiedByName = "pricingModeFromCode")
     @Mapping(target = "rateTableRef", source = "rateTableRefJson", qualifiedByName = "parseRateTableRef")
     @Mapping(target = "actuarialBasis", source = "actuarialBasisJson", qualifiedByName = "parseActuarialBasis")
@@ -107,6 +109,12 @@ public interface ProductQueryResultMapper {
     @Named("parseDocumentConfig")
     default DocumentConfig parseDocumentConfig(String json) {
         return parse(json, DocumentConfig.class);
+    }
+
+    /** JSON 字符串 → 保单结构配置值对象（null 安全）。 */
+    @Named("parsePolicyStructure")
+    default PolicyStructureConfig parsePolicyStructure(String json) {
+        return parse(json, PolicyStructureConfig.class);
     }
 
     /** 定价模式 code 字符串 → 定价模式枚举（null 安全）。 */

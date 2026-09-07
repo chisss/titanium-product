@@ -37,6 +37,9 @@ public class ProductCommandAppService {
     private final CommandGateway               commandGateway;
     private final ProductTemplateQueryService  productTemplateQueryService;
 
+    /** 平台级公共模板租户（default 租户模板对全租户可见，如宠物医疗险种子） */
+    private static final String PUBLIC_TEMPLATE_TENANT = "default";
+
     /**
      * 创建产品：先校验引用的产品模板存在且处于 ACTIVE，再派发创建命令。
      * <p>
@@ -53,12 +56,19 @@ public class ProductCommandAppService {
 
     /**
      * 校验产品模板存在且为 ACTIVE 状态。
+     * <p>
+     * 平台级公共模板兜底：本租户未建模板时允许引用 {@code default} 租户的公共模板
+     * （如宠物医疗险种子 {@code seed_template_pet_medical}），本租户模板优先。
+     * </p>
      *
      * @param templateId 产品模板ID
      * @param tenantId 租户ID
      */
     private void validateTemplateActive(String templateId, String tenantId) {
         ProductTemplateQueryResult template = productTemplateQueryService.getTemplateById(templateId, tenantId);
+        if (template == null && !PUBLIC_TEMPLATE_TENANT.equals(tenantId)) {
+            template = productTemplateQueryService.getTemplateById(templateId, PUBLIC_TEMPLATE_TENANT);
+        }
         if (template == null) {
             throw new CommandValidationException(CreateProductCommand.class.getSimpleName(), "templateId",
                     "引用的产品模板不存在: " + templateId);

@@ -16,9 +16,11 @@ import com.titanium.metadata.enums.product.ProductEnum;
  * @param underwritingSLADays 核保时效要求（天）
  * @param surchargeAcceptable 是否支持加费承保
  * @param specialAgreementAcceptable 是否支持特别约定
+ * @param ruleSetCode 关联的规则引擎规则集编码（dev-505）；为空表示未接入规则引擎，核保域回退内置评分逻辑。
+ *                    旧版本响应 JSON 无此字段，Jackson 反序列化时取 null，向后兼容。
  */
 public record UnderwritingConfigResponse(ProductEnum.UnderwritingMode underwritingMode, String autoApprovalCondition,
                                          BigDecimal manualReviewAmountThreshold, List<String> requiredDocuments,
                                          Integer underwritingSLADays, boolean surchargeAcceptable,
-                                         boolean specialAgreementAcceptable) {
+                                         boolean specialAgreementAcceptable, String ruleSetCode) {
 }

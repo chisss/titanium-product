@@ -45,6 +45,7 @@ import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.PaymentConfig;
 import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.PolicyStructureConfig;
 import com.titanium.product.valueobject.config.SalesChannelConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
@@ -130,6 +131,8 @@ public class InsuranceProduct extends BaseAggregate {
     private UnderwritingConfig          underwritingConfig;
     /** 文档配置（所需投保材料清单 + 生成文档模板清单，纯产品配置不跨文档域） */
     private DocumentConfig              documentConfig;
+    /** 保单结构配置（标的类型/标的字段Schema/多标的/参与方角色，宠物险等非人险标的产品的标的结构定义） */
+    private PolicyStructureConfig       policyStructureConfig;
 
     // ====== 定价模式（保费计算数据源与方法，billing 出单按此分派） ======
     /** 定价模式（费率表查询/精算公式） */
@@ -199,6 +202,7 @@ public class InsuranceProduct extends BaseAggregate {
         this.rateTableRef = command.rateTableRef();
         this.actuarialBasis = command.actuarialBasis();
         this.documentConfig = command.documentConfig();
+        this.policyStructureConfig = command.policyStructureConfig();
         this.tenantId = command.tenantId();
         this.createdBy = command.createdBy();
 
@@ -208,7 +212,7 @@ public class InsuranceProduct extends BaseAggregate {
                         version, ProductEnum.ProductStatus.DRAFT, LocalDateTime.now(), saleStartTime, saleEndTime,
                         insureCondition, coveragePeriod, paymentConfig, pricingBasicRule, clauseRels, salesChannels,
                         attachProductIds, issuanceProcessConfig, policyFormConfig, underwritingConfig, tenantId,
-                        pricingMode, rateTableRef, actuarialBasis, documentConfig, createdBy));
+                        pricingMode, rateTableRef, actuarialBasis, documentConfig, createdBy, policyStructureConfig));
     }
 
     /**
@@ -377,6 +381,7 @@ public class InsuranceProduct extends BaseAggregate {
         this.rateTableRef = event.rateTableRef();
         this.actuarialBasis = event.actuarialBasis();
         this.documentConfig = event.documentConfig();
+        this.policyStructureConfig = event.policyStructureConfig();
         this.tenantId = event.tenantId();
         this.createdBy = event.createdBy();
         this.createTime = event.createdAt();

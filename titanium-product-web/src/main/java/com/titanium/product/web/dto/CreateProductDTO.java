@@ -11,6 +11,7 @@ import com.titanium.product.valueobject.config.DocumentConfig;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.PaymentConfig;
 import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.PolicyStructureConfig;
 import com.titanium.product.valueobject.config.SalesChannelConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
@@ -78,6 +79,8 @@ public class CreateProductDTO {
     private UnderwritingConfig underwritingConfig;
     /** 文档配置（所需投保材料清单 + 生成文档模板清单，纯产品配置不跨文档域） */
     private DocumentConfig documentConfig;
+    /** 保单结构配置（标的类型/标的字段Schema/多标的/参与方角色，宠物险等非人险标的产品的标的结构定义） */
+    private PolicyStructureConfig policyStructureConfig;
 
     /** 定价模式编码（RATE_TABLE 费率表查询 / ACTUARIAL_FORMULA 精算公式），billing 出单按此分派保费计算路径 */
     private String pricingMode;

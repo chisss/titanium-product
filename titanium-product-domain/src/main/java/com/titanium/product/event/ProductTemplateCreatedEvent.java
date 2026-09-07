@@ -9,6 +9,7 @@ import com.titanium.product.valueobject.config.ClaimConfig;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.MaintenanceConfig;
 import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.PolicyStructureConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
 
@@ -22,7 +23,8 @@ public record ProductTemplateCreatedEvent(String templateId, String templateCode
                                           MaintenanceConfig maintenanceConfig, PolicyFormConfig policyFormConfig,
                                           PricingBasicRule pricingBasicRule, List<String> supportedCoverages,
                                           List<String> supportedExclusions, CommonStatus status, String tenantId,
-                                          String createdBy, LocalDateTime occurredAt) {
+                                          String createdBy, LocalDateTime occurredAt,
+                                          PolicyStructureConfig policyStructure) {
     // 可以添加静态工厂方法
     public static ProductTemplateCreatedEvent of(String templateId, String templateCode, String templateName,
                                                  InsuranceType insuranceType, String description,
@@ -34,6 +36,6 @@ public record ProductTemplateCreatedEvent(String templateId, String templateCode
         return new ProductTemplateCreatedEvent(templateId, templateCode, templateName, insuranceType, description,
                 issuanceProcessConfig, underwritingConfig, claimsConfig, maintenanceConfig, policyFormConfig,
                 pricingBasicRule, supportedCoverages, supportedExclusions, CommonStatus.ACTIVE, tenantId, createdBy,
-                LocalDateTime.now());
+                LocalDateTime.now(), null);
     }
 }

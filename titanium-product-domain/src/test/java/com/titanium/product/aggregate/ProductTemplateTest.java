@@ -64,14 +64,14 @@ class ProductTemplateTest {
     private CreateProductTemplateCommand createCommand() {
         return new CreateProductTemplateCommand(TEMPLATE_ID, TEMPLATE_CODE, TEMPLATE_NAME,
                 InsuranceType.CAR, "车险标准模板", issuanceProcessConfig(),
-                null, null, null, null, null, null, null, TENANT_ID, CREATED_BY);
+                null, null, null, null, null, null, null, TENANT_ID, CREATED_BY, null);
     }
 
     private ProductTemplateCreatedEvent createdEvent() {
         return new ProductTemplateCreatedEvent(TEMPLATE_ID, TEMPLATE_CODE, TEMPLATE_NAME,
                 InsuranceType.CAR, "车险标准模板", issuanceProcessConfig(),
                 null, null, null, null, null, null, null,
-                CommonStatus.ACTIVE, TENANT_ID, CREATED_BY, null);
+                CommonStatus.ACTIVE, TENANT_ID, CREATED_BY, null, null);
     }
 
     @Test

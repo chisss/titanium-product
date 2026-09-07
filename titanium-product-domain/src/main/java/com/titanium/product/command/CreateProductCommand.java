@@ -15,6 +15,7 @@ import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.PaymentConfig;
 import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.PolicyStructureConfig;
 import com.titanium.product.valueobject.config.SalesChannelConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
@@ -36,5 +37,6 @@ public record CreateProductCommand(@TargetAggregateIdentifier String productId, 
                                    IssuanceProcessConfig issuanceProcessConfig, PolicyFormConfig policyFormConfig,
                                    UnderwritingConfig underwritingConfig, String tenantId,
                                    PricingMode pricingMode, RateTableRef rateTableRef,
-                                   ActuarialBasis actuarialBasis, DocumentConfig documentConfig, String createdBy) {
+                                   ActuarialBasis actuarialBasis, DocumentConfig documentConfig, String createdBy,
+                                   PolicyStructureConfig policyStructureConfig) {
 }

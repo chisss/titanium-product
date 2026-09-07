@@ -138,7 +138,7 @@ public class ProductTemplate extends BaseAggregate {
                 command.underwritingConfig(), command.claimsConfig(), command.maintenanceConfig(),
                 command.policyFormConfig(), command.pricingBasicRule(), command.supportedCoverages(),
                 command.supportedExclusions(), CommonStatus.ACTIVE, command.tenantId(), command.createdBy(),
-                LocalDateTime.now()));
+                LocalDateTime.now(), command.policyStructure()));
     }
 
     @EventSourcingHandler
@@ -156,6 +156,7 @@ public class ProductTemplate extends BaseAggregate {
         this.pricingBasicRule = event.pricingBasicRule();
         this.supportedCoverages = event.supportedCoverages();
         this.supportedExclusions = event.supportedExclusions();
+        this.policyStructureConfig = event.policyStructure();
         this.status = event.status();
         this.tenantId = event.tenantId();
         this.createTime = event.occurredAt();

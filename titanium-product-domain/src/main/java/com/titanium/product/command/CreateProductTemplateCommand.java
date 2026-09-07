@@ -9,6 +9,7 @@ import com.titanium.product.valueobject.config.ClaimConfig;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.MaintenanceConfig;
 import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.PolicyStructureConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
 
@@ -21,5 +22,6 @@ public record CreateProductTemplateCommand(@TargetAggregateIdentifier String tem
                                            UnderwritingConfig underwritingConfig, ClaimConfig claimsConfig,
                                            MaintenanceConfig maintenanceConfig, PolicyFormConfig policyFormConfig,
                                            PricingBasicRule pricingBasicRule, List<String> supportedCoverages,
-                                           List<String> supportedExclusions, String tenantId, String createdBy) {
+                                           List<String> supportedExclusions, String tenantId, String createdBy,
+                                           PolicyStructureConfig policyStructure) {
 }

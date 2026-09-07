@@ -7,15 +7,18 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import com.titanium.metadata.enums.insurance.SubjectType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.api.response.product.ProductTemplateResponse;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.command.UpdateProductTemplateCommand;
+import com.titanium.product.common.enums.LiabilityStructure;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
 import com.titanium.product.valueobject.PolicyStage;
 import com.titanium.product.valueobject.config.ClaimConfig;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.MaintenanceConfig;
+import com.titanium.product.valueobject.config.PolicyStructureConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.web.dto.CreateProductTemplateDTO;
 import com.titanium.product.web.dto.UpdateProductTemplateDTO;
@@ -55,7 +58,9 @@ public interface ProductTemplateWebMapper {
                         List.of(),
                         null,
                         false,
-                        false)
+                        false,
+                        // dev-505：自动核保规则集既承载于历史字段 autoApprovalCondition，也显式写入规则集编码
+                        request.getUnderwritingConfig().getAutoUnderwritingRuleSet())
                 : null;
 
         ClaimConfig claimConfig = request.getClaimConfig() != null
@@ -79,6 +84,9 @@ public interface ProductTemplateWebMapper {
         // 由出单模式派生标准步骤链，避免因 issuanceProcessConfig 为 null 触发聚合根校验失败。
         IssuanceProcessConfig issuanceProcessConfig = buildIssuanceProcessConfig(request.getIssuanceMode());
 
+        // 保单结构配置：标的类型/责任结构为 String code 承载，经 fromCode 还原领域枚举（null 安全）
+        PolicyStructureConfig policyStructure = toPolicyStructure(request.getPolicyStructure());
+
         return new CreateProductTemplateCommand(
                 templateId,
                 request.getTemplateCode(),
@@ -94,7 +102,28 @@ public interface ProductTemplateWebMapper {
                 List.of(),
                 List.of(),
                 tenantId,
-                null);
+                null,
+                policyStructure);
+    }
+
+    /**
+     * 保单结构配置请求 → 领域值对象（null 安全）。
+     * <p>
+     * 请求以 String 承载标的类型/责任结构 code，经 {@link SubjectType#fromCode} / {@link LiabilityStructure#fromCode}
+     * 还原枚举；整体请求缺省时返回 null，由聚合根按可选配置处理。
+     * </p>
+     */
+    default PolicyStructureConfig toPolicyStructure(CreateProductTemplateDTO.PolicyStructureConfigRequest request) {
+        if (request == null) {
+            return null;
+        }
+        return new PolicyStructureConfig(
+                SubjectType.fromCode(request.getSubjectType()),
+                request.getSubjectFieldsSchema(),
+                request.isAllowMultipleSubjects(),
+                request.getPartyRoles(),
+                request.getRequiredPartyRoles(),
+                LiabilityStructure.fromCode(request.getLiabilityStructure()));
     }
 
     /**

@@ -145,6 +145,11 @@ public class ProductView extends BaseView {
     @Column(name = "document_config_json", columnDefinition = "TEXT")
     private String        documentConfigJson;
 
+    /** 保单结构配置（JSON，序列化的 PolicyStructureConfig：标的类型/标的字段Schema/多标的/参与方角色） */
+    @Lob
+    @Column(name = "policy_structure_json", columnDefinition = "TEXT")
+    private String        policyStructureJson;
+
     /** 审核信息（JSON） */
     @Lob
     @Column(name = "audit_info_json", columnDefinition = "TEXT")
