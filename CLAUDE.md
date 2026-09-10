@@ -139,12 +139,12 @@ titanium-product/
 # 设置 JDK 21
 export JAVA_HOME=/Users/sunwei/Library/Java/JavaVirtualMachines/corretto-21.0.4/Contents/Home
 
-# 在项目根编译安装（首次需先装依赖模块如 titanium-metadata）
-cd /Users/sunwei/titanium-project
-mvn -pl titanium-product -am clean install -DskipTests
+# 构建产品域（域目录即 Maven reactor；跨域依赖须已在本地仓库，首次请先跑根规约 §15.2 全量构建）
+cd /Users/sunwei/titanium-project/titanium-product
+mvn clean install -DskipTests
 
 # 单独启动产品服务（端口 8082）
-cd titanium-product/titanium-product-bootstrap
+cd titanium-product-bootstrap
 mvn spring-boot:run
 ```
 
