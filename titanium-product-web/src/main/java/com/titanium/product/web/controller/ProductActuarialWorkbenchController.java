@@ -25,6 +25,7 @@ import com.titanium.product.command.pricing.CreateCalculationModelCommand;
 import com.titanium.product.command.pricing.CreateChargeComponentCommand;
 import com.titanium.product.command.pricing.CreateDynamicFactorCommand;
 import com.titanium.product.command.pricing.CreateTaxPolicyCommand;
+import com.titanium.product.command.pricing.surrender.CreateSurrenderValuePolicyCommand;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
 import com.titanium.product.common.enums.CalculationNodeType;
 import com.titanium.product.common.enums.CalculationOperator;
@@ -48,6 +49,7 @@ import com.titanium.product.web.dto.pricing.calculation.CreateCalculationModelDT
 import com.titanium.product.web.dto.pricing.calculation.CreateChargeComponentDTO;
 import com.titanium.product.web.dto.pricing.dynamicfactor.CreateDynamicFactorDTO;
 import com.titanium.product.web.dto.pricing.dynamicfactor.DynamicFactorVO;
+import com.titanium.product.web.dto.pricing.surrender.CreateSurrenderValuePolicyDTO;
 import com.titanium.product.web.dto.pricing.tax.CreateTaxPolicyDTO;
 import com.titanium.product.web.dto.pricing.tax.TaxPolicyVO;
 
@@ -240,6 +242,44 @@ public class ProductActuarialWorkbenchController {
             @PathVariable String policyId,
             @RequestHeader("X-Tenant-ID") String tenantId) {
         commandAppService.retireTaxPolicy(tenantId, productId, policyId);
+        return ApiResponse.success(null);
+    }
+
+    @PostMapping("/surrender-value-policies")
+    public ApiResponse<String> createSurrenderValuePolicy(
+            @PathVariable String productId,
+            @RequestHeader("X-Tenant-ID") String tenantId,
+            @Valid @RequestBody CreateSurrenderValuePolicyDTO request) {
+        return ApiResponse.success(commandAppService.createSurrenderValuePolicy(
+                new CreateSurrenderValuePolicyCommand(
+                        tenantId, productId, request.policyCode(), request.policyVersion(), request.policyYear(),
+                        request.coolingOffDays(), request.cashValueRate(), request.internalCostRetentionRate(),
+                        request.effectiveFrom(), request.effectiveTo())));
+    }
+
+    @PostMapping("/surrender-value-policies/{policyId}/approve")
+    public ApiResponse<String> approveSurrenderValuePolicy(
+            @PathVariable String productId,
+            @PathVariable String policyId,
+            @RequestHeader("X-Tenant-ID") String tenantId) {
+        return ApiResponse.success(commandAppService.approveSurrenderValuePolicy(tenantId, productId, policyId));
+    }
+
+    @PostMapping("/surrender-value-policies/{policyId}/publish")
+    public ApiResponse<Void> publishSurrenderValuePolicy(
+            @PathVariable String productId,
+            @PathVariable String policyId,
+            @RequestHeader("X-Tenant-ID") String tenantId) {
+        commandAppService.publishSurrenderValuePolicy(tenantId, productId, policyId);
+        return ApiResponse.success(null);
+    }
+
+    @PostMapping("/surrender-value-policies/{policyId}/retire")
+    public ApiResponse<Void> retireSurrenderValuePolicy(
+            @PathVariable String productId,
+            @PathVariable String policyId,
+            @RequestHeader("X-Tenant-ID") String tenantId) {
+        commandAppService.retireSurrenderValuePolicy(tenantId, productId, policyId);
         return ApiResponse.success(null);
     }
 

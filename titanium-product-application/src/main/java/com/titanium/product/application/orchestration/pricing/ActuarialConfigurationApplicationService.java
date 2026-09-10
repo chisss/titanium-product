@@ -11,15 +11,18 @@ import com.titanium.product.command.pricing.CreateCalculationModelCommand;
 import com.titanium.product.command.pricing.CreateChargeComponentCommand;
 import com.titanium.product.command.pricing.CreateDynamicFactorCommand;
 import com.titanium.product.command.pricing.CreateTaxPolicyCommand;
+import com.titanium.product.command.pricing.surrender.CreateSurrenderValuePolicyCommand;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
 import com.titanium.product.pricing.aggregate.CalculationModelDefinition;
 import com.titanium.product.pricing.aggregate.ChargeComponentDefinition;
 import com.titanium.product.pricing.aggregate.DynamicFactorDefinition;
 import com.titanium.product.pricing.aggregate.TaxPolicyDefinition;
+import com.titanium.product.pricing.aggregate.surrender.SurrenderValuePolicy;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.CalculationModelRepository;
 import com.titanium.product.repository.ChargeComponentRepository;
 import com.titanium.product.repository.DynamicFactorRepository;
+import com.titanium.product.repository.SurrenderValuePolicyRepository;
 import com.titanium.product.repository.TaxPolicyRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +39,7 @@ public class ActuarialConfigurationApplicationService {
     private final CalculationModelRepository calculationModelRepository;
     private final TaxPolicyRepository taxPolicyRepository;
     private final DynamicFactorRepository dynamicFactorRepository;
+    private final SurrenderValuePolicyRepository surrenderValuePolicyRepository;
 
     @Transactional
     public String createChargeComponent(CreateChargeComponentCommand command) {
@@ -194,6 +198,45 @@ public class ActuarialConfigurationApplicationService {
         dynamicFactorRepository.save(factor);
     }
 
+    @Transactional
+    public String createSurrenderValuePolicy(CreateSurrenderValuePolicyCommand command) {
+        requireProduct(command.tenantId(), command.productId());
+        if (surrenderValuePolicyRepository.existsByBusinessKey(
+                command.tenantId(), command.productId(), command.policyCode(), command.policyVersion(),
+                command.policyYear())) {
+            throw new BusinessException(ProductErrorCode.ACTUARIAL_COMPONENT_ALREADY_EXISTS);
+        }
+        SurrenderValuePolicy policy = SurrenderValuePolicy.createDraft(
+                UUID.randomUUID().toString(), command.productId(), command.policyCode(), command.policyVersion(),
+                command.policyYear(), command.coolingOffDays(), command.cashValueRate(),
+                command.internalCostRetentionRate(), command.effectiveFrom(), command.effectiveTo(),
+                command.tenantId());
+        surrenderValuePolicyRepository.save(policy);
+        return policy.getPolicyId();
+    }
+
+    @Transactional
+    public String approveSurrenderValuePolicy(String tenantId, String productId, String policyId) {
+        SurrenderValuePolicy policy = requireSurrenderValuePolicy(tenantId, productId, policyId);
+        String hash = policy.approve();
+        surrenderValuePolicyRepository.save(policy);
+        return hash;
+    }
+
+    @Transactional
+    public void publishSurrenderValuePolicy(String tenantId, String productId, String policyId) {
+        SurrenderValuePolicy policy = requireSurrenderValuePolicy(tenantId, productId, policyId);
+        policy.publish();
+        surrenderValuePolicyRepository.save(policy);
+    }
+
+    @Transactional
+    public void retireSurrenderValuePolicy(String tenantId, String productId, String policyId) {
+        SurrenderValuePolicy policy = requireSurrenderValuePolicy(tenantId, productId, policyId);
+        policy.retire();
+        surrenderValuePolicyRepository.save(policy);
+    }
+
     private void validatePublishedComponents(CalculationModelDefinition model) {
         model.getNodes().stream()
                 .filter(node -> node.hasComponent())
@@ -223,6 +266,11 @@ public class ActuarialConfigurationApplicationService {
 
     private DynamicFactorDefinition requireDynamicFactor(String tenantId, String productId, String factorId) {
         return dynamicFactorRepository.findById(tenantId, productId, factorId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.ACTUARIAL_COMPONENT_NOT_FOUND));
+    }
+
+    private SurrenderValuePolicy requireSurrenderValuePolicy(String tenantId, String productId, String policyId) {
+        return surrenderValuePolicyRepository.findById(tenantId, productId, policyId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.ACTUARIAL_COMPONENT_NOT_FOUND));
     }
 

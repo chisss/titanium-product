@@ -7,6 +7,7 @@ import com.titanium.product.command.pricing.CreateCalculationModelCommand;
 import com.titanium.product.command.pricing.CreateChargeComponentCommand;
 import com.titanium.product.command.pricing.CreateDynamicFactorCommand;
 import com.titanium.product.command.pricing.CreateTaxPolicyCommand;
+import com.titanium.product.command.pricing.surrender.CreateSurrenderValuePolicyCommand;
 
 import lombok.RequiredArgsConstructor;
 
@@ -81,5 +82,21 @@ public class ActuarialConfigurationCommandAppService {
 
     public void retireDynamicFactor(String tenantId, String productId, String factorId) {
         orchestrationService.retireDynamicFactor(tenantId, productId, factorId);
+    }
+
+    public String createSurrenderValuePolicy(CreateSurrenderValuePolicyCommand command) {
+        return orchestrationService.createSurrenderValuePolicy(command);
+    }
+
+    public String approveSurrenderValuePolicy(String tenantId, String productId, String policyId) {
+        return orchestrationService.approveSurrenderValuePolicy(tenantId, productId, policyId);
+    }
+
+    public void publishSurrenderValuePolicy(String tenantId, String productId, String policyId) {
+        orchestrationService.publishSurrenderValuePolicy(tenantId, productId, policyId);
+    }
+
+    public void retireSurrenderValuePolicy(String tenantId, String productId, String policyId) {
+        orchestrationService.retireSurrenderValuePolicy(tenantId, productId, policyId);
     }
 }

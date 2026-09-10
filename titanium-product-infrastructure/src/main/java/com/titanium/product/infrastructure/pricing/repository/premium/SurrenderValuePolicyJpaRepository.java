@@ -11,6 +11,19 @@ import com.titanium.product.infrastructure.pricing.entity.premium.SurrenderValue
 
 public interface SurrenderValuePolicyJpaRepository extends JpaRepository<SurrenderValuePolicyDO, String> {
 
+    /**
+     * 按业务键（租户+产品+策略编码+策略版本+适用保单年度）判断策略是否已存在，与唯一键
+     * {@code uk_product_surrender_value_version} 对齐。
+     */
+    boolean existsByTenantIdAndProductIdAndPolicyCodeAndPolicyVersionAndPolicyYear(
+            String tenantId, String productId, String policyCode, String policyVersion, int policyYear);
+
+    /**
+     * 按策略ID + 租户 + 产品查询（写侧生命周期流转的加载入口）。
+     */
+    Optional<SurrenderValuePolicyDO> findByPolicyIdAndTenantIdAndProductId(
+            String policyId, String tenantId, String productId);
+
     @Query("""
             select p from SurrenderValuePolicyDO p
             where p.tenantId = :tenantId and p.productId = :productId and p.policyYear = :policyYear
