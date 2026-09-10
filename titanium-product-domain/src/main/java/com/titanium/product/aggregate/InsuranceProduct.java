@@ -286,14 +286,21 @@ public class InsuranceProduct extends BaseAggregate {
             throw new ProductStatusPreconditionException(this.productId, statusName(), "修订");
         }
         String newVersion = generateNewVersion(this.version);
-        // 修订生成新版本：templateId/productCode/attachProductIds/tenantId 继承原产品（修订主要变更定价/条款，模板与附加险搭配延续）
+        // 修订生成新版本：templateId/productCode/attachProductIds/tenantId 继承原产品（修订主要变更定价/条款，模板与附加险搭配延续）；
+        // 销售渠道/费率表引用/精算基础读模型未对外暴露，命令未携带时继承原值，防止修订意外清空
+        List<SalesChannelConfig> newSalesChannels = command.newSalesChannels() != null
+                ? command.newSalesChannels() : this.salesChannels;
+        RateTableRef newRateTableRef = command.newRateTableRef() != null
+                ? command.newRateTableRef() : this.rateTableRef;
+        ActuarialBasis newActuarialBasis = command.newActuarialBasis() != null
+                ? command.newActuarialBasis() : this.actuarialBasis;
         ProductRevisedEvent revisedEvent = new ProductRevisedEvent(command.newProductId(), this.templateId,
                 this.productId, newVersion, this.productCode, command.newProductName(), command.newProductDesc(),
                 command.newForm(), command.newInsuranceType(), command.newCategory(), command.newInsureCondition(),
                 command.newCoveragePeriod(), command.newPaymentConfig(), command.newClauseRels(),
-                command.newPricingBasicRule(), command.newSalesChannels(), command.newIssuanceProcessConfig(),
+                command.newPricingBasicRule(), newSalesChannels, command.newIssuanceProcessConfig(),
                 command.newPolicyFormConfig(), command.newUnderwritingConfig(), this.attachProductIds,
-                command.newPricingMode(), command.newRateTableRef(), command.newActuarialBasis(), this.tenantId);
+                command.newPricingMode(), newRateTableRef, newActuarialBasis, this.tenantId);
         // 修订不改写当前 EFFECTIVE 版本，而以全新的 newProductId 创建独立聚合，使新版本拥有自己的事件流并可被命令寻址
         try {
             AggregateLifecycle.createNew(InsuranceProduct.class, () -> new InsuranceProduct(revisedEvent));

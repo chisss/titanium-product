@@ -16,6 +16,8 @@ import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.exception.CommandValidationException;
 import com.titanium.product.command.CreateProductCommand;
+import com.titanium.product.command.ReviseProductCommand;
+import com.titanium.product.exception.ProductStatusPreconditionException;
 import com.titanium.product.service.ProductDomainService;
 import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
@@ -72,6 +74,25 @@ class InsuranceProductTest {
                 .expectException(CommandValidationException.class)
                 .expectExceptionMessage(Matchers.containsString(
                         "产品级 factors 系数不参与试算，请改为在定价计划中配置动态因子"));
+    }
+
+    @Test
+    @DisplayName("修订前置校验：非 EFFECTIVE（DRAFT）产品拒绝修订")
+    void shouldRejectReviseWhenProductNotEffective() {
+        // 创建即 DRAFT（givenCommands 以命令产出事件作为给定历史），未审核通过前不可修订
+        fixture.givenCommands(baseCommand())
+                .when(reviseCommand())
+                .expectException(ProductStatusPreconditionException.class)
+                .expectExceptionMessage(Matchers.containsString("修订"));
+    }
+
+    /** 修订命令：新版本全量配置最小集（条款关联继承创建时的主条款） */
+    private ReviseProductCommand reviseCommand() {
+        return new ReviseProductCommand(PRODUCT_ID, "PROD_001_V2", "测试产品V2", null,
+                ProductEnum.ProductForm.INDIVIDUAL, InsuranceProductType.AUTO, null,
+                new InsureCondition(18, 65, null, null, null, null, null, null, null, null, null, null, null, null),
+                null, null, null, null, null, null, null, null,
+                PricingMode.RATE_TABLE, null, null);
     }
 
     /** 合法创建命令（无 factors，其余字段满足创建校验的最小集） */

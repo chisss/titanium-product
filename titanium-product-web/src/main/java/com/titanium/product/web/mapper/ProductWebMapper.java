@@ -30,6 +30,8 @@ import com.titanium.product.api.response.product.ProductResponse;
 import com.titanium.product.command.AuditProductCommand;
 import com.titanium.product.command.CreateProductCommand;
 import com.titanium.product.command.RejectProductAuditCommand;
+import com.titanium.product.command.ReviseProductCommand;
+import com.titanium.product.entity.ProductClauseRel;
 import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.valueobject.AdditionalStep;
@@ -45,6 +47,7 @@ import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.web.dto.AuditProductDTO;
 import com.titanium.product.web.dto.ConfigureLifeProductDTO;
 import com.titanium.product.web.dto.CreateProductDTO;
+import com.titanium.product.web.dto.ReviseProductDTO;
 
 /**
  * 产品 Web 层对象映射器（MapStruct，声明式）
@@ -74,6 +77,45 @@ public interface ProductWebMapper {
     @Mapping(target = "tenantId", source = "tenantId")
     @Mapping(target = "pricingMode", source = "request.pricingMode", qualifiedByName = "pricingModeFromCode")
     CreateProductCommand toCommand(CreateProductDTO request, String tenantId);
+
+    /**
+     * HTTP DTO → 修订产品命令（Controller 用）
+     * <p>
+     * 修订以新版本 DRAFT 创建独立聚合：{@code newProductId} 缺省时由雪花算法生成；
+     * 条款关联经 {@link #toClauseRels} 由三元组派生聚合内相对标识；定价模式编码还原为枚举。
+     * 目标聚合 {@code productId} 为被修订的 EFFECTIVE 产品（修订不改写其事件流）。
+     * </p>
+     *
+     * @param request 修订产品请求
+     * @param productId 被修订的当前生效产品ID
+     * @return 修订产品命令
+     */
+    @Mapping(target = "productId", source = "productId")
+    @Mapping(target = "newProductId",
+            expression = "java(request.getNewProductId() != null ? request.getNewProductId() : SnowflakeIdGenerator.generate())")
+    @Mapping(target = "newClauseRels", expression = "java(toClauseRels(request.getNewClauseRels()))")
+    @Mapping(target = "newPricingMode", source = "request.newPricingMode", qualifiedByName = "pricingModeFromCode")
+    ReviseProductCommand toCommand(ReviseProductDTO request, String productId);
+
+    /**
+     * 条款关联入参 → 领域值对象列表（修订命令用）
+     * <p>
+     * 每个三元组经 {@link ProductClauseRel} 业务便捷构造器派生相对标识（条款ID+版本）
+     * 与绑定时间（now），保证聚合内标识完整，不依赖调用方手工拼装。
+     * </p>
+     *
+     * @param rels 条款关联入参（可空）
+     * @return 产品-条款关联值对象列表
+     */
+    default List<ProductClauseRel> toClauseRels(List<ReviseProductDTO.ClauseRelDTO> rels) {
+        if (rels == null) {
+            return null;
+        }
+        return rels.stream()
+                .map(rel -> new ProductClauseRel(rel.clauseId(), rel.clauseVersion(),
+                        Boolean.TRUE.equals(rel.isMainClause())))
+                .toList();
+    }
 
     /**
      * 远程 Request → 创建产品命令（Provider 用，形态/险种/类别 String → 领域枚举）

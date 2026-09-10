@@ -110,9 +110,11 @@ public class ProductCommandAppService {
      * 修订产品。
      *
      * @param command 修订命令
+     * @return 新版本产品ID（修订以独立聚合创建新版本 DRAFT，供调用方跳转/回显）
      */
-    public void reviseProduct(ReviseProductCommand command) {
+    public String reviseProduct(ReviseProductCommand command) {
         commandGateway.sendAndWait(command);
+        return command.newProductId();
     }
 
     /**

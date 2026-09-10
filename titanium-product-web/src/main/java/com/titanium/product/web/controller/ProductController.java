@@ -25,6 +25,7 @@ import com.titanium.product.api.response.product.ProductResponse;
 import com.titanium.product.application.command.ProductCommandAppService;
 import com.titanium.product.application.query.ProductQueryAppService;
 import com.titanium.product.command.CreateProductCommand;
+import com.titanium.product.command.ReviseProductCommand;
 import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.valueobject.LifeProductSpec;
@@ -32,6 +33,7 @@ import com.titanium.product.web.catalog.InsuranceProductDefinitionCatalog;
 import com.titanium.product.web.dto.AuditProductDTO;
 import com.titanium.product.web.dto.ConfigureLifeProductDTO;
 import com.titanium.product.web.dto.CreateProductDTO;
+import com.titanium.product.web.dto.ReviseProductDTO;
 import com.titanium.product.web.mapper.ProductWebMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -77,6 +79,28 @@ public class ProductController {
         CreateProductCommand command = productWebMapper.toCommand(request, tenantId);
         String productId = productCommandAppService.createProduct(command);
         return ApiResponse.success(productId);
+    }
+
+    /**
+     * 修订产品（仅 EFFECTIVE 可修订，生成新版本 DRAFT）
+     * <p>
+     * 修订不改写当前生效版本，而以新 {@code newProductId} 创建独立聚合（版本号递增，如 V1.0 → V2.0），
+     * 模板ID/产品代码/附加险搭配/租户由聚合根继承原产品。存量产品补配核保配置等场景走本端点。
+     * </p>
+     *
+     * @param productId 被修订的当前生效产品ID
+     * @param request 修订请求（承载新版本完整配置）
+     * @param tenantId 租户ID（请求头）
+     * @return 新版本产品ID
+     */
+    @PostMapping("/{productId}/revise")
+    public ApiResponse<String> reviseProduct(@PathVariable("productId") String productId,
+                                             @RequestBody ReviseProductDTO request,
+                                             @RequestHeader("X-Tenant-ID") String tenantId) {
+        // 协议转换：HTTP Request → 领域命令，收敛到同一应用层门面
+        ReviseProductCommand command = productWebMapper.toCommand(request, productId);
+        String newProductId = productCommandAppService.reviseProduct(command);
+        return ApiResponse.success(newProductId);
     }
 
     /**
