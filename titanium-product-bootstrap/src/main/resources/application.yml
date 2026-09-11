@@ -6,7 +6,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/titanium_insurance?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true
     username: root
-    password: password
+    password: ${DB_PASSWORD:password}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -14,14 +14,14 @@ spring:
       naming:
         physical-strategy: com.titanium.common.jpa.AxonTablePrefixPhysicalNamingStrategy
       ddl-auto: none
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
   liquibase:
     enabled: true
     change-log: classpath:liquibase/changelog-master.xml
-    password: password
+    password: ${DB_PASSWORD:password}
   # Kafka 跨域事件外发(与 customer 域一致：String 序列化 + 应用侧 fastjson2 JSON)
   kafka:
     bootstrap-servers: localhost:9092
@@ -68,3 +68,12 @@ logging:
     com.titanium: info
     org.axonframework: info
     org.springframework.data.jpa: info
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
