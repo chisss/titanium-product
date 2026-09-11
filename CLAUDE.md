@@ -95,7 +95,7 @@ titanium-product/
 
 - **命令处理器（仅 1 个）**：`CreateProductTemplateCommand`(构造)
 - **事件溯源处理器（1 个）**：`on(ProductTemplateCreatedEvent)`
-- 提供 `reconstruct(...)` 静态工厂供仓储重建
+- 原 `reconstruct(...)` 静态工厂已于 m0-705 删除（零调用方，且字段残缺不恢复 `supportedCoverages` 等）
 
 ### 4.3 命令清单（14，record）
 
@@ -154,7 +154,13 @@ mvn spring-boot:run
 
 ## 七、已知缺陷与注意事项（基于代码实况）
 
-1. **🔴 ProductTemplate 命令处理器缺失**：`ProductTemplateCommandAppService` 通过 `commandGateway` 派发 `UpdateProductTemplateCommand`/`ActivateProductTemplateCommand`/`DeactivateProductTemplateCommand`，但 `ProductTemplate` 聚合根**只实现了 `CreateProductTemplateCommand`**，其余三命令无 `@CommandHandler`，运行时将抛 `NoHandlerForCommandException`。对应事件（Updated/Activated/Deactivated）已有投影处理，属"半成品"。
+1. **🔴 聚合命令处理器大面积缺口（m0-705 全量扫描，2026-09-11）**：下列命令**已被 application/web/api 层派发，但 domain 层无任何 `@CommandHandler`**，调用即抛 `NoHandlerForCommandException`——比死代码更危险（有入口、运行期才炸），代表产品域精算/定价/费率能力尚未落地：
+   - **ProductTemplate（3）**：`UpdateProductTemplateCommand`、`ActivateProductTemplateCommand`、`DeactivateProductTemplateCommand`（对应事件已投影，属"半成品"）
+   - **精算工作台（6）**：`CreateCalculationModelCommand`、`CreateChargeComponentCommand`、`CreateDynamicFactorCommand`、`CreateSurrenderValuePolicyCommand`、`CreateTaxPolicyCommand`、`CalculateSurrenderValueCommand`
+   - **定价 / 费率表（4）**：`CreatePricingPlanDraftCommand`、`ReplacePricingTestCasesCommand`、`CreateRateTableDraftCommand`、`ReplaceRateTableRowsCommand`
+   - **保费计算与保全报价（4）**：`PremiumCalculationCommand`、`PremiumQuoteCommand`、`CreateMaintenancePremiumQuoteCommand`、`RecalculateRetroactivePremiumPeriodsCommand`
+   - **保费生命周期与保全供给（3）**：`CreatePremiumLifecycleAdjustmentCommand`、`CreatePremiumLifecycleReversalCommand`、`CreateProductMaintenanceOfferingCommand`
+   - 处置方向：**补聚合处理器接上链路**（勿删——入口与测试均已具备，缺的是领域实现）。
 2. **🔴 产品查询无 QueryHandler**：`ProductQueryAppService` 派发 `FindProductByConditionQuery`、`FindProductClauseByProductIdQuery`，但全模块仅 `ProductDetailQueryHandler`(FindProductById) 与模板 4 个查询有 `@QueryHandler`，这两条查询**无处理器**，运行时失败。
 3. **🟠 CopyProductCommand 为死命令**：定义了命令但 `InsuranceProduct` 无对应处理器，应用层也无方法调用，悬空。
 4. **🟠 UpdateAttachProductCommand 不发事件**：该命令处理器直接改聚合根字段且**未 `apply` 事件**，事件溯源重放时该变更丢失，读模型也无法感知。应补 `ProductAttachUpdatedEvent`。

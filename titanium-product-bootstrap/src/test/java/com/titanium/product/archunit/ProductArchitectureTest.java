@@ -51,7 +51,7 @@ class ProductArchitectureTest extends AbstractArchitectureGuardTest {
     /**
      * 启用「api 层使用 Request/Response 而非 DTO」（2026-07-19 命名新规）。
      * <p>
-     * 产品域 api 层已弃用 DTO：写入参 {@code CreateProductRequest}/{@code AuditProductRequest}/{@code InsureConditionRequest}
+     * 产品域 api 层已弃用 DTO：写入参 {@code CreateProductRequest}/{@code AuditProductRequest}
      * 落 {@code product.api.request}，读出参 {@code ProductResponse}/{@code ProductTemplateResponse}/{@code PricingBasicRuleResponse}
      * 落 {@code product.api.response}，api 层无 DTO 后缀顶层类型（嵌套配置类如 UnderwritingConfigDTO 为静态内嵌，不受约束）。
      * </p>

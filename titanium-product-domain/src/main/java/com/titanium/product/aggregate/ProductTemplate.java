@@ -81,43 +81,6 @@ public class ProductTemplate extends BaseAggregate {
     public ProductTemplate() {
     }
 
-    /**
-     * 从持久化状态重建模板聚合（仓储读取用）
-     * <p>
-     * 补齐行为配置字段（出单模式/保单阶段/保单结构/计费/再保）的恢复，
-     * 避免更新后的模板经仓储读回时行为配置丢失。这些字段在写侧表
-     * {@code t_product_template} 均有对应列（issuance_mode/policy_stages_json 等）。
-     * </p>
-     */
-    public static ProductTemplate reconstruct(String templateId, String templateCode, String templateName,
-                                              InsuranceType insuranceType, IssuanceProcessConfig issuanceProcessConfig,
-                                              UnderwritingConfig underwritingConfig, ClaimConfig claimsConfig,
-                                              MaintenanceConfig maintenanceConfig, PolicyFormConfig policyFormConfig,
-                                              ProductEnum.IssuanceMode issuanceMode, List<PolicyStage> policyStages,
-                                              PolicyStructureConfig policyStructureConfig, BillingConfig billingConfig,
-                                              ReinsuranceConfig reinsuranceConfig, DividendConfig dividendConfig,
-                                              CommonStatus status, String tenantId) {
-        ProductTemplate template = new ProductTemplate();
-        template.templateId = templateId;
-        template.templateCode = templateCode;
-        template.templateName = templateName;
-        template.insuranceType = insuranceType;
-        template.issuanceProcessConfig = issuanceProcessConfig;
-        template.underwritingConfig = underwritingConfig;
-        template.claimsConfig = claimsConfig;
-        template.maintenanceConfig = maintenanceConfig;
-        template.policyFormConfig = policyFormConfig;
-        template.issuanceMode = issuanceMode;
-        template.policyStages = policyStages;
-        template.policyStructureConfig = policyStructureConfig;
-        template.billingConfig = billingConfig;
-        template.reinsuranceConfig = reinsuranceConfig;
-        template.dividendConfig = dividendConfig;
-        template.status = status;
-        template.tenantId = tenantId;
-        return template;
-    }
-
     @CommandHandler
     public ProductTemplate(CreateProductTemplateCommand command) {
         // 验证必要参数
