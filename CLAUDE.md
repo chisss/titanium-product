@@ -198,7 +198,23 @@ web Controller|Provider → application/command|query/pricing/*XxxService
 
 `application.yml:45-53` 已声明 `product-group`（写侧）、`product-kafka-group`（跨域 Kafka 外发）、`product-query-group`（读侧投影，含 DLQ）。
 
-### 7.8 🟡 存量待整改（与命令无关，保留）
+### 7.8 ✅ 退保价值只读查询端点（m0-717，2026-09-11）
+
+`GET /api/v1/surrender-value-policies/cash-value`（`ProductSurrenderValueApi.queryCashValue`）——**纯查表、零副作用**的现金价值只读查询，供计费域垫缴判定（日级高频扫描）调用。
+
+- **与退保试算的分工（🔴 不得混用）**：
+  | | 只读查询（本端点） | 退保试算 `POST /premium-calculations/surrender-values` |
+  |---|---|---|
+  | 副作用 | 无（不落库） | 有：创建 `PremiumCalculation` + `PremiumLifecycleAdjustment` 生命周期贷项 |
+  | 前置 | 仅需产品要素 | 需 `originalCalculationId`（出单确认记录） |
+  | 用途 | 高频只读判定（垫缴、试算展示） | 正式退保出账 |
+- **公式唯一**：两端点共用 `SurrenderValuePolicy.calculate`，不得另立口径造成现金价值与退保试算漂移。
+- **入参**：`productId` / `policyYear` / `customerPayable`（保单总保费口径）/ `policyEffectiveDate` / `valuationDate` / 可选 `businessTime`；**保单年度由保单域推导后传入**，本域不自算。
+- **出参**：`CashValueQueryResponse`（含 `cashValueRate` / `cashValue` / `withinCoolingOff` / `refundType` 与策略取证字段 `policyCode`/`policyVersion`/`policyContentHash`）。
+- **无适用策略**：返回业务码 `SURRENDER_VALUE_POLICY_NOT_FOUND`（60000170，60 段）。
+- 实现：`CashValueQueryAppService`（application/query/pricing/surrender）→ `SurrenderValuePolicyRepository.findPublished` → 聚合 `calculate`。
+
+### 7.9 🟡 存量待整改（与命令无关，保留）
 
 - `ProductTemplateCommandAppService`、`ProductTemplateQueryHandler`、`ProductTemplateProjection` 仍用 `@Autowired` 字段注入，应改构造器注入。
 - 产品/模板读模型与模板侧查询走 `t_product_view` / `t_product_template`，模板查询**绕过读模型直查 DO**（见 §4.6），后续如需统一 CQRS 读侧应一并收敛。
