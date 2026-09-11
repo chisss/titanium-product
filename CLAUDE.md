@@ -93,13 +93,15 @@ titanium-product/
 
 按险种类型提供标准化模板配置。
 
-- **命令处理器（仅 1 个）**：`CreateProductTemplateCommand`(构造)
-- **事件溯源处理器（1 个）**：`on(ProductTemplateCreatedEvent)`
+- **命令处理器（5 个）**：`CreateProductTemplateCommand`(构造)、`UpdateProductTemplateCommand`、`ConfigureLifeProductCommand`、`ActivateProductTemplateCommand`、`DeactivateProductTemplateCommand`
+- **事件溯源处理器（5 个）**：对应上述五个事件（`ProductTemplateCreatedEvent` / `ProductTemplateUpdatedEvent` / `LifeProductConfiguredEvent` / `ProductTemplateActivatedEvent` / `ProductTemplateDeactivatedEvent`）
 - 原 `reconstruct(...)` 静态工厂已于 m0-705 删除（零调用方，且字段残缺不恢复 `supportedCoverages` 等）
 
-### 4.3 命令清单（14，record）
+### 4.3 命令清单（Axon 命令 14 个 + pricing 子域应用层入参 17 个，均为 record）
 
-`CreateProductCommand`、`SubmitProductForAuditCommand`、`AuditProductCommand`、`RejectProductAuditCommand`、`ReviseProductCommand`、`InvalidateProductCommand`、`UpdateProductClauseRelCommand`、`UpdateSalesChannelCommand`、`UpdateAttachProductCommand`、`CopyProductCommand`、`CreateProductTemplateCommand`、`UpdateProductTemplateCommand`、`ActivateProductTemplateCommand`、`DeactivateProductTemplateCommand`
+**Axon 命令（14，经 `CommandGateway` 派发，处理器见 §七 7.1）**：`CreateProductCommand`、`SubmitProductForAuditCommand`、`AuditProductCommand`、`RejectProductAuditCommand`、`ReviseProductCommand`、`InvalidateProductCommand`、`UpdateProductClauseRelCommand`、`UpdateSalesChannelCommand`、`UpdateAttachProductCommand`、`CreateProductTemplateCommand`、`UpdateProductTemplateCommand`、`ConfigureLifeProductCommand`、`ActivateProductTemplateCommand`、`DeactivateProductTemplateCommand`
+
+**pricing/精算/保全供给子域应用层入参（17，`command/pricing/**` + `command/maintenance`，JPA 同步服务入参，不经 Axon 总线）**：`CreateCalculationModelCommand`、`CreateChargeComponentCommand`、`CreateDynamicFactorCommand`、`CreateTaxPolicyCommand`、`CreateSurrenderValuePolicyCommand`、`CalculateSurrenderValueCommand`、`CreatePricingPlanDraftCommand`、`ReplacePricingTestCasesCommand`、`CreateRateTableDraftCommand`、`ReplaceRateTableRowsCommand`、`PremiumCalculationCommand`、`PremiumQuoteCommand`、`CreateMaintenancePremiumQuoteCommand`、`RecalculateRetroactivePremiumPeriodsCommand`、`CreatePremiumLifecycleAdjustmentCommand`、`CreatePremiumLifecycleReversalCommand`、`CreateProductMaintenanceOfferingCommand`
 
 ### 4.4 事件清单（12，record）
 
@@ -154,18 +156,52 @@ mvn spring-boot:run
 
 ## 七、已知缺陷与注意事项（基于代码实况）
 
-1. **🔴 聚合命令处理器大面积缺口（m0-705 全量扫描，2026-09-11）**：下列命令**已被 application/web/api 层派发，但 domain 层无任何 `@CommandHandler`**，调用即抛 `NoHandlerForCommandException`——比死代码更危险（有入口、运行期才炸），代表产品域精算/定价/费率能力尚未落地：
-   - **ProductTemplate（3）**：`UpdateProductTemplateCommand`、`ActivateProductTemplateCommand`、`DeactivateProductTemplateCommand`（对应事件已投影，属"半成品"）
-   - **精算工作台（6）**：`CreateCalculationModelCommand`、`CreateChargeComponentCommand`、`CreateDynamicFactorCommand`、`CreateSurrenderValuePolicyCommand`、`CreateTaxPolicyCommand`、`CalculateSurrenderValueCommand`
-   - **定价 / 费率表（4）**：`CreatePricingPlanDraftCommand`、`ReplacePricingTestCasesCommand`、`CreateRateTableDraftCommand`、`ReplaceRateTableRowsCommand`
-   - **保费计算与保全报价（4）**：`PremiumCalculationCommand`、`PremiumQuoteCommand`、`CreateMaintenancePremiumQuoteCommand`、`RecalculateRetroactivePremiumPeriodsCommand`
-   - **保费生命周期与保全供给（3）**：`CreatePremiumLifecycleAdjustmentCommand`、`CreatePremiumLifecycleReversalCommand`、`CreateProductMaintenanceOfferingCommand`
-   - 处置方向：**补聚合处理器接上链路**（勿删——入口与测试均已具备，缺的是领域实现）。
-2. **🔴 产品查询无 QueryHandler**：`ProductQueryAppService` 派发 `FindProductByConditionQuery`、`FindProductClauseByProductIdQuery`，但全模块仅 `ProductDetailQueryHandler`(FindProductById) 与模板 4 个查询有 `@QueryHandler`，这两条查询**无处理器**，运行时失败。
-3. **🟠 CopyProductCommand 为死命令**：定义了命令但 `InsuranceProduct` 无对应处理器，应用层也无方法调用，悬空。
-4. **🟠 UpdateAttachProductCommand 不发事件**：该命令处理器直接改聚合根字段且**未 `apply` 事件**，事件溯源重放时该变更丢失，读模型也无法感知。应补 `ProductAttachUpdatedEvent`。
-5. **🟠 Kafka 跨域未接入**：`ProductKafkaEventPublisher`、`ClauseEventListener` 均为 TODO 注释桩，`axon.eventbus.type=simple` 为进程内总线，跨域事件实际未发布/未消费。
-6. **🟡 数据表实体冗余**：`infrastructure/entity` 下并存 `ProductDO` 与 `ProductEntity`，职责需厘清，避免误用。
-7. **🟡 处理组配置缺口**：`application.yml` 仅配 `product-group`，读侧 `product-query-group` 未显式声明，需确认投影处理器正常装配。
+> 🔴 **2026-09-11 实读复核**：原第 1–4、6、7 条系**静态扫描误判/已过时**，逐条更正如下（教训：本清单须实时复核，勿沿用旧判断；判「命令无处理器」前**必须先确认它是否经 `CommandGateway` 派发**）。
+
+### 7.1 ✅ 原「聚合命令处理器大面积缺口（17 个）」不成立（m0-715 复核）
+
+全模块**只有 2 个类派发 Axon 命令**：`application/command/ProductCommandAppService`、`application/command/ProductTemplateCommandAppService`（另有 `application/init/ProductTemplateDataInitializer`），合计覆盖 14 个命令（`CreateProduct` / `SubmitProductForAudit` / `AuditProduct` / `RejectProductAudit` / `ReviseProduct` / `InvalidateProduct` / `UpdateProductClauseRel` / `UpdateSalesChannel` / `UpdateAttachProduct` / `CreateProductTemplate` / `UpdateProductTemplate` / `ConfigureLifeProduct` / `ActivateProductTemplate` / `DeactivateProductTemplate`）——**处理器全部齐备**（`InsuranceProduct`、`ProductTemplate`）。
+
+原被点名的 17 个 `XxxCommand` 属 **pricing / 精算 / 费率 / 保全供给子域**，该子域是**普通 JPA 同步应用服务**形态（非 Axon 事件溯源），命令仅作**应用层入参模型**：
+
+```
+web Controller|Provider → application/command|query/pricing/*XxxService
+                        → application/orchestration/pricing/*ApplicationService
+                        → domain 对象（RateTableDefinition / PricingPlanDefinition / …）
+                        → infrastructure/pricing/repository 的 save(...)
+```
+
+全链路**从不触碰 `CommandGateway`**，故不存在 `NoHandlerForCommandException`；领域实现（`pricing/aggregate` 下 9 个定义类 + `PricingPlanCalculator`/`PricingEvidenceHasher`/各 `validateForPublish`）**均已落地**，与 [Titanium全景建设规划-2026-09.md](../docs/Titanium全景建设规划-2026-09.md) §产品线「精算工作台四条链路可用」的记载一致。
+> 判据：`command/` 包内的 record 若只被 `orchestration` 消费、且下游无 `apply` 事件，就是应用层入参，**不要按 Axon 命令去找处理器**。
+
+### 7.2 ✅ 产品查询处理器齐备
+
+`FindProductByConditionQuery`、`FindProductClauseByProductIdQuery` **已有 `@QueryHandler`**；`PremiumCalculationQuery`、`PremiumQuoteQuery` 与 7.1 同理，是 pricing 同步读服务的入参（`PremiumCalculationQueryAppService` / `PremiumPricingQueryAppService` 直查 JPA），非 Axon 查询。
+
+### 7.3 ✅ `CopyProductCommand` 已不存在（文件已删除，悬空项自然消解）
+
+### 7.4 ✅ `UpdateAttachProductCommand` 已发事件
+
+`InsuranceProduct:354-360` 经草稿/生效状态前置校验后 `apply(new ProductAttachUpdatedEvent(productId, command.attachProductIds()))`，事件溯源重放与读模型投影均正常。
+
+### 7.5 🟠 Kafka 跨域：**外发已实装、入站仍是桩**（唯一存量真缺口）
+
+- **外发 ✅**：`infrastructure/event/ProductKafkaEventPublisher` 为真实 `@Component`（`KafkaTemplate`），`product-created` / `product-audited` / `product-invalidated` 三主题已发布，载荷含 `tenantId`（m0-714）。
+- **入站 🟠**：`infrastructure/listener/ClauseEventListener` 的两个 `@KafkaListener` **仍被注释**，且指向的 `clause.version-updated` / `clause.deactivated` 与条款域实际主题 `clause-status-changed` 不符——条款变更同步产品的能力**未接通**。已登记于 [跨域事件目录-2026-09.md](../docs/技术文档/跨域事件目录-2026-09.md)（`clause-status-changed` 行：product 侧为 TODO 注释桩）。
+- `axon.eventbus.type=simple` 为**进程内事件总线**（Axon 自身分发），与跨域 Kafka 外发是两条独立通道，不影响上述结论。
+
+### 7.6 ✅ 包结构已重组，无 DO/Entity 冗余
+
+`infrastructure/entity` 目录**已不存在**；写侧持久化实体按子域归位为 `infrastructure/pricing/entity/{calculation,pricing,premium}` 与 `infrastructure/maintenance/entity`，命名统一 `XxxDO`（无 `XxxEntity` 残留）。产品/模板聚合为**纯事件溯源**，无 JPA 写实体。
+
+### 7.7 ✅ 处理组配置齐备
+
+`application.yml:45-53` 已声明 `product-group`（写侧）、`product-kafka-group`（跨域 Kafka 外发）、`product-query-group`（读侧投影，含 DLQ）。
+
+### 7.8 🟡 存量待整改（与命令无关，保留）
+
+- `ProductTemplateCommandAppService`、`ProductTemplateQueryHandler`、`ProductTemplateProjection` 仍用 `@Autowired` 字段注入，应改构造器注入。
+- 产品/模板读模型与模板侧查询走 `t_product_view` / `t_product_template`，模板查询**绕过读模型直查 DO**（见 §4.6），后续如需统一 CQRS 读侧应一并收敛。
 
 > 修改聚合根 / 命令 / 事件后，务必同步：事件溯源处理器、读模型投影、QueryHandler、对应单元测试（见 AGENTS.md 协作检查清单）。
+
