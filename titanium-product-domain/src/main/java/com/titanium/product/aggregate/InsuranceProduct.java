@@ -254,8 +254,8 @@ public class InsuranceProduct extends BaseAggregate {
             this.effectiveTime = LocalDateTime.now();
             this.auditInfo = new AuditInfo(command.auditorId(), command.auditorName(), command.auditOpinion(),
                     LocalDateTime.now(), ProductEnum.AuditResult.PASS);
-            AggregateLifecycle.apply(
-                    new ProductAuditedEvent(productId, ProductEnum.ProductStatus.EFFECTIVE, effectiveTime, auditInfo));
+            AggregateLifecycle.apply(new ProductAuditedEvent(productId, ProductEnum.ProductStatus.EFFECTIVE,
+                    effectiveTime, auditInfo, this.tenantId));
         } else {
             // 审核驳回走RejectProductAuditCommand
             throw new ProductAuditException(this.productId, "审核不通过请使用驳回命令");
@@ -319,8 +319,8 @@ public class InsuranceProduct extends BaseAggregate {
         }
         this.status = ProductEnum.ProductStatus.INVALID;
         this.invalidTime = LocalDateTime.now();
-        AggregateLifecycle
-                .apply(new ProductInvalidatedEvent(productId, ProductEnum.ProductStatus.INVALID, invalidTime));
+        AggregateLifecycle.apply(new ProductInvalidatedEvent(productId, ProductEnum.ProductStatus.INVALID,
+                invalidTime, this.tenantId));
     }
 
     /**

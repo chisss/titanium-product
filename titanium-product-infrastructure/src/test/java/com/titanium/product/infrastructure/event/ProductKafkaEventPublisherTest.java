@@ -25,6 +25,9 @@ import com.titanium.product.event.ProductInvalidatedEvent;
  */
 class ProductKafkaEventPublisherTest {
 
+    /** 租户ID：事件载荷须携带租户，供跨域消费端判定归属 */
+    private static final String TENANT_ID = "T-1";
+
     @Test
     @DisplayName("产品下架事件外发到正确 topic，key 为 productId，值为 JSON 字符串")
     void shouldPublishInvalidatedEventAsJson() {
@@ -33,7 +36,7 @@ class ProductKafkaEventPublisherTest {
         ProductKafkaEventPublisher publisher = new ProductKafkaEventPublisher(kafkaTemplate);
 
         ProductInvalidatedEvent event = new ProductInvalidatedEvent(
-                "PROD-001", ProductEnum.ProductStatus.INVALID, LocalDateTime.now());
+                "PROD-001", ProductEnum.ProductStatus.INVALID, LocalDateTime.now(), TENANT_ID);
 
         publisher.on(event);
 
@@ -47,5 +50,8 @@ class ProductKafkaEventPublisherTest {
         // 值为 fastjson2 序列化的 JSON 字符串，含 productId 字段
         assertTrue(valueCaptor.getValue().contains("\"productId\":\"PROD-001\""),
                 "事件体应为 JSON 字符串: " + valueCaptor.getValue());
+        // 跨域载荷须带租户，否则消费端无法判定事件归属
+        assertTrue(valueCaptor.getValue().contains("\"tenantId\":\"" + TENANT_ID + "\""),
+                "事件体须携带 tenantId: " + valueCaptor.getValue());
     }
 }
