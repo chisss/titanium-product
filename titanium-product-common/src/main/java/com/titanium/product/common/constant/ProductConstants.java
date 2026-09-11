@@ -18,7 +18,10 @@ public final class ProductConstants {
     public static final String TOPIC_PRODUCT_CREATED = "titanium.product.created";
     public static final String TOPIC_PRODUCT_AUDITED = "titanium.product.audited";
     public static final String TOPIC_PRODUCT_INVALIDATED = "titanium.product.invalidated";
-    public static final String TOPIC_PRODUCT_REVISED = "titanium.product.revised";
+    // 原 TOPIC_PRODUCT_REVISED（titanium.product.revised）自声明起从无发布点，已删除（m5-903）。
+    // 本域实际外发仅上列三个主题（见 ProductKafkaEventPublisher）；ProductRevisedEvent 不出域，
+    // 修订后的版本信息经修订产品重新审批时的 ProductAuditedEvent 间接到达下游。
+    // 若未来确需独立主题，须与消费端**成对建设**后重新登记进跨域事件目录，勿单侧新增孤儿主题。
 
     // ====== 缓存Key前缀 ======
     public static final String CACHE_KEY_PREFIX = "titanium:product:";
