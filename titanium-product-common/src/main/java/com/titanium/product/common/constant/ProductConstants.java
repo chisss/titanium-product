@@ -1,5 +1,7 @@
 package com.titanium.product.common.constant;
 
+import com.titanium.metadata.topic.CrossDomainTopics;
+
 /**
  * 产品域常量定义
  */
@@ -15,9 +17,9 @@ public final class ProductConstants {
     public static final String DEFAULT_TENANT_ID = "default";
 
     // ====== Kafka Topic ======
-    public static final String TOPIC_PRODUCT_CREATED = "titanium.product.created";
-    public static final String TOPIC_PRODUCT_AUDITED = "titanium.product.audited";
-    public static final String TOPIC_PRODUCT_INVALIDATED = "titanium.product.invalidated";
+    public static final String TOPIC_PRODUCT_CREATED = CrossDomainTopics.PRODUCT_CREATED;
+    public static final String TOPIC_PRODUCT_AUDITED = CrossDomainTopics.PRODUCT_AUDITED;
+    public static final String TOPIC_PRODUCT_INVALIDATED = CrossDomainTopics.PRODUCT_INVALIDATED;
     // 原 TOPIC_PRODUCT_REVISED（titanium.product.revised）自声明起从无发布点，已删除（m5-903）。
     // 本域实际外发仅上列三个主题（见 ProductKafkaEventPublisher）；ProductRevisedEvent 不出域，
     // 修订后的版本信息经修订产品重新审批时的 ProductAuditedEvent 间接到达下游。
