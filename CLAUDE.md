@@ -1,6 +1,6 @@
 # titanium-product 产品域 - 模块开发规约
 
-> 版本: V1.1 ｜ 最后更新: 2026-09-14（m10-1304：Kafka 入站判定「不应接通」、空壳 `ClauseEventListener` 已删除，见 §7.5）
+> 版本: V1.2 ｜ 最后更新: 2026-09-14（m11-1405：`ProductTemplate.supportedCoverages/supportedExclusions` 定性登记为「未落地契约 🔶 契约/模型阶段」，见 §7.11；上一版 m10-1304：Kafka 入站判定「不应接通」、空壳 `ClauseEventListener` 已删除，见 §7.5）
 > 本文档为**产品域微服务级**规约，仅聚焦本模块。通用规范（DDD 分层、多租户、Liquibase 等）以根目录 `/Users/sunwei/titanium-project/CLAUDE.md` 为准，不再重复。
 
 ---
@@ -233,6 +233,17 @@ web Controller|Provider → application/command|query/pricing/*XxxService
 - 🔴 契约走可选请求头（`X-Business-Id`/`X-Business-Type`），**不污染 `RuleArtifactComputeRequest` 请求体**——业务上下文与规则变量是两个语义空间。
 - 🔴 `executionId` 在计算链路中另有「响应标识一致性校验」职责（`validateIdentity` 比对请求/响应的 `executionId`），两处取值同源、语义一致，**不可混填其它标识**。
 - 回归：`RuleEngineComputationAdapterTest` 4 处桩 + 1 处 verify 已同步为六参并断言请求头透传。
+
+### 7.11 🟡 `ProductTemplate.supportedCoverages/supportedExclusions` 属**未落地契约**（m11-1405 定性登记）
+
+> 🔴 **定性**：既**不是缺陷**、也**不是"待补校验"**，而是「字段 / 命令 / 事件已定义，写入入口与取值域均未落地」的**半成品契约**——按《Titanium全景建设规划-2026-09.md》§12 判据属 **🔶「契约/模型阶段」**（模型存在但无生产调用链，不得计入完成度）。登记于此，防后续把它当作"已建成的能力"施工。
+
+- **引用面（实读，2026-09-14）**：全域 Java 仅 **3 个文件**——`domain/aggregate/ProductTemplate.java:67,68,102,103,120,121`（字段 + 命令装配 + 事件回放）、`command/CreateProductTemplateCommand.java:24,25`、`event/ProductTemplateCreatedEvent.java:24,25,34,35,38`。
+- 🔴 **无写入入口**：web 层 `CreateProductTemplateDTO` **无该字段**；`ProductTemplateWebMapper.java:102-103` 与 `infrastructure/init/ProductTemplateDataInitializer.java:107-108` 一律**硬编码 `List.of()`**——所有创建路径都只能写入空列表。`UpdateProductTemplateCommand` 亦无该字段，故**建成后也无法修改**（一次性死值）。
+- 🔴 **无读模型列**：全仓 Liquibase / DDL / XML **零 `supported_coverages` 命中**，读侧不承载该数据。
+- 🔴 **无消费方**：无任何校验、计算或查询读取该字段。
+- **若要落地，前置有三（缺一不可）**：① 补 DTO/Mapper 写入入口**并覆盖更新路径**（否则仍是一次性死值）；② **先定义取值域**——"模板支持的保障责任"指条款责任编码、`CoverageSnapshot` 编码，还是别的标识？并划清与 `PolicyStructureConfig.LiabilityStructure` 的语义边界（二者当前极易混淆）；③ 明确消费场景与失败语义。
+- 🔴 **勿直接按"纳入产品创建校验"施工**：《Titanium全景建设规划-2026-09.md》§6 待办原第 141 项的前提（条款责任 ⊆ 模板支持范围）**当前不成立**——连写入入口与取值域定义都没有，无从校验；该项已在该文档改写为「前提不成立」。
 
 ---
 

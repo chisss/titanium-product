@@ -1,6 +1,6 @@
 # titanium-product 产品域 - 多 Agent 协作指南
 
-> 版本: V1.1 ｜ 最后更新: 2026-09-14（m10-1304：Kafka 入站判定「不应接通」并删除空壳；连带修正 §2.2/§2.3/§5.4 过期记载）
+> 版本: V1.2 ｜ 最后更新: 2026-09-14（m11-1405：§5.4 补「`ProductTemplate.supportedCoverages/supportedExclusions` 属未落地契约、勿按补校验施工」核对项；上一版 m10-1304：Kafka 入站判定「不应接通」并删除空壳；连带修正 §2.2/§2.3/§5.4 过期记载）
 > 配合根目录 `AGENTS.md` 使用；本文聚焦产品域内部协作与上下游边界。
 
 ---
@@ -130,6 +130,7 @@
 - [ ] 注入方式用构造器（勿复刻模板侧 `@Autowired` 字段注入）
 - [ ] 改 Kafka topic/载荷 → 同步《跨域事件目录-2026-09.md》§三 表与 `CrossDomainTopics`，否则构建期 `CrossDomainEventCatalogTest` 失败
 - [ ] 勿新建「监听条款域事件」的消费者（已判定不应接通，见 §2.3）
+- [ ] 🔴 **勿把 `ProductTemplate.supportedCoverages/supportedExclusions` 当已建成能力**（m11-1405 定性）：该字段属**未落地契约**——仅存在于聚合根/命令/事件三处，web DTO 无入口、Mapper 与 DataInitializer 硬编码 `List.of()`、DDL 无 `supported_coverages` 列、零消费方。落地前须先补写入入口（含更新路径）+ 定义取值域 + 与 `PolicyStructureConfig.LiabilityStructure` 语义划界，**勿按「补校验」直接施工**（详见 CLAUDE.md §7.11）
 
 > ✅ 原列的三条「缺失」已由 m0-715 实读复核推翻：命令处理器齐备（14 个全覆盖）、查询处理器齐备、
 > `UpdateAttachProductCommand` 已 `apply` 事件——详见 `CLAUDE.md` §7.1/§7.2/§7.4，勿再据此施工。
