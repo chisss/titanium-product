@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson2.JSON;
 
+import com.titanium.common.kafka.KafkaPublishSupport;
 import com.titanium.product.common.constant.ProductConstants;
 import com.titanium.product.event.ProductAuditedEvent;
 import com.titanium.product.event.ProductCreatedEvent;
@@ -39,6 +40,20 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  * <p>
  * 判定依据（四条判据 + 证据链）见 {@code docs/技术文档/跨域事件目录-2026-09.md} §六.15。
+ * </p>
+ * <p>
+ * 🔴 <b>处理组形态（m6-909 改造）</b>：处理组 {@value #PROCESSING_GROUP} 与写侧 {@code product-group}、
+ * 读侧 {@code product-query-group} 隔离。原为 {@code subscribing} 模式（事件到达即同步发布、不经事件存储）；
+ * 现改为 <b>{@code tracking} + {@code dlq.enabled}</b>——死信队列只支持流式处理器，subscribing 拿不到
+ * DLQ，发布失败即永久丢失（产品目录对外出口静默漏事件）。改为 tracking 后首启位点由
+ * {@code titanium.axon.outbound-relay.groups} 登记为<b>事件流末端</b>（避免全新部署重放全量历史产品事件）。
+ * </p>
+ * <p>
+ * 🔴 <b>线格式与可靠性</b>：载荷是 fastjson2 生成的 JSON <b>字符串</b>，由 {@code StringSerializer}
+ * 逐字节透传。<b>不得</b>改为发 POJO（value serializer 会再编码一次，下游 {@code JSONObject.parseObject}
+ * 解析出转义字符串、字段取值恒 null）。本域是引入 {@code spring-boot-starter-kafka} 的域之一，
+ * 生产者参数走 application.yml 的 {@code spring.kafka.producer.*}（Boot 自动配置生效，无自定义
+ * {@code ProducerFactory} 覆盖）；发送失败会抛出 {@code KafkaPublishException} 以触发 DLQ 重投。
  * </p>
  */
 @Slf4j
@@ -93,6 +108,11 @@ public class ProductKafkaEventPublisher {
 
     /**
      * 统一外发：以聚合ID为分区键保证同一产品事件有序，事件体经 fastjson2 序列化为字符串。
+     * <p>
+     * 🔴 <b>失败会抛出</b>（broker 不可达、确认超时、主题无权限）→ 抛 {@code KafkaPublishException}，
+     * 这是「失败可见 → 入 DLQ → 定时重投」链路的触发点。原实现直接丢弃 {@code send} 返回的 future，
+     * 失败既不重投也不留痕，只能靠事后比对发现漏发。
+     * </p>
      *
      * @param topic     目标 Kafka topic
      * @param productId 聚合ID，作为消息 key
@@ -101,6 +121,6 @@ public class ProductKafkaEventPublisher {
     private void publish(String topic, String productId, Object event) {
         String eventJson = JSON.toJSONString(event);
         log.info("发布产品事件到 Kafka, topic: {}, productId: {}", topic, productId);
-        kafkaTemplate.send(topic, productId, eventJson);
+        KafkaPublishSupport.awaitSent(() -> kafkaTemplate.send(topic, productId, eventJson), topic, productId);
     }
 }

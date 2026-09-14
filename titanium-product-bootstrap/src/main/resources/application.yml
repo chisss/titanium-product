@@ -26,9 +26,18 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     producer:
+      # ✅ 本段**真实生效**：本域引入了 spring-boot-starter-kafka（KafkaProperties 所在的自动配置模块），
+      #    且未自定义 ProducerFactory/KafkaTemplate。其余多数域是「裸 spring-kafka + 自定义 KafkaConfig」，
+      #    其 yml 生产者段因自动配置退让而不被消费——本域相反，此段是生产者参数的事实来源。
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # fastjson2 生成的 JSON String 逐字节透传（ProductKafkaEventPublisher），禁用 JsonSerializer 二次编码
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # leader 需等全部同步副本确认，防 leader 切换时丢消息（Kafka 默认 acks=1 只等 leader 本地写入）
       acks: all
+      # 生产者幂等：重试不产生重复消息（须与 acks=all 同开）
+      enable-idempotence: true
+      # 瞬时故障（网络抖动、leader 选举）自动重试，避免直接落入死信队列
+      retries: 2147483647
 
 server:
   port: 8082
@@ -43,12 +52,24 @@ axon:
     general: jackson
   eventhandling:
     processors:
+      # ⚠️ 死配置（m6-909 实读登记，未改）：全仓无任何处理器声明组名 product-group，
+      #    所引用的 source bean「productEventBus」亦不存在。Axon 仅在组实际存在时才解析 source，
+      #    故本条被完全忽略、无启动风险。写侧两聚合为事件溯源，其 @EventSourcingHandler 由事件存储
+      #    重放驱动、不属任何处理组。
       product-group:
         mode: subscribing
         source: productEventBus
       # 跨域 Kafka 外发处理组（与写侧 product-group、读侧 product-query-group 隔离）
+      # 🔴 tracking + DLQ（m6-909）：原为 subscribing——事件到达即同步发布、不经事件存储，看似更简单，
+      #    但只有流式处理器（tracking/pooled-streaming）才支持 SequencedDeadLetterQueue，
+      #    subscribing 拿不到 DLQ，发布失败即永久丢失（产品目录出口静默漏事件）。
+      #    首启位点由顶层 titanium.axon.outbound-relay.groups 登记为事件流末端，避免重放全量历史产品事件。
       product-kafka-group:
-        mode: subscribing
+        mode: tracking
+        dlq:
+          enabled: true
+          max-size: 1000
+        batchSize: 1
       # CQRS 读侧投影处理组（与写侧 product-group 隔离）；开启 DLQ 保障读模型投影最终一致
       product-query-group:
         dlq:
@@ -77,3 +98,10 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+
+# 跨域出站中继：声明哪些处理组按「事件存储即 Outbox」形态装配为 tracking + DLQ，
+# 并令其首启位点取事件流末端（避免首次部署重放全量历史产品事件）。
+titanium:
+  axon:
+    outbound-relay:
+      groups: [product-kafka-group]
