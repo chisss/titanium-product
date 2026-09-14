@@ -1,6 +1,6 @@
 # titanium-product 产品域 - 模块开发规约
 
-> 版本: V1.2 ｜ 最后更新: 2026-09-14（m11-1405：`ProductTemplate.supportedCoverages/supportedExclusions` 定性登记为「未落地契约 🔶 契约/模型阶段」，见 §7.11；上一版 m10-1304：Kafka 入站判定「不应接通」、空壳 `ClauseEventListener` 已删除，见 §7.5）
+> 版本: V1.3 ｜ 最后更新: 2026-09-14（m16-1904：`ActuarialBasis` 定性为「未落地契约」+ 更正臆造 javadoc，产品级 `factors` 补齐领域侧 `@Deprecated` 并登记修订路径缺口，见 §7.12；上一版 m11-1405：`ProductTemplate.supportedCoverages/supportedExclusions` 定性登记为「未落地契约 🔶 契约/模型阶段」，见 §7.11；再上一版 m10-1304：Kafka 入站判定「不应接通」、空壳 `ClauseEventListener` 已删除，见 §7.5）
 > 本文档为**产品域微服务级**规约，仅聚焦本模块。通用规范（DDD 分层、多租户、Liquibase 等）以根目录 `/Users/sunwei/titanium-project/CLAUDE.md` 为准，不再重复。
 
 ---
@@ -244,6 +244,23 @@ web Controller|Provider → application/command|query/pricing/*XxxService
 - 🔴 **无消费方**：无任何校验、计算或查询读取该字段。
 - **若要落地，前置有三（缺一不可）**：① 补 DTO/Mapper 写入入口**并覆盖更新路径**（否则仍是一次性死值）；② **先定义取值域**——"模板支持的保障责任"指条款责任编码、`CoverageSnapshot` 编码，还是别的标识？并划清与 `PolicyStructureConfig.LiabilityStructure` 的语义边界（二者当前极易混淆）；③ 明确消费场景与失败语义。
 - 🔴 **勿直接按"纳入产品创建校验"施工**：《Titanium全景建设规划-2026-09.md》§6 待办原第 141 项的前提（条款责任 ⊆ 模板支持范围）**当前不成立**——连写入入口与取值域定义都没有，无从校验；该项已在该文档改写为「前提不成立」。
+
+### 7.12 🟡 `ActuarialBasis` 属**未落地契约** + 产品级 `factors` 双层 `@Deprecated`（m16-1904 处置）
+
+> 与 §7.11 同属 **🔶「契约/模型阶段」**判定：模型与传输链路齐备、消费端未建。登记以防后续把它当作"已建成的能力"施工。
+
+#### (1) `ActuarialBasis` —— 未落地契约，**保留**，虚构 javadoc 已更正
+
+- **判据（m10 死 Port 两类判据）**：① **有需求来源**——《各域开发需求/product-产品域开发需求.md:90》明列该值对象三要素（预定利率 / 预定死亡率表引用 / 附加费用率）；② **非零引用**——贯通写入/持久化/回放/后台回显：`InsuranceProduct.java:144,295-303,450` → `ProductCreatedEvent:37` / `ProductRevisedEvent:33` → `ProductQueryResult:79` / `ProductViewMapper:53,82` → admin 镜像 `ProductMirror:172-174`；③ **🔴 不可删**——字段已固化在 `ProductCreatedEvent`/`ProductRevisedEvent` 载荷中，**非尾部删除会令存量事件回放错位**（删除前必须评估反序列化兼容性）。⇒ 结论：**未落地契约，非死壳**（对照 §7.5 删除的 `ClauseEventListener` 空壳：那是零引用且设计方向相反，判据相反）。
+- 🟠 **仍无任何计算消费点**：`ACTUARIAL_FORMULA` 模式的保费由**外部规则工件**算出，后台配置的预定利率等参数**不影响任何保费结果** ⇒ 对运营是「配了没用」的误导，**不得对外承诺精算口径**。唯一业务方法 `hasValidInterestRate()` **零调用**。
+- ✅ **已修（m16-1904）**：原 javadoc 称「提供 `LifePremiumCalculationDomainService` 计算均衡净保费…billing 经 `ProductRatePort` 取到本对象传给精算领域服务」——**这两个类型全仓均不存在**（除该 javadoc 自身外零命中），属**臆造的链路承诺**，已删除；改写为显式的「未落地契约 + **接入前提三条**」：① 精算计算领域服务落地（均衡净保费 APV / 年金因子）；② 计费域经端口取到本对象并作为计算入参（跨域取数契约，当前不存在）；③ 参数值域校验接入命令校验链（如 `hasValidInterestRate()`）。
+- 守护测试：`ActuarialBasisTest`（3 例——三参工厂 `of()` 留空评估利率为 `null`（回落由消费方完成，本值对象不做隐式回落，否则无法区分「未配置」与「等于定价利率」）+ 利率值域开区间 (0,1) 边界）。
+
+#### (2) 产品级 `factors` —— 两级标注对齐 + 新发现修订路径缺口
+
+- ✅ **双层 `@Deprecated` 已成对**：web 侧 `PricingBasicRuleDTO.factors`（`PricingBasicRuleDTO.java:41-42`）+ 领域侧值对象 `PricingBasicRule.factors`（record 头，**m16-1904 补标**）。保留组件而非删除，是让误用者在**两个入口**都收到可执行的拒绝提示（`PRICING_FACTORS_DEPRECATED`），而不是被静默忽略；删除须评估事件载荷兼容性（同上）。
+- **守护测试**：`PricingBasicRuleTest`（2 例——`factors` 组件须持续标注 `@Deprecated` 且传播到字段与访问器；**废弃面仅限 factors**，其余组件被误标即失败）+ web 侧 `ProductNestedInputDTOContractTest#factorsFieldMustStayMarkedDeprecated`。
+- 🟠 **新发现残留（m16-1904，只登记未改行为）**：G7 守卫**只挂在创建路径**——`validateCreateCommand`（`InsuranceProduct.java:480-517`，由创建构造器入口 `:172` 调用），而 `ReviseProductCommand` 处理器（`:284-310`）**未调用**该校验，`ReviseProductDTO.newPricingBasicRule`（`:53`）可携带同型 `PricingBasicRuleDTO` ⇒ **经「修订」仍可写入 factors 且不被拒**，G7「防止运营误以为生效」的意图在修订路径落空。⚠️ 补校验会使既有修订调用开始失败（**行为变更**），须先确认调用方再施工。
 
 ---
 
