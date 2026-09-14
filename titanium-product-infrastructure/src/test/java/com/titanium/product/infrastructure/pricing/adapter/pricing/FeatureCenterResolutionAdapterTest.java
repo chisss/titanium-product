@@ -20,7 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.featurecenter.api.FeatureCenterApi;
-import com.titanium.featurecenter.api.request.FeatureResolveRequest;
+import com.titanium.featurecenter.api.request.resolution.FeatureResolveRequest;
 import com.titanium.featurecenter.api.response.FeatureResolveResponse;
 import com.titanium.featurecenter.api.response.TypedFeatureValueResponse;
 import com.titanium.metadata.errorcode.ProductErrorCode;

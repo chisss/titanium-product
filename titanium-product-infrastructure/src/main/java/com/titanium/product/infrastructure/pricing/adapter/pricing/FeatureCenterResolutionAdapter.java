@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 
 import com.titanium.common.exception.BusinessException;
 import com.titanium.featurecenter.api.FeatureCenterApi;
-import com.titanium.featurecenter.api.request.FeatureRequirementRequest;
-import com.titanium.featurecenter.api.request.FeatureResolveRequest;
+import com.titanium.featurecenter.api.request.resolution.FeatureRequirementRequest;
+import com.titanium.featurecenter.api.request.resolution.FeatureResolveRequest;
 import com.titanium.featurecenter.api.response.FeatureResolveResponse;
 import com.titanium.featurecenter.api.response.TypedFeatureValueResponse;
 import com.titanium.metadata.errorcode.ProductErrorCode;
