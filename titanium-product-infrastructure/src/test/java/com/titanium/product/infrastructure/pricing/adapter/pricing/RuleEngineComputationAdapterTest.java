@@ -24,8 +24,8 @@ import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.valueobject.pricing.pricing.PricingRuleComputationRequest;
 import com.titanium.ruleengine.api.RuleArtifactApi;
-import com.titanium.ruleengine.api.request.RuleArtifactComputeRequest;
-import com.titanium.ruleengine.api.response.RuleArtifactComputeResponse;
+import com.titanium.ruleengine.api.request.artifact.RuleArtifactComputeRequest;
+import com.titanium.ruleengine.api.response.artifact.RuleArtifactComputeResponse;
 
 @ExtendWith(MockitoExtension.class)
 class RuleEngineComputationAdapterTest {

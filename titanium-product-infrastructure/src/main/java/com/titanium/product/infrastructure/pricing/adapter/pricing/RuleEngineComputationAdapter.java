@@ -11,8 +11,8 @@ import com.titanium.product.port.pricing.RuleComputationPort;
 import com.titanium.product.valueobject.pricing.pricing.PricingRuleComputationRequest;
 import com.titanium.product.valueobject.pricing.pricing.PricingRuleComputationResult;
 import com.titanium.ruleengine.api.RuleArtifactApi;
-import com.titanium.ruleengine.api.request.RuleArtifactComputeRequest;
-import com.titanium.ruleengine.api.response.RuleArtifactComputeResponse;
+import com.titanium.ruleengine.api.request.artifact.RuleArtifactComputeRequest;
+import com.titanium.ruleengine.api.response.artifact.RuleArtifactComputeResponse;
 
 import lombok.RequiredArgsConstructor;
 

@@ -5,10 +5,10 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.titanium.channel.api.CommissionSchemeApi;
-import com.titanium.channel.api.request.CommissionBaseLineRequest;
-import com.titanium.channel.api.request.CommissionCalculationRequest;
-import com.titanium.channel.api.response.CommissionCalculationResponse;
-import com.titanium.channel.api.response.CommissionSchemeResponse;
+import com.titanium.channel.api.request.commission.CommissionBaseLineRequest;
+import com.titanium.channel.api.request.commission.CommissionCalculationRequest;
+import com.titanium.channel.api.response.commission.CommissionCalculationResponse;
+import com.titanium.channel.api.response.commission.CommissionSchemeResponse;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.response.ApiResponse;
