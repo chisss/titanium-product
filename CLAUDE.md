@@ -220,5 +220,16 @@ web Controller|Provider → application/command|query/pricing/*XxxService
 - `ProductTemplateCommandAppService`、`ProductTemplateQueryHandler`、`ProductTemplateProjection` 仍用 `@Autowired` 字段注入，应改构造器注入。
 - 产品/模板读模型与模板侧查询走 `t_product_view` / `t_product_template`，模板查询**绕过读模型直查 DO**（见 §4.6），后续如需统一 CQRS 读侧应一并收敛。
 
+### 7.10 ✅ 规则引擎计算的业务上下文透传（m8-1104，2026-09-14）
+
+`RuleEngineComputationAdapter` 调 `RuleArtifactApi.compute` 时补两个可选请求头：`businessId = request.executionId()`（**本次定价计算的执行标识**，形如 `定价方案:用例`，与 `PricingFeatureResolutionRequest.requestId` 同源），`businessType = BusinessDomainType.PRODUCT.getCode()`（常量，端口固有属性）。
+
+- **修复前**：规则引擎侧 `t_rule_execution_log` 的 `business_id`/`business_type` 恒为空，**无法从一条规则执行反查它属于哪个定价方案 / 哪个用例**；**修复后**可经 `findByBusinessIdAndBusinessTypeAndTenantId` 反查。
+- 🔴 契约走可选请求头（`X-Business-Id`/`X-Business-Type`），**不污染 `RuleArtifactComputeRequest` 请求体**——业务上下文与规则变量是两个语义空间。
+- 🔴 `executionId` 在计算链路中另有「响应标识一致性校验」职责（`validateIdentity` 比对请求/响应的 `executionId`），两处取值同源、语义一致，**不可混填其它标识**。
+- 回归：`RuleEngineComputationAdapterTest` 4 处桩 + 1 处 verify 已同步为六参并断言请求头透传。
+
+---
+
 > 修改聚合根 / 命令 / 事件后，务必同步：事件溯源处理器、读模型投影、QueryHandler、对应单元测试（见 AGENTS.md 协作检查清单）。
 

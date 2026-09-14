@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.titanium.common.exception.BusinessException;
+import com.titanium.metadata.enums.BusinessDomainType;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.port.pricing.RuleComputationPort;
@@ -22,6 +23,12 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class RuleEngineComputationAdapter implements RuleComputationPort {
+
+    /**
+     * 上报规则引擎的业务域类型：本适配器由产品域驱动，其发起的每一次规则计算在业务上都归属产品域，
+     * 属端口的固有属性而非调用方入参，故在此常量承载，不污染 {@link PricingRuleComputationRequest} 签名。
+     */
+    private static final String BUSINESS_TYPE = BusinessDomainType.PRODUCT.getCode();
 
     private final RuleArtifactApi ruleArtifactApi;
 
@@ -52,8 +59,10 @@ public class RuleEngineComputationAdapter implements RuleComputationPort {
 
     private RuleArtifactComputeResponse invoke(PricingRuleComputationRequest request) {
         try {
+            // executionId 即本次定价计算的执行标识（定价方案:用例），透传作业务上下文，供规则引擎执行审计反查
             ApiResponse<RuleArtifactComputeResponse> response = ruleArtifactApi.compute(
-                    request.artifactCode(), request.artifactVersion(), toRequest(request), request.tenantId());
+                    request.artifactCode(), request.artifactVersion(), toRequest(request), request.tenantId(),
+                    request.executionId(), BUSINESS_TYPE);
             if (response == null) {
                 throw invalidResponse("Rule Engine响应为空", null);
             }
