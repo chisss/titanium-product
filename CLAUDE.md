@@ -186,7 +186,8 @@ web Controller|Provider → application/command|query/pricing/*XxxService
 
 ### 7.5 🟠 Kafka 跨域：**外发已实装、入站仍是桩**（唯一存量真缺口）
 
-- **外发 ✅**：`infrastructure/event/ProductKafkaEventPublisher` 为真实 `@Component`（`KafkaTemplate`），`product-created` / `product-audited` / `product-invalidated` 三主题已发布，载荷含 `tenantId`（m0-714）。
+- **外发 ✅**：`infrastructure/event/ProductKafkaEventPublisher` 为真实 `@Component`（`KafkaTemplate`），`titanium.product.created` / `audited` / `invalidated` 三主题已发布，载荷含 `tenantId`（m0-714）。
+- 🔴 **三主题仓内零消费者，已判定「不应接线」（2026-09-14 m6-907）**：全仓 `@KafkaListener` 清单中无一条订阅 product 主题。判定理由——① 各域对产品配置的取用一律是**业务时点的同步 Feign 实时查询**（policy `ProductServicePort`、maintenance `ProductMaintenancePremiumQuoteAdapter` 等），不是长期状态订阅；② 产品在售状态已由出单必经的 CONFIRM 试算**同步强校验**（`PremiumQuoteApplicationService.validateProductAvailability` 对非 `EFFECTIVE` 抛 `PRICING_PLAN_NOT_EFFECTIVE` 阻断出单），异步订阅属降级；③ 已出保单为产品快照，下架**不回溯**。三主题定位为**对外集成出口**（三方系统 / 数据平台）。原 `ProductKafkaEventPublisher` 类注释记「Policy/Underwriting/Clause 消费」为**不实记载**，已修正。判据见 [跨域事件目录 §六.15](../docs/技术文档/跨域事件目录-2026-09.md)。
 - **入站 🟠**：`infrastructure/listener/ClauseEventListener` 的两个 `@KafkaListener` **仍被注释**，且指向的 `clause.version-updated` / `clause.deactivated` 与条款域实际主题 `clause-status-changed` 不符——条款变更同步产品的能力**未接通**。已登记于 [跨域事件目录-2026-09.md](../docs/技术文档/跨域事件目录-2026-09.md)（`clause-status-changed` 行：product 侧为 TODO 注释桩）。
 - `axon.eventbus.type=simple` 为**进程内事件总线**（Axon 自身分发），与跨域 Kafka 外发是两条独立通道，不影响上述结论。
 
