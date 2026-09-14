@@ -1,6 +1,6 @@
 # titanium-product 产品域 - 模块开发规约
 
-> 版本: V1.0 ｜ 最后更新: 2026-06-23
+> 版本: V1.1 ｜ 最后更新: 2026-09-14（m10-1304：Kafka 入站判定「不应接通」、空壳 `ClauseEventListener` 已删除，见 §7.5）
 > 本文档为**产品域微服务级**规约，仅聚焦本模块。通用规范（DDD 分层、多租户、Liquibase 等）以根目录 `/Users/sunwei/titanium-project/CLAUDE.md` 为准，不再重复。
 
 ---
@@ -57,8 +57,7 @@ titanium-product/
 │   ├── repository/ + repository/jpa/ # 仓储实现 + JPA Repository
 │   ├── projection/                   # 模板投影 ProductTemplateProjection
 │   ├── mapper/                       # ProductInfraMapper（MapStruct）
-│   ├── event/                        # ProductKafkaEventPublisher（Kafka 发布，TODO 桩）
-│   ├── listener/                     # ClauseEventListener（消费条款域事件，TODO 桩）
+│   ├── event/                        # ProductKafkaEventPublisher（Kafka 外发，已实装）
 │   └── init/                         # ProductTemplateDataInitializer（模板初始化）
 ├── titanium-product-application/     # 应用层（命令/查询编排）
 │   ├── command/                      # ProductCommandAppService、ProductTemplateCommandAppService
@@ -184,11 +183,17 @@ web Controller|Provider → application/command|query/pricing/*XxxService
 
 `InsuranceProduct:354-360` 经草稿/生效状态前置校验后 `apply(new ProductAttachUpdatedEvent(productId, command.attachProductIds()))`，事件溯源重放与读模型投影均正常。
 
-### 7.5 🟠 Kafka 跨域：**外发已实装、入站仍是桩**（唯一存量真缺口）
+### 7.5 ✅ Kafka 跨域：外发已实装、入站判定**不应接通**（2026-09-14 m10-1304 定论，唯一存量疑点已闭合）
 
 - **外发 ✅**：`infrastructure/event/ProductKafkaEventPublisher` 为真实 `@Component`（`KafkaTemplate`），`titanium.product.created` / `audited` / `invalidated` 三主题已发布，载荷含 `tenantId`（m0-714）。
 - 🔴 **三主题仓内零消费者，已判定「不应接线」（2026-09-14 m6-907）**：全仓 `@KafkaListener` 清单中无一条订阅 product 主题。判定理由——① 各域对产品配置的取用一律是**业务时点的同步 Feign 实时查询**（policy `ProductServicePort`、maintenance `ProductMaintenancePremiumQuoteAdapter` 等），不是长期状态订阅；② 产品在售状态已由出单必经的 CONFIRM 试算**同步强校验**（`PremiumQuoteApplicationService.validateProductAvailability` 对非 `EFFECTIVE` 抛 `PRICING_PLAN_NOT_EFFECTIVE` 阻断出单），异步订阅属降级；③ 已出保单为产品快照，下架**不回溯**。三主题定位为**对外集成出口**（三方系统 / 数据平台）。原 `ProductKafkaEventPublisher` 类注释记「Policy/Underwriting/Clause 消费」为**不实记载**，已修正。判据见 [跨域事件目录 §六.15](../docs/技术文档/跨域事件目录-2026-09.md)。
-- **入站 🟠**：`infrastructure/listener/ClauseEventListener` 的两个 `@KafkaListener` **仍被注释**，且指向的 `clause.version-updated` / `clause.deactivated` 与条款域实际主题 `clause-status-changed` 不符——条款变更同步产品的能力**未接通**。已登记于 [跨域事件目录-2026-09.md](../docs/技术文档/跨域事件目录-2026-09.md)（`clause-status-changed` 行：product 侧为 TODO 注释桩）。
+- ✅ **入站「条款变更同步产品」判定为不应接通，空壳已删除（m10-1304，2026-09-14）**：`infrastructure/listener/ClauseEventListener`（零方法空壳——`@Component` + 两个被注释的 `@KafkaListener` + TODO；且注释里的 `titanium.clause.version-updated` / `titanium.clause.deactivated` 两个主题名**在 `CrossDomainTopics` 中根本不存在**，属孤儿命名残留）已按 m0-705 判据删除，`infrastructure/listener` 目录随之清空。
+    - 🔴 **判据一（设计语义相反，决定性证据）**：`ProductClauseRel.clauseVersion` 的 javadoc 原文——「条款版本（**绑定具体版本的条款，避免条款修订影响产品**）」。本域**刻意**以版本绑定隔离条款变更对产品的影响；「监听条款状态变更去改产品绑定」与该设计**方向相反**。
+    - **判据二（无消费基础设施）**：本域零 `@EnableKafka` / `ConsumerFactory` / `kafkaListenerContainerFactory`，`application.yml` 只有 `producer` 段——接通须新建整条消费链路，不是「补个监听器」。
+    - **判据三（无反查能力）**：`ProductClauseRelViewRepository` 无按 `clauseId` 反查产品的方法（现有查询 `FindProductClauseByProductIdQuery` 方向相反）。
+    - **判据四（同类先例对称）**：product 三个出站主题已由 m6-907 判定「仓内零消费者且不应接线」，定位为对外集成出口。
+    - **附带清理**：`titanium-product-domain/pom.xml` 的 `titanium-clause-api` 依赖**全仓零引用**（`grep com.titanium.clause` 在 product 全域含 test 零命中），一并删除。
+    - 判据全文见 [跨域事件目录 §六.17](../docs/技术文档/跨域事件目录-2026-09.md)。
 - `axon.eventbus.type=simple` 为**进程内事件总线**（Axon 自身分发），与跨域 Kafka 外发是两条独立通道，不影响上述结论。
 
 ### 7.6 ✅ 包结构已重组，无 DO/Entity 冗余

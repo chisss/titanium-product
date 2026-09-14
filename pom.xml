@@ -33,12 +33,6 @@
                 <artifactId>titanium-metadata</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
             </dependency>
-            <!-- 跨域依赖：条款域 API -->
-            <dependency>
-                <groupId>com.titanium</groupId>
-                <artifactId>titanium-clause-api</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-            </dependency>
             <dependency>
                 <groupId>com.titanium</groupId>
                 <artifactId>titanium-feature-center-api</artifactId>

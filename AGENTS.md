@@ -1,6 +1,6 @@
 # titanium-product 产品域 - 多 Agent 协作指南
 
-> 版本: V1.0 ｜ 最后更新: 2026-06-23
+> 版本: V1.1 ｜ 最后更新: 2026-09-14（m10-1304：Kafka 入站判定「不应接通」并删除空壳；连带修正 §2.2/§2.3/§5.4 过期记载）
 > 配合根目录 `AGENTS.md` 使用；本文聚焦产品域内部协作与上下游边界。
 
 ---
@@ -11,8 +11,8 @@
 
 ```
         ┌────────────┐   条款规则底座
-        │  Clause域   │ ─────────────►  Product域 (本模块, 8082)
-        └────────────┘   (ClauseEventListener 消费)
+        │  Clause域   │ ◄────────────  Product域 (本模块, 8082)
+        └────────────┘   (同步 Feign 时点查询，非事件订阅)
                                           │ 产品生效后输出配置
                           ┌───────────────┼────────────────┐
                           ▼               ▼                ▼
@@ -23,10 +23,12 @@
 ```
 
 - **被调用**：Policy 域、Underwriting 域通过 Feign 拉取产品配置（出单/核保/保单形态）
-- **主动消费**：监听 Clause 域事件（条款版本更新、条款停用）
-- **发布事件**：产品创建/审核/下架事件供下游消费
+- **不消费 Clause 域事件**：产品以「绑定具体版本」**刻意隔离**条款变更对产品的影响（m10-1304 判定，见 §2.3）
+- **发布事件**：产品创建/审核/下架三主题已实装外发，定位为**对外集成出口**（仓内零消费者，m6-907 判定）
 
-> 现状：跨域 Feign 接口已定义，但 Kafka 事件发布（`ProductKafkaEventPublisher`）与消费（`ClauseEventListener`）均为 TODO 桩，尚未真正打通。
+> 现状（2026-09-14 实读核对，取代旧文「均为 TODO 桩」）：① **Feign 已通**（Policy/Underwriting 同步调用）；
+> ② **Kafka 外发已实装**（`ProductKafkaEventPublisher`，三主题真实发送）；③ **Kafka 入站判定「不应接通」**——
+> 原 `ClauseEventListener` 为空壳，已删除（m10-1304），`infrastructure/listener` 目录随之清空。
 
 ---
 
@@ -44,20 +46,27 @@
 
 > 两个 Feign client 的 `name` 均为 `titanium-product-service`，由 `ProductController`/`ProductTemplateController` 本地实现（自调用模式）。`@EnableFeignClients(basePackages="com.titanium.product.api")`。
 
-### 2.2 发布的领域事件（Kafka topic 已规划）
+### 2.2 发布的领域事件（Kafka topic）
 
-| 事件 | 规划 topic | 消费方 |
-|------|-----------|--------|
-| `ProductCreatedEvent` | `titanium.product.created` | Policy 域、Clause 域 |
-| `ProductAuditedEvent` | `titanium.product.audited` | Policy 域、Underwriting 域 |
-| `ProductInvalidatedEvent` | `titanium.product.invalidated` | Policy 域 |
+| 事件 | topic | 消费方 |
+|------|-------|--------|
+| `ProductCreatedEvent` | `titanium.product.created` | 无仓内消费者——**对外集成出口**（三方系统/数据平台），见《跨域事件目录-2026-09.md》§六.15 |
+| `ProductAuditedEvent` | `titanium.product.audited` | 同上（在售状态已由出单试算**同步强校验**承担，异步订阅属降级）|
+| `ProductInvalidatedEvent` | `titanium.product.invalidated` | 同上（存量保单为产品快照，下架**不回溯**）|
 
-### 2.3 消费的外域事件（规划）
+### 2.3 消费的外域事件（🔴 判定「不应接通」，勿再按「规划」施工）
 
-| 来源 | 事件 | 规划 topic | 本域处理 |
-|------|------|-----------|---------|
-| Clause 域 | `ClauseVersionUpdatedEvent` | `titanium.clause.version-updated` | 更新产品绑定条款版本 |
-| Clause 域 | `ClauseDeactivatedEvent` | `titanium.clause.deactivated` | 预警受影响产品 |
+| 来源 | 事件 | 曾规划 topic | 判定 |
+|------|------|-------------|------|
+| Clause 域 | `ClauseVersionUpdatedEvent` | ~~`titanium.clause.version-updated`~~ | 🔴 该主题名在 `CrossDomainTopics` 中**根本不存在**（孤儿命名）；本域**不消费** |
+| Clause 域 | `ClauseDeactivatedEvent` | ~~`titanium.clause.deactivated`~~ | 同上 |
+
+> **2026-09-14 m10-1304 定论**：clause 域实际发布的主题是 `clause-status-changed`（唯一），其候选承接方曾指向本域。
+> 四个判据（设计语义相反／无消费基础设施／无反查能力／同类先例对称）判定**不应接通**，空壳
+> `infrastructure/listener/ClauseEventListener` 已删除、目录随之清空。判据全文见
+> [跨域事件目录 §六.17](../docs/技术文档/跨域事件目录-2026-09.md)。
+
+🔴 **不要再新建「监听条款域事件的消费者」**。
 
 ---
 
@@ -116,9 +125,11 @@
 - [ ] 统一 `X-Tenant-ID` 请求头透传 tenantId
 - [ ] 标注消费方（Policy/Underwriting/Clause），更新本文件 2.1 表
 
-### 5.4 交付前核对（产品域已知缺陷，勿复刻）
+### 5.4 交付前核对
 
-- [ ] 新增模板类命令是否补齐聚合根 `@CommandHandler`（现有 Update/Activate/Deactivate 缺失）
-- [ ] 新增产品查询是否补齐 `@QueryHandler`（现有 ByCondition/ClauseByProductId 缺失）
-- [ ] 新增命令是否真正 `apply` 事件（勿复刻 `UpdateAttachProductCommand` 漏发事件）
 - [ ] 注入方式用构造器（勿复刻模板侧 `@Autowired` 字段注入）
+- [ ] 改 Kafka topic/载荷 → 同步《跨域事件目录-2026-09.md》§三 表与 `CrossDomainTopics`，否则构建期 `CrossDomainEventCatalogTest` 失败
+- [ ] 勿新建「监听条款域事件」的消费者（已判定不应接通，见 §2.3）
+
+> ✅ 原列的三条「缺失」已由 m0-715 实读复核推翻：命令处理器齐备（14 个全覆盖）、查询处理器齐备、
+> `UpdateAttachProductCommand` 已 `apply` 事件——详见 `CLAUDE.md` §7.1/§7.2/§7.4，勿再据此施工。
