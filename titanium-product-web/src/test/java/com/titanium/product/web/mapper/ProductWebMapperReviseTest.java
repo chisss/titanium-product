@@ -11,7 +11,7 @@ import org.mapstruct.factory.Mappers;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.product.command.ReviseProductCommand;
 import com.titanium.product.entity.ProductClauseRel;
-import com.titanium.product.web.dto.ReviseProductDTO;
+import com.titanium.product.web.dto.product.ReviseProductDTO;
 
 /** 修订产品请求 → 修订命令的映射回归测试（存量产品补配核保配置链路） */
 class ProductWebMapperReviseTest {

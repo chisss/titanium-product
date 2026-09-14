@@ -1,4 +1,4 @@
-package com.titanium.product.web.controller;
+package com.titanium.product.web.controller.product;
 
 import java.util.List;
 
@@ -30,10 +30,10 @@ import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.valueobject.LifeProductSpec;
 import com.titanium.product.web.catalog.InsuranceProductDefinitionCatalog;
-import com.titanium.product.web.dto.AuditProductDTO;
-import com.titanium.product.web.dto.ConfigureLifeProductDTO;
-import com.titanium.product.web.dto.CreateProductDTO;
-import com.titanium.product.web.dto.ReviseProductDTO;
+import com.titanium.product.web.dto.product.AuditProductDTO;
+import com.titanium.product.web.dto.product.ConfigureLifeProductDTO;
+import com.titanium.product.web.dto.product.CreateProductDTO;
+import com.titanium.product.web.dto.product.ReviseProductDTO;
 import com.titanium.product.web.mapper.ProductWebMapper;
 
 import lombok.RequiredArgsConstructor;

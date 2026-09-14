@@ -1,4 +1,4 @@
-package com.titanium.product.web.dto;
+package com.titanium.product.web.dto.product;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +16,7 @@ import com.titanium.product.valueobject.config.SalesChannelConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
 import com.titanium.product.valueobject.rate.RateTableRef;
+import com.titanium.product.web.dto.pricing.basicrule.PricingBasicRuleDTO;
 
 import lombok.Data;
 

@@ -44,10 +44,10 @@ import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.PaymentConfig;
 import com.titanium.product.valueobject.config.PolicyFormConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
-import com.titanium.product.web.dto.AuditProductDTO;
-import com.titanium.product.web.dto.ConfigureLifeProductDTO;
-import com.titanium.product.web.dto.CreateProductDTO;
-import com.titanium.product.web.dto.ReviseProductDTO;
+import com.titanium.product.web.dto.product.AuditProductDTO;
+import com.titanium.product.web.dto.product.ConfigureLifeProductDTO;
+import com.titanium.product.web.dto.product.CreateProductDTO;
+import com.titanium.product.web.dto.product.ReviseProductDTO;
 
 /**
  * 产品 Web 层对象映射器（MapStruct，声明式）

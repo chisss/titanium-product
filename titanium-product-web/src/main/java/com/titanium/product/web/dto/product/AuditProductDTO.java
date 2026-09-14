@@ -1,4 +1,4 @@
-package com.titanium.product.web.dto;
+package com.titanium.product.web.dto.product;
 
 import com.titanium.metadata.enums.product.ProductEnum;
 

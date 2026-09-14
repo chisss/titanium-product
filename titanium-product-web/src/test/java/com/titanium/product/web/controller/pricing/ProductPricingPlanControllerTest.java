@@ -1,4 +1,4 @@
-package com.titanium.product.web.controller;
+package com.titanium.product.web.controller.pricing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;

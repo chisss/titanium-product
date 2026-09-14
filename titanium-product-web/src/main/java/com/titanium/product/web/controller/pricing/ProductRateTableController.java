@@ -1,4 +1,4 @@
-package com.titanium.product.web.controller;
+package com.titanium.product.web.controller.pricing;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.titanium.product.web.controller;
+package com.titanium.product.web.controller.maintenance;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;

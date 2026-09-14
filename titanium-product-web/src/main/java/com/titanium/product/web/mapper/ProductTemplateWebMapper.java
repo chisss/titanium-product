@@ -20,8 +20,8 @@ import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.MaintenanceConfig;
 import com.titanium.product.valueobject.config.PolicyStructureConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
-import com.titanium.product.web.dto.CreateProductTemplateDTO;
-import com.titanium.product.web.dto.UpdateProductTemplateDTO;
+import com.titanium.product.web.dto.template.CreateProductTemplateDTO;
+import com.titanium.product.web.dto.template.UpdateProductTemplateDTO;
 
 /**
  * 产品模板 Web 层对象映射器（MapStruct）

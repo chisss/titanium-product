@@ -1,4 +1,4 @@
-package com.titanium.product.web.controller;
+package com.titanium.product.web.controller.maintenance;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

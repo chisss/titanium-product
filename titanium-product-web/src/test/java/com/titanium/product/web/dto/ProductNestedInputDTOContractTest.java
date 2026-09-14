@@ -17,6 +17,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
+import com.titanium.product.web.dto.pricing.basicrule.PricingBasicRuleDTO;
+import com.titanium.product.web.dto.product.InsureConditionDTO;
 
 /**
  * 产品入参嵌套 DTO 契约守护：web DTO 字段必须与领域值对象对齐

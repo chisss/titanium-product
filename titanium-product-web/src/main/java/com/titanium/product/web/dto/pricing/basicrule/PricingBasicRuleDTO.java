@@ -1,4 +1,4 @@
-package com.titanium.product.web.dto;
+package com.titanium.product.web.dto.pricing.basicrule;
 
 import java.math.BigDecimal;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.titanium.product.web.controller;
+package com.titanium.product.web.controller.template;
 
 import java.util.List;
 
@@ -18,8 +18,8 @@ import com.titanium.product.application.command.ProductTemplateCommandAppService
 import com.titanium.product.application.query.ProductTemplateQueryAppService;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
-import com.titanium.product.web.dto.CreateProductTemplateDTO;
-import com.titanium.product.web.dto.UpdateProductTemplateDTO;
+import com.titanium.product.web.dto.template.CreateProductTemplateDTO;
+import com.titanium.product.web.dto.template.UpdateProductTemplateDTO;
 import com.titanium.product.web.mapper.ProductTemplateWebMapper;
 
 import lombok.RequiredArgsConstructor;
