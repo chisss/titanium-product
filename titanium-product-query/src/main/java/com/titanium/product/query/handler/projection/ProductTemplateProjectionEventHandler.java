@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
@@ -46,7 +47,7 @@ public class ProductTemplateProjectionEventHandler {
      * 投影产品模板创建事件：新建读模型记录
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductTemplateCreatedEvent event) {
         log.info("[读模型投影] 产品模板创建: templateId={}, tenantId={}", event.templateId(), event.tenantId());
 
@@ -71,7 +72,7 @@ public class ProductTemplateProjectionEventHandler {
      * 投影产品模板更新事件
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductTemplateUpdatedEvent event) {
         templateViewRepository.findById(event.templateId()).ifPresentOrElse(view -> {
             view.setTemplateName(event.templateName());
@@ -94,7 +95,7 @@ public class ProductTemplateProjectionEventHandler {
      * 投影寿险产品规格配置事件：将寿险规格（投保年龄/保额/缴费期/保障期）以 JSON 写入读模型
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(LifeProductConfiguredEvent event) {
         templateViewRepository.findById(event.templateId()).ifPresentOrElse(view -> {
             view.setLifeProductSpecJson(toJson(event.lifeProductSpec()));
@@ -108,7 +109,7 @@ public class ProductTemplateProjectionEventHandler {
      * 投影产品模板激活事件
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductTemplateActivatedEvent event) {
         applyStatus(event.templateId(), CommonStatus.ACTIVE, "模板激活");
     }
@@ -117,7 +118,7 @@ public class ProductTemplateProjectionEventHandler {
      * 投影产品模板停用事件
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductTemplateDeactivatedEvent event) {
         applyStatus(event.templateId(), CommonStatus.INACTIVE, "模板停用");
     }

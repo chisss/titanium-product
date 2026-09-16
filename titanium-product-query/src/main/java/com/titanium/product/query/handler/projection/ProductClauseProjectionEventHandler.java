@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
@@ -47,7 +48,7 @@ public class ProductClauseProjectionEventHandler {
      * 投影产品创建事件：据初始条款绑定新建条款读模型
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductCreatedEvent event) {
         log.info("[读模型投影] 产品条款关联初始化: productId={}, 条款数={}", event.productId(),
                 event.clauseRels() != null ? event.clauseRels().size() : 0);
@@ -65,7 +66,7 @@ public class ProductClauseProjectionEventHandler {
      * 投影产品修订事件：修订生成新产品ID，据新条款绑定新建读模型，租户从原产品继承
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductRevisedEvent event) {
         log.info("[读模型投影] 产品条款关联修订: newProductId={}, originalProductId={}, 条款数={}",
                 event.newProductId(), event.originalProductId(),
@@ -93,7 +94,7 @@ public class ProductClauseProjectionEventHandler {
      * </p>
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductClauseRelUpdatedEvent event) {
         log.info("[读模型投影] 产品条款关联更新: productId={}, 条款数={}", event.productId(),
                 event.clauseRels() != null ? event.clauseRels().size() : 0);

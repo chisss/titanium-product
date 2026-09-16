@@ -8,6 +8,7 @@ import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
@@ -68,7 +69,7 @@ public class ProductProjectionEventHandler {
      * 投影产品创建事件：新建读模型记录
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductCreatedEvent event) {
         log.info("[读模型投影] 产品创建: productId={}, tenantId={}", event.productId(), event.tenantId());
 
@@ -90,7 +91,7 @@ public class ProductProjectionEventHandler {
      * 投影产品修订事件：修订会生成新产品ID，新建一条读模型记录
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductRevisedEvent event) {
         log.info("[读模型投影] 产品修订: newProductId={}, originalProductId={}", event.newProductId(),
                 event.originalProductId());
@@ -111,7 +112,7 @@ public class ProductProjectionEventHandler {
      * 投影产品提交审核事件
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductSubmittedForAuditEvent event) {
         applyUpdate(event.productId(), "提交审核", view -> view.setStatus(ProductEnum.ProductStatus.AUDITING));
     }
@@ -120,7 +121,7 @@ public class ProductProjectionEventHandler {
      * 投影产品审核通过事件
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductAuditedEvent event) {
         applyUpdate(event.productId(), "审核通过", view -> {
             view.setStatus(event.status() != null ? event.status() : ProductEnum.ProductStatus.EFFECTIVE);
@@ -133,7 +134,7 @@ public class ProductProjectionEventHandler {
      * 投影产品审核拒绝事件
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductAuditRejectedEvent event) {
         applyUpdate(event.productId(), "审核拒绝", view -> {
             view.setStatus(event.status() != null ? event.status() : ProductEnum.ProductStatus.DRAFT);
@@ -145,7 +146,7 @@ public class ProductProjectionEventHandler {
      * 投影产品失效/下架事件
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductInvalidatedEvent event) {
         applyUpdate(event.productId(), "产品下架", view -> {
             view.setStatus(event.status() != null ? event.status() : ProductEnum.ProductStatus.INVALID);
@@ -161,7 +162,7 @@ public class ProductProjectionEventHandler {
      * </p>
      */
     @EventHandler
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ProductSalesChannelUpdatedEvent event) {
         applyUpdate(event.productId(), "销售渠道更新",
                 view -> view.setSalesChannelsJson(toJson(event.salesChannels())));
