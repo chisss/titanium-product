@@ -12,12 +12,14 @@ import org.junit.jupiter.api.Test;
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
+import com.titanium.metadata.enums.insurance.SubjectType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.command.ActivateProductTemplateCommand;
 import com.titanium.product.command.ConfigureLifeProductCommand;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.command.DeactivateProductTemplateCommand;
 import com.titanium.product.command.UpdateProductTemplateCommand;
+import com.titanium.product.common.enums.LiabilityStructure;
 import com.titanium.product.event.LifeProductConfiguredEvent;
 import com.titanium.product.event.ProductTemplateActivatedEvent;
 import com.titanium.product.event.ProductTemplateCreatedEvent;
@@ -25,8 +27,11 @@ import com.titanium.product.event.ProductTemplateDeactivatedEvent;
 import com.titanium.product.event.ProductTemplateUpdatedEvent;
 import com.titanium.product.exception.ProductStatusPreconditionException;
 import com.titanium.product.valueobject.LifeProductSpec;
+import com.titanium.product.valueobject.PolicyStage;
 import com.titanium.product.valueobject.config.DividendConfig;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
+import com.titanium.product.valueobject.config.PolicyStructureConfig;
+import com.titanium.product.valueobject.config.UnderwritingConfig;
 
 /**
  * 产品模板聚合根测试
@@ -111,6 +116,52 @@ class ProductTemplateTest {
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(new ProductTemplateUpdatedEvent(TEMPLATE_ID, "分红寿险模板",
                         ProductEnum.IssuanceMode.ONE_STEP, List.of(), null, null, null, null, null, null, dividendConfig,
+                        TENANT_ID, null));
+    }
+
+    @Test
+    @DisplayName("🔴 D-501-38：更新时未提交的配置字段保留原值，不得被静默清空")
+    void shouldPreserveConfigsAbsentFromUpdateCommand() {
+        List<PolicyStage> stages = List.of(
+                new PolicyStage("APPLICATION_SUBMIT", "投保提交", List.of(), null, "UNDERWRITING", true));
+        UnderwritingConfig underwriting = new UnderwritingConfig(ProductEnum.UnderwritingMode.AUTO, null, null,
+                List.of("ID_CARD"), 3, true, false, null);
+        PolicyStructureConfig structure = new PolicyStructureConfig(SubjectType.VEHICLE, null, false,
+                List.of("HOLDER"), List.of("HOLDER"), LiabilityStructure.SINGLE);
+        // 前置：三字段已有值（对应创建后经 API 写入 —— 它们在 UI 上既无填写入口也无展示位置）
+        ProductTemplateUpdatedEvent seeded = new ProductTemplateUpdatedEvent(TEMPLATE_ID, TEMPLATE_NAME,
+                ProductEnum.IssuanceMode.TWO_STEP, stages, underwriting, structure, null, null, null, null, null,
+                TENANT_ID, null);
+        // 模拟 UI「保存配置」：载荷只带表单里有的字段，三字段缺席
+        UpdateProductTemplateCommand uiSave = new UpdateProductTemplateCommand(TEMPLATE_ID, "车险模板V3",
+                ProductEnum.IssuanceMode.TWO_STEP, null, null, null, null, null, null, null, null, TENANT_ID);
+
+        fixture.given(createdEvent(), seeded)
+                .when(uiSave)
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(new ProductTemplateUpdatedEvent(TEMPLATE_ID, "车险模板V3",
+                        ProductEnum.IssuanceMode.TWO_STEP, stages, underwriting, structure, null, null, null, null,
+                        null, TENANT_ID, null));
+    }
+
+    @Test
+    @DisplayName("🔴 D-501-38：已提交的配置字段仍按新值覆盖（保留语义不得过度扩张）")
+    void shouldStillReplaceConfigsSubmittedOnUpdate() {
+        UnderwritingConfig oldConfig = new UnderwritingConfig(ProductEnum.UnderwritingMode.AUTO, null, null,
+                List.of("ID_CARD"), 3, true, false, null);
+        UnderwritingConfig newConfig = new UnderwritingConfig(ProductEnum.UnderwritingMode.MANUAL, "AMOUNT > 100000",
+                new BigDecimal("100000"), List.of("ID_CARD", "DIAGNOSIS"), 5, false, false, "RS_UW_001");
+        ProductTemplateUpdatedEvent seeded = new ProductTemplateUpdatedEvent(TEMPLATE_ID, TEMPLATE_NAME,
+                ProductEnum.IssuanceMode.TWO_STEP, List.of(), oldConfig, null, null, null, null, null, null,
+                TENANT_ID, null);
+        UpdateProductTemplateCommand submitNew = new UpdateProductTemplateCommand(TEMPLATE_ID, TEMPLATE_NAME,
+                ProductEnum.IssuanceMode.TWO_STEP, null, newConfig, null, null, null, null, null, null, TENANT_ID);
+
+        fixture.given(createdEvent(), seeded)
+                .when(submitNew)
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(new ProductTemplateUpdatedEvent(TEMPLATE_ID, TEMPLATE_NAME,
+                        ProductEnum.IssuanceMode.TWO_STEP, List.of(), newConfig, null, null, null, null, null, null,
                         TENANT_ID, null));
     }
 

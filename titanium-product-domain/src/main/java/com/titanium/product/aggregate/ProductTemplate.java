@@ -134,11 +134,34 @@ public class ProductTemplate extends BaseAggregate {
         if (this.status == CommonStatus.DELETED) {
             throw new ProductStatusPreconditionException(this.templateId, statusName(), "更新");
         }
+        // 🔴 D-501-38：配置类字段「未提交（null）即保留原值」。
+        // 根因：本命令是**部分字段提交**（BFF 纯透传、前端逐字段构造载荷），而事件的
+        // @EventSourcingHandler 是**无条件赋值** ⇒ 客户端没带哪个配置字段，哪个就被静默清空。
+        // 实测受害者：policyStages / underwritingConfig / policyStructure 三项**在 UI 上既无填写入口
+        // 也无展示位置**，用户点一次「保存配置」即被抹成 NULL 且完全不可见；出单步骤链因此丢失后，
+        // 没有任何 UI 入口可恢复。前端 handleSave 中「分红配置仅在选择了分配方式时下发（避免空分红
+        // 覆盖非分红险）」的绕过写法，正是该语义缺失的旁证。
+        // 🔴 修在**命令处理器**而非 @EventSourcingHandler：后者参与事件重放，改成「null 则跳过」会让
+        // 存量事件的回放结果偏离历史事实（同一事件流重放出两种状态），且投影与聚合会就此分叉。
+        // 在这里解析则事件依旧无条件承载**最终值**，重放语义保持不变。
+        // 🔴 诚实边界：本修复**不回溯**已丢失的数据 —— 事件日志不可变，此前被清空的字段仍是 NULL，
+        // 需运维按需回填；本修复只保证「此后不再发生」。
+        // 清空某配置的正确表达是提交一个空配置对象，而不是省略该字段。
         AggregateLifecycle.apply(new ProductTemplateUpdatedEvent(command.templateId(), command.templateName(),
-                command.issuanceMode(), command.policyStages(), command.underwritingConfig(),
-                command.policyStructure(), command.maintenanceConfig(), command.claimConfig(),
-                command.billingConfig(), command.reinsuranceConfig(), command.dividendConfig(), command.tenantId(),
+                command.issuanceMode(), orCurrent(command.policyStages(), this.policyStages),
+                orCurrent(command.underwritingConfig(), this.underwritingConfig),
+                orCurrent(command.policyStructure(), this.policyStructureConfig),
+                orCurrent(command.maintenanceConfig(), this.maintenanceConfig),
+                orCurrent(command.claimConfig(), this.claimsConfig),
+                orCurrent(command.billingConfig(), this.billingConfig),
+                orCurrent(command.reinsuranceConfig(), this.reinsuranceConfig),
+                orCurrent(command.dividendConfig(), this.dividendConfig), command.tenantId(),
                 LocalDateTime.now()));
+    }
+
+    /** 未提交（null）时保留聚合当前值；已提交则取新值（见 {@link #handle(UpdateProductTemplateCommand)}） */
+    private static <T> T orCurrent(T incoming, T current) {
+        return incoming != null ? incoming : current;
     }
 
     /**
