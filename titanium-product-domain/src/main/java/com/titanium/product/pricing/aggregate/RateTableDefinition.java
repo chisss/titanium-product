@@ -6,8 +6,10 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -112,8 +114,30 @@ public class RateTableDefinition {
     /** 整体替换草稿费率行。 */
     public void replaceRows(List<RateTableRow> newRows) {
         requireDraft();
-        rows = List.copyOf(Objects.requireNonNull(newRows, "费率行不能为空"));
+        List<RateTableRow> candidates = List.copyOf(Objects.requireNonNull(newRows, "费率行不能为空"));
+        requireNoDuplicateDimension(candidates);
+        rows = candidates;
         contentHash = "";
+    }
+
+    /**
+     * 保存期守卫：匹配维度完全相同的行在库侧有唯一约束（{@code uk_product_rate_row_dimension}），
+     * 落库必冲突。
+     * <p>
+     * 重复维度是行集合自身的不变量（不依赖任何外部数据），故内聚在聚合根、在保存入口拦截，
+     * 而非等到发布期才校验、更不是把 DB 唯一约束当唯一防线（D-501-34）。
+     * </p>
+     */
+    private void requireNoDuplicateDimension(List<RateTableRow> candidates) {
+        Map<String, String> seenHashes = new LinkedHashMap<>();
+        for (RateTableRow row : candidates) {
+            String duplicatedRowId = seenHashes.putIfAbsent(row.dimensionHash(), row.rowId());
+            if (duplicatedRowId != null) {
+                throw invalid(ProductErrorCode.RATE_TABLE_ROW_CONFLICT,
+                        "费率行维度重复: " + duplicatedRowId + ", " + row.rowId()
+                                + "（同一维度组合只能有一行费率）");
+            }
+        }
     }
 
     /** 校验发布约束并生成稳定内容摘要，不改变状态。 */

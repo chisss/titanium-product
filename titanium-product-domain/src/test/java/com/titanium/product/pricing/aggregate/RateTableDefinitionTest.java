@@ -3,6 +3,7 @@ package com.titanium.product.pricing.aggregate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -104,6 +105,25 @@ class RateTableDefinitionTest {
         assertEquals(ProductErrorCode.RATE_TABLE_ROW_CONFLICT.getCode(), exception.getErrorCode());
     }
 
+    @Test
+    void shouldRejectDuplicateDimensionRowsOnSave() {
+        // D-501-34 实测形态：两行维度完全相同（年龄不限、性别不限、缴费/保障年限均为 1），仅费率不同。
+        // 保存阶段即应拒绝——同一维度组合在库侧有唯一约束 uk_product_rate_row_dimension，
+        // 此前保存期无守卫，非法行直达落库并以 HTTP 500 呈现。
+        RateTableDefinition table = draft();
+
+        PricingDomainException exception = assertThrows(
+                PricingDomainException.class,
+                () -> table.replaceRows(List.of(
+                        flatRow("ROW-A", new BigDecimal("0.001")),
+                        flatRow("ROW-B", new BigDecimal("0.002")))));
+
+        assertEquals(ProductErrorCode.RATE_TABLE_ROW_CONFLICT.getCode(), exception.getErrorCode());
+        assertTrue(exception.getMessage().contains("维度重复"), exception.getMessage());
+        // 拒绝不得半提交：草稿行集合保持替换前状态
+        assertEquals(List.of(), table.rows());
+    }
+
     private RateTableDefinition draft() {
         return RateTableDefinition.createDraft(
                 "TABLE-1", "PRODUCT-1", "RATE-LIFE", "V1.0", RateUnit.SUM_INSURED_RATIO, "cny",
@@ -118,5 +138,10 @@ class RateTableDefinitionTest {
     private RateTableRow occupationRow(String rowId, String occupationClass, BigDecimal rate) {
         return new RateTableRow(rowId, 18, 61, "ALL", 20, 20, rate, null, null,
                 occupationClass, null, null);
+    }
+
+    /** 维度全开放的行（年龄/性别不限、缴费与保障年限固定 1），仅费率可变——用于构造维度重复对 */
+    private RateTableRow flatRow(String rowId, BigDecimal rate) {
+        return new RateTableRow(rowId, null, null, "ALL", 1, 1, rate, null, null);
     }
 }

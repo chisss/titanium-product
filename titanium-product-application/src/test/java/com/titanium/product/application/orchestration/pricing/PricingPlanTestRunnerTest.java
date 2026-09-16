@@ -24,6 +24,7 @@ import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.application.service.pricing.PricingPlanTestRunner;
 import com.titanium.product.common.enums.PricingFeatureDataType;
 import com.titanium.product.common.enums.RateUnit;
+import com.titanium.product.exception.PricingDomainException;
 import com.titanium.product.port.pricing.CommissionResolutionPort;
 import com.titanium.product.port.pricing.FeatureResolutionPort;
 import com.titanium.product.port.pricing.RuleComputationPort;
@@ -122,6 +123,20 @@ class PricingPlanTestRunnerTest {
 
         assertFalse(result.allPassed());
         assertEquals(ProductErrorCode.PRICING_PLAN_VALIDATION_FAILED.getCode(),
+                result.caseResults().getFirst().failureReason());
+    }
+
+    @Test
+    void shouldReportStableErrorCodeWhenDomainExceptionThrown() {
+        // D-501-36：本域抛 PricingDomainException（extends DomainException），
+        // 失败原因须为该异常的 8 位业务码，不得降级为异常类名（否则 20+ 抛出点无从定位）
+        when(rateTableRepository.findEffectiveSnapshot(any(), any(), any(), any(), any(), any()))
+                .thenThrow(new PricingDomainException(ProductErrorCode.PRICING_INPUT_INVALID, "费率表快照缺失"));
+
+        var result = runner.run(rateTablePlan(new BigDecimal("150.00")));
+
+        assertFalse(result.allPassed());
+        assertEquals(ProductErrorCode.PRICING_INPUT_INVALID.getCode(),
                 result.caseResults().getFirst().failureReason());
     }
 

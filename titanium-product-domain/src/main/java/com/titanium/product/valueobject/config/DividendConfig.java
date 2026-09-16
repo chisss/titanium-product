@@ -3,6 +3,8 @@ package com.titanium.product.valueobject.config;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.titanium.metadata.enums.product.ProductEnum;
 
 /**
@@ -28,6 +30,10 @@ public record DividendConfig(ProductEnum.DividendDistribution distribution, BigD
      *
      * @return true 表示三档演示利率满足低≤中≤高
      */
+    // 🔴 @JsonIgnore 不可删（D-501-19，与 D-501-18 investment/regulatory 同病）：
+    //    派生 getter 非 record 分量，却会被 Axon 的 Jackson 序列化器写进事件载荷
+    //    （isXxx → 属性 "demoRateMonotonic"），重放时报 UnrecognizedPropertyException → 聚合无法加载。
+    @JsonIgnore
     public boolean isDemoRateMonotonic() {
         if (lowDemoRate == null || midDemoRate == null || highDemoRate == null) {
             return true;

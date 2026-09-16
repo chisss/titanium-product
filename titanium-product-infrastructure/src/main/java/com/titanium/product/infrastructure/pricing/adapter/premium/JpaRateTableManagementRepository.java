@@ -3,12 +3,14 @@ package com.titanium.product.infrastructure.pricing.adapter.premium;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson2.JSON;
 
 import com.titanium.product.common.enums.RateTableStatus;
+import com.titanium.product.exception.RateTableRowConflictException;
 import com.titanium.product.infrastructure.mapper.RateTablePersistenceMapper;
 import com.titanium.product.infrastructure.pricing.entity.premium.RateTableDO;
 import com.titanium.product.infrastructure.pricing.entity.premium.RateTableRowDO;
@@ -59,13 +61,19 @@ public class JpaRateTableManagementRepository implements RateTableManagementRepo
     @Override
     @Transactional
     public void save(RateTableDefinition rateTable) {
-        rateTableJpaRepository.save(persistenceMapper.toDO(rateTable));
-        if (rateTable.status() == RateTableStatus.DRAFT) {
-            rateTableRowJpaRepository.deleteByTableIdAndTenantId(rateTable.tableId(), rateTable.tenantId());
-            rateTableRowJpaRepository.flush();
-            rateTableRowJpaRepository.saveAll(rateTable.rows().stream()
-                    .map(row -> persistenceMapper.toDO(rateTable, row))
-                    .toList());
+        try {
+            rateTableJpaRepository.save(persistenceMapper.toDO(rateTable));
+            if (rateTable.status() == RateTableStatus.DRAFT) {
+                rateTableRowJpaRepository.deleteByTableIdAndTenantId(rateTable.tableId(), rateTable.tenantId());
+                rateTableRowJpaRepository.flush();
+                rateTableRowJpaRepository.saveAll(rateTable.rows().stream()
+                        .map(row -> persistenceMapper.toDO(rateTable, row))
+                        .toList());
+            }
+        } catch (DataIntegrityViolationException exception) {
+            // DB 唯一约束（uk_product_rate_row_dimension）是最后一道防线：领域守卫漏过时，
+            // 同一维度组合的重复费率行也必须以业务拒绝（60000110）呈现，而非 HTTP 500（D-501-34）
+            throw new RateTableRowConflictException(exception);
         }
     }
 
