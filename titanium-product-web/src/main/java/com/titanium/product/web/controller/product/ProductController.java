@@ -1,8 +1,13 @@
 package com.titanium.product.web.controller.product;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +39,7 @@ import com.titanium.product.web.dto.product.AuditProductDTO;
 import com.titanium.product.web.dto.product.ConfigureLifeProductDTO;
 import com.titanium.product.web.dto.product.CreateProductDTO;
 import com.titanium.product.web.dto.product.ReviseProductDTO;
+import com.titanium.product.web.export.ProductCsvExporter;
 import com.titanium.product.web.mapper.ProductWebMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -60,6 +66,9 @@ public class ProductController {
     private final ProductWebMapper         productWebMapper;
 
     private final InsuranceProductDefinitionCatalog definitionCatalog;
+
+    /** 导出单次取数上限：满足条件的记录一次性拉取，防止无界导出拖垮下游 */
+    private static final int EXPORT_MAX_ROWS = 10000;
 
     /**
      * 查询九类险种的标准产品定义目录，供后台动态渲染专属字段。
@@ -125,13 +134,50 @@ public class ProductController {
                                                       @RequestParam(defaultValue = "0") int pageNum,
                                                       @RequestParam(defaultValue = "10") int pageSize,
                                                       @RequestHeader("X-Tenant-ID") String tenantId) {
-        InsuranceProductType type =
-                insuranceType != null ? InsuranceProductType.fromCode(insuranceType) : null;
+        Page<ProductQueryResult> page =
+                queryProducts(productName, insuranceType, status, pageNum, pageSize, tenantId);
+        return ApiResponse.success(page.map(productWebMapper::toProductResponse));
+    }
+
+    /**
+     * 导出产品列表（CSV 附件）。
+     * <p>
+     * 与 {@link #listProducts} 共用筛选条件（名称/险种/状态），但**不分页**——按上限一次性取出满足条件的
+     * 全量产品并序列化为 CSV。响应为二进制附件（非 JSON 信封），供 BFF 二进制透传下载。
+     * </p>
+     *
+     * @param productName 产品名称（模糊匹配，可选）
+     * @param insuranceType 险种类型编码（可选）
+     * @param status 产品状态编码（可选）
+     * @param tenantId 租户ID（请求头）
+     * @return CSV 附件字节流（UTF-8 含 BOM，Excel 可直接打开）
+     */
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportProducts(@RequestParam(required = false) String productName,
+                                                 @RequestParam(required = false) String insuranceType,
+                                                 @RequestParam(required = false) String status,
+                                                 @RequestHeader("X-Tenant-ID") String tenantId) {
+        Page<ProductQueryResult> page =
+                queryProducts(productName, insuranceType, status, 0, EXPORT_MAX_ROWS, tenantId);
+        // RFC 5987 编码文件名，避免中文文件名在部分浏览器乱码
+        String filename = URLEncoder.encode("产品列表.csv", StandardCharsets.UTF_8);
+        return ResponseEntity.ok()
+                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + filename)
+                .body(ProductCsvExporter.toCsv(page.getContent()));
+    }
+
+    /**
+     * 按筛选条件查询产品（列表与导出共用）。
+     * <p>导出侧以 {@link #EXPORT_MAX_ROWS} 作 pageSize 取全量；名称/险种/状态三者相互独立，空即不限。</p>
+     */
+    private Page<ProductQueryResult> queryProducts(String productName, String insuranceType, String status,
+                                                   int pageNum, int pageSize, String tenantId) {
+        InsuranceProductType type = insuranceType != null ? InsuranceProductType.fromCode(insuranceType) : null;
         ProductEnum.ProductStatus productStatus =
                 status != null ? ProductEnum.ProductStatus.fromCode(status) : null;
-        Page<ProductQueryResult> page = productQueryAppService.queryProductByCondition(
+        return productQueryAppService.queryProductByCondition(
                 productName, null, type, productStatus, pageNum, pageSize, tenantId);
-        return ApiResponse.success(page.map(productWebMapper::toProductResponse));
     }
 
     /**
