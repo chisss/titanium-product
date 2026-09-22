@@ -29,9 +29,21 @@ public interface ProductViewRepository
     Optional<ProductView> findByProductIdAndTenantId(String productId, String tenantId);
 
     /**
-     * 按产品编码 + 租户ID查询
+     * 按产品编码 + 租户ID查询**最新创建的一版**。
+     * <p>
+     * 🔴 本方法原为 {@code findByProductCodeAndTenantId} 返回 {@code Optional}，隐含「编码唯一」这一
+     * 与实际不符的前提：{@code t_product_view.product_code} 建的是普通索引（非 UNIQUE），而修订
+     * <b>继承同一 productCode</b>（{@code InsuranceProduct.handle(ReviseProductCommand)}）⇒ 产品修订出第二版后，
+     * 该查询会抛 {@code IncorrectResultSizeDataAccessException}（同一编码命中多行）。
+     * 现改为「取最新一版」：语义在编码重名时有确定解，且不改变调用方拿单个结果的契约形状。
+     * </p>
      */
-    Optional<ProductView> findByProductCodeAndTenantId(String productCode, String tenantId);
+    Optional<ProductView> findFirstByProductCodeAndTenantIdOrderByCreatedAtDesc(String productCode, String tenantId);
+
+    /**
+     * 按产品编码 + 租户ID查询**全部版本**（版本历史用），按业务创建时间倒序（新版在前）。
+     */
+    List<ProductView> findAllByProductCodeAndTenantIdOrderByCreatedAtDesc(String productCode, String tenantId);
 
     /**
      * 按险种类型 + 租户ID分页查询

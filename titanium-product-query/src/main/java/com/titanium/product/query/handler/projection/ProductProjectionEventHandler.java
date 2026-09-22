@@ -104,6 +104,12 @@ public class ProductProjectionEventHandler {
         // 修订态默认为草稿（运行时业务规则，保留在投影处理器）
         view.setStatus(ProductEnum.ProductStatus.DRAFT);
         stampAuditTime(view);
+        // 🔴 修订事件不携带 createdAt/createdBy（见 ProductRevisedEvent 字段表，仅 CreatedEvent 携带），
+        // 新版本行的「业务创建时间」无处可取：留空会让产品列表与版本历史里**最新的一版**恰恰没有创建时间，
+        // 且两者都按 created_at 倒序（MySQL 的 DESC 把 NULL 排最后）⇒ 最新版本沉底。
+        // 故补记本行的生成时刻（与 create_time 同值，语义即「该版本于何时生成」）；
+        // createdBy 事件未携带，保持为空——不臆造操作人。
+        stampBusinessCreateTime(view);
 
         productViewRepository.save(view);
     }
@@ -199,5 +205,18 @@ public class ProductProjectionEventHandler {
             view.setCreateTime(now);
         }
         view.setUpdateTime(now);
+    }
+
+    /**
+     * 补记读模型行的「业务创建时间」（{@code created_at}）：事件未携带时取本行生成时刻。
+     * <p>
+     * 与 {@link #stampAuditTime} 同为「仅首次」语义，且必须在 {@code stampAuditTime} 之后调用
+     * （依赖其已把 {@code createTime} 落到本行）。{@code createdBy} 事件未携带，不臆造。
+     * </p>
+     */
+    private void stampBusinessCreateTime(ProductView view) {
+        if (view.getCreatedAt() == null) {
+            view.setCreatedAt(view.getCreateTime());
+        }
     }
 }

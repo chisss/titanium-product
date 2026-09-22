@@ -21,4 +21,8 @@
     <include file="classpath:liquibase/ddl/business_number_sequence_202609041030_weisun_ddl.sql"/>
     <include file="classpath:liquibase/ddl/product_view_policy_structure_202609041956_weisun_ddl.sql"/>
     <include file="classpath:liquibase/ddl/rate_table_row_dimensions_202609071000_weisun_ddl.sql"/>
+
+    <!-- DML：数据订正（非结构变更） -->
+    <include file="classpath:liquibase/dml/t_product_view_202609211100_weisun_dml.sql"/>
+    <include file="classpath:liquibase/dml/t_product_clause_rel_view_202609211700_weisun_dml.sql"/>
 </databaseChangeLog>

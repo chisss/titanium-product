@@ -47,6 +47,7 @@ import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.web.dto.product.AuditProductDTO;
 import com.titanium.product.web.dto.product.ConfigureLifeProductDTO;
 import com.titanium.product.web.dto.product.CreateProductDTO;
+import com.titanium.product.web.dto.product.ProductVersionVO;
 import com.titanium.product.web.dto.product.ReviseProductDTO;
 
 /**
@@ -86,16 +87,21 @@ public interface ProductWebMapper {
      * 目标聚合 {@code productId} 为被修订的 EFFECTIVE 产品（修订不改写其事件流）。
      * </p>
      *
+     * <p>🔴 {@code tenantId} 取自请求头（R8-01）：应用层要用它去条款域核查本次携带的条款绑定，
+     * 该调用发生在命令到达聚合之前。此前未透传，使修订路径的条款门禁无法成立。</p>
+     *
      * @param request 修订产品请求
      * @param productId 被修订的当前生效产品ID
+     * @param tenantId 租户ID（请求头 X-Tenant-ID）
      * @return 修订产品命令
      */
     @Mapping(target = "productId", source = "productId")
+    @Mapping(target = "tenantId", source = "tenantId")
     @Mapping(target = "newProductId",
             expression = "java(request.getNewProductId() != null ? request.getNewProductId() : SnowflakeIdGenerator.generate())")
     @Mapping(target = "newClauseRels", expression = "java(toClauseRels(request.getNewClauseRels()))")
     @Mapping(target = "newPricingMode", source = "request.newPricingMode", qualifiedByName = "pricingModeFromCode")
-    ReviseProductCommand toCommand(ReviseProductDTO request, String productId);
+    ReviseProductCommand toCommand(ReviseProductDTO request, String productId, String tenantId);
 
     /**
      * 条款关联入参 → 领域值对象列表（修订命令用）
@@ -173,6 +179,19 @@ public interface ProductWebMapper {
      */
     @Mapping(target = "pricingBasicRule", expression = "java(toPricingRuleResponse(result))")
     ProductResponse toProductResponse(ProductQueryResult result);
+
+    /**
+     * 读模型结果 → 产品版本条目（版本历史列表用）。
+     * <p>
+     * 字段全部同名声明式映射；{@code status} 为领域枚举，MapStruct 按 {@code name()} 转为字符串，
+     * 与 {@link #toProductResponse} 输出的 {@code ProductResponse.status} **同一取值口径**
+     * （前端两处用同一套状态文案映射，不得一处给枚举名、一处给 code）。
+     * </p>
+     *
+     * @param result 产品查询结果
+     * @return 版本条目（不含配置块，配置对比由调用方逐版本取详情）
+     */
+    ProductVersionVO toProductVersionVO(ProductQueryResult result);
 
     /** 投保条件值对象 → 响应（同名字段声明式映射） */
     InsureConditionResponse toInsureConditionResponse(InsureCondition vo);

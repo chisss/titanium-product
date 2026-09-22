@@ -48,6 +48,12 @@
                 <artifactId>titanium-channel-api</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
             </dependency>
+            <!-- 条款域契约：产品绑定条款时的存在性校验（ClauseExistenceAdapter）需要 -->
+            <dependency>
+                <groupId>com.titanium</groupId>
+                <artifactId>titanium-clause-api</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -1,5 +1,7 @@
 package com.titanium.product.query.service;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
@@ -33,12 +35,30 @@ public interface ProductQueryService {
 
     /**
      * 根据产品编码和租户ID查询产品详情。
+     * <p>
+     * 同一编码下可能存在多个版本（修订继承 productCode），此时返回**最新创建的一版**；
+     * 要取全部版本请用 {@link #findProductVersions(String, String)}。
+     * </p>
      *
      * @param productCode 产品编码
      * @param tenantId 租户ID
      * @return 产品详情查询结果，不存在时返回 null
      */
     ProductQueryResult findProductByCode(String productCode, String tenantId);
+
+    /**
+     * 查询同一产品编码下的**全部版本**（版本历史）。
+     * <p>
+     * 产品是版本化实体：修订不改写当前生效版本，而是以父版本指针（{@code originalProductId}）
+     * 派生一个独立聚合的新版本产出，各版本的 {@code productCode} 相同 ⇒ 版本线即「同编码的全部读模型行」。
+     * 按业务创建时间倒序返回（新版在前）。
+     * </p>
+     *
+     * @param productCode 产品编码（版本线的归组键）
+     * @param tenantId 租户ID
+     * @return 该编码下的全部版本，无版本时返回空列表
+     */
+    List<ProductQueryResult> findProductVersions(String productCode, String tenantId);
 
     /**
      * 按条件分页查询产品列表（产品名称/形态/险种/状态任意组合，均可为空表示不限）

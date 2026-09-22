@@ -13,6 +13,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.titanium.channel.api.ChannelApi;
 import com.titanium.channel.api.CommissionSchemeApi;
+import com.titanium.clause.api.ClauseApi;
 import com.titanium.featurecenter.api.FeatureCenterApi;
 import com.titanium.product.ProductApplication;
 import com.titanium.product.api.ProductApi;
@@ -72,6 +73,8 @@ import com.titanium.ruleengine.api.RuleEngineApi;
         ProductPricingApi.class,
         ProductSurrenderValueApi.class,
         ProductTemplateApi.class,
+        // clause.api（条款存在性校验，R7-02）
+        ClauseApi.class,
         // featurecenter.api（功能开关）
         FeatureCenterApi.class,
         // ruleengine.api（定价规则）

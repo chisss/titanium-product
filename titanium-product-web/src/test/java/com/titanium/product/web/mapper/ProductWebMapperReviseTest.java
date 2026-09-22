@@ -17,6 +17,7 @@ import com.titanium.product.web.dto.product.ReviseProductDTO;
 class ProductWebMapperReviseTest {
 
     private static final String PRODUCT_ID = "PROD_001";
+    private static final String TENANT_ID = "tenant-1";
 
     private final ProductWebMapper mapper = Mappers.getMapper(ProductWebMapper.class);
 
@@ -26,11 +27,19 @@ class ProductWebMapperReviseTest {
         ReviseProductDTO request = new ReviseProductDTO();
         request.setNewProductName("测试产品V2");
 
-        ReviseProductCommand command = mapper.toCommand(request, PRODUCT_ID);
+        ReviseProductCommand command = mapper.toCommand(request, PRODUCT_ID, TENANT_ID);
 
         assertThat(command.productId()).isEqualTo(PRODUCT_ID);
         assertThat(command.newProductId()).isNotBlank();
         assertThat(command.newProductName()).isEqualTo("测试产品V2");
+    }
+
+    @Test
+    @DisplayName("🔴 租户ID须透传到命令（应用层要用它去条款域核查绑定，缺它则门禁无法成立）")
+    void shouldPropagateTenantIdIntoCommand() {
+        ReviseProductCommand command = mapper.toCommand(new ReviseProductDTO(), PRODUCT_ID, TENANT_ID);
+
+        assertThat(command.tenantId()).isEqualTo(TENANT_ID);
     }
 
     @Test
@@ -39,7 +48,7 @@ class ProductWebMapperReviseTest {
         ReviseProductDTO request = new ReviseProductDTO();
         request.setNewProductId("PROD_001_V2");
 
-        ReviseProductCommand command = mapper.toCommand(request, PRODUCT_ID);
+        ReviseProductCommand command = mapper.toCommand(request, PRODUCT_ID, TENANT_ID);
 
         assertThat(command.newProductId()).isEqualTo("PROD_001_V2");
     }
@@ -52,7 +61,7 @@ class ProductWebMapperReviseTest {
                 new ReviseProductDTO.ClauseRelDTO("CLAUSE_001", "V1.0", true),
                 new ReviseProductDTO.ClauseRelDTO("CLAUSE_002", "V2.0", null)));
 
-        List<ProductClauseRel> rels = mapper.toCommand(request, PRODUCT_ID).newClauseRels();
+        List<ProductClauseRel> rels = mapper.toCommand(request, PRODUCT_ID, TENANT_ID).newClauseRels();
 
         assertThat(rels).hasSize(2);
         assertThat(rels.get(0).relId()).isEqualTo("CLAUSE_001_V1.0");
@@ -66,7 +75,7 @@ class ProductWebMapperReviseTest {
     void shouldHandleNullClauseRelsSafely() {
         ReviseProductDTO emptyListRequest = new ReviseProductDTO();
         emptyListRequest.setNewClauseRels(List.of());
-        assertThat(mapper.toCommand(emptyListRequest, PRODUCT_ID).newClauseRels()).isEmpty();
+        assertThat(mapper.toCommand(emptyListRequest, PRODUCT_ID, TENANT_ID).newClauseRels()).isEmpty();
 
         ReviseProductDTO nullRequest = new ReviseProductDTO();
         assertThat(mapper.toClauseRels(nullRequest.getNewClauseRels())).isNull();
@@ -77,10 +86,10 @@ class ProductWebMapperReviseTest {
     void shouldRestorePricingModeFromCode() {
         ReviseProductDTO request = new ReviseProductDTO();
         request.setNewPricingMode("RATE_TABLE");
-        assertThat(mapper.toCommand(request, PRODUCT_ID).newPricingMode())
+        assertThat(mapper.toCommand(request, PRODUCT_ID, TENANT_ID).newPricingMode())
                 .isEqualTo(PricingMode.RATE_TABLE);
 
         ReviseProductDTO nullRequest = new ReviseProductDTO();
-        assertThat(mapper.toCommand(nullRequest, PRODUCT_ID).newPricingMode()).isNull();
+        assertThat(mapper.toCommand(nullRequest, PRODUCT_ID, TENANT_ID).newPricingMode()).isNull();
     }
 }

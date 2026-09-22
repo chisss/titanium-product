@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,9 +57,18 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     @Override
     @Transactional(readOnly = true)
     public ProductQueryResult findProductByCode(String productCode, String tenantId) {
-        return productViewRepository.findByProductCodeAndTenantId(productCode, tenantId)
+        return productViewRepository.findFirstByProductCodeAndTenantIdOrderByCreatedAtDesc(productCode, tenantId)
                 .map(queryResultMapper::toQueryResult)
                 .orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductQueryResult> findProductVersions(String productCode, String tenantId) {
+        return productViewRepository.findAllByProductCodeAndTenantIdOrderByCreatedAtDesc(productCode, tenantId)
+                .stream()
+                .map(queryResultMapper::toQueryResult)
+                .toList();
     }
 
     @Override
@@ -66,7 +76,9 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     public Page<ProductQueryResult> findByCondition(String productName, ProductEnum.ProductForm form,
                                                     InsuranceProductType type, ProductEnum.ProductStatus status,
                                                     int pageNum, int pageSize, String tenantId) {
-        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        // 默认排序：创建时间倒序 + 主键第二排序键（列表页展示的「创建时间」列即 createdAt，同一秒创建的多行顺序仍然确定）
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by("productId"));
+        Pageable pageable = PageRequest.of(pageNum, pageSize, sort);
         Specification<ProductView> spec = buildConditionSpec(productName, form, type, status, tenantId);
         return productViewRepository.findAll(spec, pageable).map(queryResultMapper::toQueryResult);
     }

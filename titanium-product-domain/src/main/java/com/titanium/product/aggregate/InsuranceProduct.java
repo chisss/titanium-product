@@ -294,10 +294,15 @@ public class InsuranceProduct extends BaseAggregate {
                 ? command.newRateTableRef() : this.rateTableRef;
         ActuarialBasis newActuarialBasis = command.newActuarialBasis() != null
                 ? command.newActuarialBasis() : this.actuarialBasis;
+        // 条款绑定同规则：命令未携带时继承原版本绑定。绑定非空是硬不变量，「清空」从来不是合法意图，
+        // 故此处绝不能像定价/核保那样把 null 直接落库（那会让新版本静默丢掉全部条款）
+        List<ProductClauseRel> newClauseRels = command.newClauseRels() != null
+                ? command.newClauseRels() : this.clauseRels;
+        validateClauseRels(ReviseProductCommand.class.getSimpleName(), newClauseRels);
         ProductRevisedEvent revisedEvent = new ProductRevisedEvent(command.newProductId(), this.templateId,
                 this.productId, newVersion, this.productCode, command.newProductName(), command.newProductDesc(),
                 command.newForm(), command.newInsuranceType(), command.newCategory(), command.newInsureCondition(),
-                command.newCoveragePeriod(), command.newPaymentConfig(), command.newClauseRels(),
+                command.newCoveragePeriod(), command.newPaymentConfig(), newClauseRels,
                 command.newPricingBasicRule(), newSalesChannels, command.newIssuanceProcessConfig(),
                 command.newPolicyFormConfig(), command.newUnderwritingConfig(), this.attachProductIds,
                 command.newPricingMode(), newRateTableRef, newActuarialBasis, this.tenantId);
@@ -331,8 +336,70 @@ public class InsuranceProduct extends BaseAggregate {
         if (!ProductEnum.ProductStatus.DRAFT.equals(this.status)) {
             throw new ProductStatusPreconditionException(this.productId, statusName(), "更新条款关联");
         }
+        validateClauseRels(UpdateProductClauseRelCommand.class.getSimpleName(), command.newClauseRels());
         this.clauseRels = command.newClauseRels();
         AggregateLifecycle.apply(new ProductClauseRelUpdatedEvent(productId, clauseRels));
+    }
+
+    /**
+     * 校验待替换的条款关联列表满足最小不变量。
+     * <p>
+     * 🔴 本处理器此前**零校验**——任何列表都能直接整体替换现有绑定。补上三条纯领域不变量：
+     * 非空、恰有一条主条款、条款不重复（判据与创建路径同源：relId 由「条款ID + 版本」派生，
+     * 重复条目会产生同 relId 的两条关联）。条款的**真伪与状态**（是否存在、是否已生效）是跨域问题，
+     * 不在聚合内判定——见 application 层 {@code ClauseExistencePort} 校验。
+     * </p>
+     *
+     * @param commandName 发起命令的类名（错误定位用）
+     * @param newRels     待替换的条款关联列表
+     */
+    private void validateClauseRels(String commandName, List<ProductClauseRel> newRels) {
+        assertClauseRelsNotEmpty(commandName, "newClauseRels", newRels);
+        long mainCount = newRels.stream().filter(rel -> Boolean.TRUE.equals(rel.isMainClause())).count();
+        if (mainCount != 1) {
+            throw new CommandValidationException(ProductErrorCode.CLAUSE_BINDING_FAILED,
+                    commandName, "newClauseRels", "必须且只能指定一条主条款，当前指定 " + mainCount + " 条");
+        }
+        assertNoDuplicateClauseIds(commandName, "newClauseRels",
+                newRels.stream().map(ProductClauseRel::clauseId).toList());
+    }
+
+    /**
+     * 条款关联不得为空。
+     *
+     * <p>🔴 创建（{@code clauseIds}）与整体替换（{@code newClauseRels}）两条路径**共用本实现**——
+     * 此前该判据在两处各写一份，R7-02 的负向对照正是因此漏注了一处实现，得出「测试没牙」的错误结论。</p>
+     *
+     * @param commandName 发起命令的类名（错误定位用）
+     * @param fieldName   命令中承载条款引用的字段名（错误定位用）
+     * @param clauseIds   待判定的条款引用列表
+     */
+    private static void assertClauseRelsNotEmpty(String commandName, String fieldName, List<?> clauseIds) {
+        if (clauseIds == null || clauseIds.isEmpty()) {
+            throw new CommandValidationException(commandName, fieldName, "产品必须绑定至少一条条款");
+        }
+    }
+
+    /**
+     * 条款不得重复绑定。
+     *
+     * <p>🔴 relId 由「条款ID + "_" + 版本」派生，同一个 clauseId 出现两次会产生**两条 relId 相同的
+     * 关联**（读模型 {@code t_product_clause_rel_view} 按 relId 建键时互相覆盖），且两条都满足
+     * {@code clauseId.equals(mainClauseId)}，产品会出现「两个主条款」。这是纯领域不变量、不依赖外部信息，
+     * 故内聚在聚合内判定（条款**真伪与状态**是跨域问题，另由 application 层经
+     * {@code ClauseExistencePort} 校验）。</p>
+     *
+     * <p>🔴 创建与整体替换两条路径**共用本实现**（同上）。</p>
+     *
+     * @param commandName 发起命令的类名（错误定位用）
+     * @param fieldName   命令中承载条款引用的字段名（错误定位用）
+     * @param clauseIds   待判定的条款引用列表
+     */
+    private static void assertNoDuplicateClauseIds(String commandName, String fieldName, List<String> clauseIds) {
+        if (clauseIds.stream().distinct().count() != clauseIds.size()) {
+            throw new CommandValidationException(ProductErrorCode.CLAUSE_BINDING_FAILED,
+                    commandName, fieldName, "条款不得重复绑定");
+        }
     }
 
     /**
@@ -488,9 +555,8 @@ public class InsuranceProduct extends BaseAggregate {
         if (command.templateId() == null || command.templateId().isBlank()) {
             throw new CommandValidationException(commandName, "templateId", "产品必须引用一个产品模板");
         }
-        if (command.clauseIds() == null || command.clauseIds().isEmpty()) {
-            throw new CommandValidationException(commandName, "clauseIds", "产品必须绑定至少一条条款");
-        }
+        assertClauseRelsNotEmpty(commandName, "clauseIds", command.clauseIds());
+        assertNoDuplicateClauseIds(commandName, "clauseIds", command.clauseIds());
         // 主条款必须在绑定条款列表中（跨条款关联的纯领域规则，委托领域服务判定）
         if (!productDomainService.validateMainClause(command.clauseIds(), command.mainClauseId())) {
             throw new CommandValidationException(commandName, "mainClauseId",

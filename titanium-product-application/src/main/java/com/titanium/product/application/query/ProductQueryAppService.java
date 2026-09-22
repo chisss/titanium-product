@@ -74,6 +74,22 @@ public class ProductQueryAppService {
     }
 
     /**
+     * 在指定租户内查询同一产品编码下的全部版本（版本历史）。
+     * <p>
+     * 不复用 {@link #queryProductByCode(String, String)}：后者按编码取**单条**产品，而版本历史
+     * 要的正是同编码下的**全部**版本行。此处直接委托读侧，不经查询总线（与分页查询同理，
+     * 集合返回类型只走读模型服务）。
+     * </p>
+     *
+     * @param productCode 产品编码（版本线归组键）
+     * @param tenantId 租户ID
+     * @return 该编码下的全部版本（新版在前），无版本时为空列表
+     */
+    public List<ProductQueryResult> queryProductVersions(String productCode, String tenantId) {
+        return productQueryService.findProductVersions(productCode, tenantId);
+    }
+
+    /**
      * 根据条件查询产品列表
      *
      * @param productName 产品名称（模糊匹配，可为空）

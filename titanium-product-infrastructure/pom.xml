@@ -50,6 +50,13 @@
             <groupId>com.titanium</groupId>
             <artifactId>titanium-channel-api</artifactId>
         </dependency>
+        <!-- 条款域 Feign 契约：仅 ClauseExistenceAdapter 使用（产品绑定条款时的存在性校验）。
+             🔴 该依赖曾在 m10-1304 因「全仓零引用」被删除；本次是**首次真实引用**，
+             引用点为 infrastructure/adapter/clause/ClauseExistenceAdapter.java。 -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-clause-api</artifactId>
+        </dependency>
 
         <!-- Spring Boot Dependencies -->
         <dependency>

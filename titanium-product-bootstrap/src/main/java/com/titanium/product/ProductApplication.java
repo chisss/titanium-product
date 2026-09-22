@@ -22,8 +22,11 @@ import com.titanium.product.service.PremiumAdjustmentService;
 @SpringBootApplication
 @ComponentScan(basePackages = { "com.titanium.product", "com.titanium.common" })
 @EnableScheduling
+// 🔴 新增外部契约必须同步登记此处，否则该契约的 Adapter 取不到 Feign Bean、上下文起不来
+// （条款域 m10-1304 曾被判定「全仓零引用」而移除依赖，本次为首次真实引用）
 @EnableFeignClients(basePackages = {
         "com.titanium.product.api",
+        "com.titanium.clause.api",
         "com.titanium.featurecenter.api",
         "com.titanium.ruleengine.api",
         "com.titanium.channel.api"

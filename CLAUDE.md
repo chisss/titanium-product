@@ -1,6 +1,6 @@
 # titanium-product 产品域 - 模块开发规约
 
-> 版本: V1.3 ｜ 最后更新: 2026-09-14（m16-1904：`ActuarialBasis` 定性为「未落地契约」+ 更正臆造 javadoc，产品级 `factors` 补齐领域侧 `@Deprecated` 并登记修订路径缺口，见 §7.12；上一版 m11-1405：`ProductTemplate.supportedCoverages/supportedExclusions` 定性登记为「未落地契约 🔶 契约/模型阶段」，见 §7.11；再上一版 m10-1304：Kafka 入站判定「不应接通」、空壳 `ClauseEventListener` 已删除，见 §7.5）
+> 版本: V1.5 ｜ 最后更新: 2026-09-22（R8-01：条款绑定门禁收口——三条写入路径共用 `clauseIdsOf` + `validateClauseBindable`，条款绑定要求 **ACTIVE**；`ReviseProductCommand` 补 `tenantId` 并把 `newClauseRels` 的 null 语义定为**继承**（此前原样落库＝修订一次静默清空全部绑定）；实测量化代价为 4 个 V2A 产品，见 §7.14；上一版 V1.4 R7-02：条款绑定写入侧校验落地——`domain/port/clause/ClauseExistencePort` + `infrastructure/adapter/clause/ClauseExistenceAdapter`，并固化「新增跨域 Feign 契约三处同批登记」，见 §7.13；再上一版 m16-1904：`ActuarialBasis` 定性为「未落地契约」+ 更正臆造 javadoc，产品级 `factors` 补齐领域侧 `@Deprecated` 并登记修订路径缺口，见 §7.12；再上一版 m11-1405：`ProductTemplate.supportedCoverages/supportedExclusions` 定性登记为「未落地契约 🔶 契约/模型阶段」，见 §7.11；再上一版 m10-1304：Kafka 入站判定「不应接通」、空壳 `ClauseEventListener` 已删除，见 §7.5）
 > 本文档为**产品域微服务级**规约，仅聚焦本模块。通用规范（DDD 分层、多租户、Liquibase 等）以根目录 `/Users/sunwei/titanium-project/CLAUDE.md` 为准，不再重复。
 
 ---
@@ -193,6 +193,7 @@ web Controller|Provider → application/command|query/pricing/*XxxService
     - **判据三（无反查能力）**：`ProductClauseRelViewRepository` 无按 `clauseId` 反查产品的方法（现有查询 `FindProductClauseByProductIdQuery` 方向相反）。
     - **判据四（同类先例对称）**：product 三个出站主题已由 m6-907 判定「仓内零消费者且不应接线」，定位为对外集成出口。
     - **附带清理**：`titanium-product-domain/pom.xml` 的 `titanium-clause-api` 依赖**全仓零引用**（`grep com.titanium.clause` 在 product 全域含 test 零命中），一并删除。
+    - ⚠️ **该依赖已于 2026-09-21（R7-02）重新引入**，理由是**出站 Feign 调用**（条款存在性校验），与上述「入站 Kafka 不应接通」是两个方向、不冲突：删掉的是入站监听，重加的是出站查询。详见 §7.13。
     - 判据全文见 [跨域事件目录 §六.17](../docs/技术文档/跨域事件目录-2026-09.md)。
 - `axon.eventbus.type=simple` 为**进程内事件总线**（Axon 自身分发），与跨域 Kafka 外发是两条独立通道，不影响上述结论。
 
@@ -261,6 +262,57 @@ web Controller|Provider → application/command|query/pricing/*XxxService
 - ✅ **双层 `@Deprecated` 已成对**：web 侧 `PricingBasicRuleDTO.factors`（`PricingBasicRuleDTO.java:41-42`）+ 领域侧值对象 `PricingBasicRule.factors`（record 头，**m16-1904 补标**）。保留组件而非删除，是让误用者在**两个入口**都收到可执行的拒绝提示（`PRICING_FACTORS_DEPRECATED`），而不是被静默忽略；删除须评估事件载荷兼容性（同上）。
 - **守护测试**：`PricingBasicRuleTest`（2 例——`factors` 组件须持续标注 `@Deprecated` 且传播到字段与访问器；**废弃面仅限 factors**，其余组件被误标即失败）+ web 侧 `ProductNestedInputDTOContractTest#factorsFieldMustStayMarkedDeprecated`。
 - 🟠 **新发现残留（m16-1904，只登记未改行为）**：G7 守卫**只挂在创建路径**——`validateCreateCommand`（`InsuranceProduct.java:480-517`，由创建构造器入口 `:172` 调用），而 `ReviseProductCommand` 处理器（`:284-310`）**未调用**该校验，`ReviseProductDTO.newPricingBasicRule`（`:53`）可携带同型 `PricingBasicRuleDTO` ⇒ **经「修订」仍可写入 factors 且不被拒**，G7「防止运营误以为生效」的意图在修订路径落空。⚠️ 补校验会使既有修订调用开始失败（**行为变更**），须先确认调用方再施工。
+
+### 7.13 🔴 新增跨域 Feign 契约必须三处同批登记（R7-02 立规，2026-09-21）
+
+本条由 R7-02「条款绑定写入侧校验」落地时踩出的坑固化：本域引入 `titanium-clause-api` 后，**单测全绿、却有两处运行时装配失效**——编译器与单测都看不见，只有 `mvn test` 起真实上下文、或真机启动才暴露。
+
+| # | 登记点 | 漏登记的后果 | 本次实测症状 |
+|---|--------|-------------|-------------|
+| 1 | `ProductApplication#@EnableFeignClients(basePackages=...)` 增补契约包 | Feign Bean 根本不被创建 | `No qualifying bean of type 'com.titanium.clause.api.ClauseApi'`（bootstrap 上下文测试 RED） |
+| 2 | `ProductDeadLetterQueueContextTest#@MockitoBean(types=...)` 增补契约接口 | **惰性解析**失败拖垮整个上下文 | `No Feign Client for loadBalancing defined`（本地无 `spring-cloud-starter-loadbalancer`） |
+| 3 | `docker/docker-compose.yml` 共享锚点 `SPRING_APPLICATION_JSON` 增补 `<contextId>.url` | 真机调用打到不存在的服务名 | 容器内 Feign 直连 `titanium-clause-service` 解析失败 |
+
+- 🔴 **判据**：前两处由 `mvn test` 兜住（**必须跑全量，跑单模块会漏**——`-pl <单模块>` 会用本地仓库的旧 SNAPSHOT 依赖 jar，编译期就可能假阴性），第三处**只有真机复核能发现**。
+- 🔴 **`-pl 单模块` 的陷阱（本次实测）**：改完 domain 后只跑 `mvn -pl <application 模块> test` 会从 `~/.m2` 取**旧 domain jar**，报「程序包不存在」；`tar` 还原源码不更新 mtime 还会让增量编译**跳过重编**（源码 mtime 早于 `.class` 即视为最新），旧字节码继续参与测试。
+- 定位口径：条款域 **出站查询**（本文档 §7.5 的入站 Kafka 判定**不受影响**，二者方向相反）；契约 `ClauseApi` 已有 `contextId=clauseApi`，compose 锚点按 `contextId` 键生效。
+
+### 7.14 🔴 条款绑定门禁：三条写入路径共用一个实现 + 修订路径的 null 语义（R8-01，2026-09-22）
+
+> R7-02 只把门禁接在**创建**路径，而 UI 上唯一可达的改绑定入口是**修订**（`POST /web/v1/products/{id}/revise`）——门禁当时守的是一条休眠路径。本条固化收口结论与判据。
+
+**(1) 条款绑定要求条款域状态为 `ACTIVE`**（用户 2026-09-22 裁定「最严」，与 `validateTemplateActive` 完全对称）
+
+- 判定由 `ClauseExistencePort.checkBindable` 一次往返同时回答两件事：**不存在** 与 **当前未生效**。两类文案**必须可区分**——合并会让运营照「不存在」的提示去新建同编码条款，撞唯一约束。
+- 🔴 **基础设施故障不得被表述成「不存在」**：仅 404 判为不存在，其余失败（Feign 5xx / 超时）原样上抛。
+- 三条写入路径**共用同一实现**（`ProductCommandAppService.clauseIdsOf` + `validateClauseBindable`），不得再在任一路径内联抄一份（§3.4.11「同一个判断在两处各写一份 ⇒ 必漂移」）：
+
+| 路径 | 入口 | 真机可达 | 门禁接入 |
+|------|------|---------|---------|
+| 创建 | `POST /web/v1/products` | ✅ | R7-02 |
+| 整体替换 | `ProductCommandAppService.updateProductClauseRel` | 🔴 **无任何生产调用方**（无端点、无 Provider、前端零引用），休眠路径 | R8-01 |
+| 修订 | `POST /web/v1/products/{id}/revise` | ✅ **UI 唯一可达的改绑定入口** | R8-01 |
+
+**(2) 🔴 `ReviseProductCommand.newClauseRels` 为 null 表示「继承原绑定」，不是「清空」**
+
+- 绑定非空是硬不变量，清空从来不是合法意图。此前该字段 `null` 被**原样落库** ⇒ 修订一次即**静默清空新版本的全部条款绑定**；现与 `newSalesChannels` / `newRateTableRef` / `newActuarialBasis` 三块同规则：命令未携带时继承 `this.clauseRels`。
+- 🔴 **继承路径不重跑 ACTIVE 校验**（`clauseIdsOf(null)` 返回空列表 ⇒ 端口对空入参短路）。理由：存量已有产品绑 DRAFT 条款，重校验会让它们**永久无法修订**。这也意味着门禁只约束**新写入的绑定**，不追溯存量。
+
+**(3) 🔴 `ReviseProductCommand` 补 `tenantId`（末位，共 20 分量）**
+
+跨域校验发生在**命令到达聚合之前**的应用层，那时聚合内继承的 `this.tenantId` 还取不到。此前该字段缺失使修订路径完全绕开条款门禁——它恰是 UI 上唯一可达的改绑定入口。web 侧由 `ProductWebMapper.toCommand(request, productId, tenantId)` 透传。
+
+**(4) 🔴 校验方法必须参数化命令名**：`validateClauseRels(commandName, newRels)` 的 `commandName` 由调用点传入（`ReviseProductCommand.class.getSimpleName()` / `UpdateProductClauseRelCommand.class.getSimpleName()`）。硬编码会让修订路径报错时误报成替换路径的命令名，运营按错误命令去查日志必然找不到。
+
+**(5) ⚠️ 已实测量化的代价（用户知情接受）**：租户 1 有 **4 个 EFFECTIVE 产品绑 DRAFT 条款**，经 UI 修订**必被拒**「未生效」：
+
+`V2A-GROUP-001`（惠企团体医疗险）/ `V2A-AUTO-001`（安行机动车保险）/ `V2A-LIFE-001`（金享定期寿险）/ `V2A-SHORT-001`（畅行短期意外险）
+
+- **成因是 UI 的必然行为**，非偶发：修订页 `onMounted` 用 `getProductClauses(id)` 回填 `clauseRels`（`src/views/product/revise/index.vue:536`），`buildPayload` **无条件**把它们带成 `newClauseRels`（同文件 `:502`）——前端**发不出 null**，所以「继承」这条后路对 UI 不可用。
+- 缓解途径（择一，均未施工）：① 在条款域把这 4 条条款审核激活；② 让门禁只校验**发生变化的**绑定（代价：存量未校验数据被永久豁免）。
+- ✅ 影响面**不含种子产品**：`STD-PRD-*` 九个标准产品全绑 ACTIVE 条款，零受影响；受影响的 4 个均为 V2A 联调测试产物。
+
+**(6) 真机复核结论（2026-09-22，镜像 `product-acceptance-20260922-v1`）**：创建路径 A1 不存在→400 `60000006`「不存在」/ A2 DRAFT→400「未生效」/ A3′ ACTIVE→**200 落库**；修订路径 B1 不存在→400（**错误文案正确点名 `ReviseProductCommand`**，即 (4) 的实测证据）/ B2 DRAFT→400「未生效」/ B3 ACTIVE→200 新版本落地；存量绑 DRAFT 产品 C1 带块→400「未生效」（= 代价实测成立）/ C2 不带块→**200 且新版本继承到原 DRAFT 绑定**（旧代码此处会清空）。**5 个负向用例零写入**（产品表 31→34、条款关联表 31→34，恰为 3 个正向用例各 1 条绑定）。
 
 ---
 

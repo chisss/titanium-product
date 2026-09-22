@@ -38,6 +38,7 @@ import com.titanium.product.web.catalog.InsuranceProductDefinitionCatalog;
 import com.titanium.product.web.dto.product.AuditProductDTO;
 import com.titanium.product.web.dto.product.ConfigureLifeProductDTO;
 import com.titanium.product.web.dto.product.CreateProductDTO;
+import com.titanium.product.web.dto.product.ProductVersionVO;
 import com.titanium.product.web.dto.product.ReviseProductDTO;
 import com.titanium.product.web.export.ProductCsvExporter;
 import com.titanium.product.web.mapper.ProductWebMapper;
@@ -79,6 +80,31 @@ public class ProductController {
     }
 
     /**
+     * 查询同一产品编码下的全部版本（版本历史）。
+     * <p>
+     * 🔴 本端点是**固定子路径**，与 {@code /definitions} 同族，必须显式登记在兜底
+     * {@code /{productId}} 之前：否则会被当作 {@code productId="versions"} 去按ID查产品。
+     * </p>
+     * <p>
+     * 版本线 = 同 {@code productCode} 的多个产品：修订不改写当前生效版本，而是继承编码派生新版本
+     * （见 {@code InsuranceProduct.handle(ReviseProductCommand)}）⇒ 按编码即可取回整条版本线。
+     * 出参刻意只带定位与状态字段，配置对比由调用方对选中的版本各自取详情完成。
+     * </p>
+     *
+     * @param productCode 产品编码（版本线归组键，必填）
+     * @param tenantId    租户ID（请求头）
+     * @return 该编码下的全部版本（新版在前）
+     */
+    @GetMapping("/versions")
+    public ApiResponse<List<ProductVersionVO>> listVersions(@RequestParam("productCode") String productCode,
+                                                            @RequestHeader("X-Tenant-ID") String tenantId) {
+        return ApiResponse.success(productQueryAppService.queryProductVersions(productCode, tenantId)
+                .stream()
+                .map(productWebMapper::toProductVersionVO)
+                .toList());
+    }
+
+    /**
      * 创建产品
      */
     @PostMapping
@@ -107,7 +133,7 @@ public class ProductController {
                                              @RequestBody ReviseProductDTO request,
                                              @RequestHeader("X-Tenant-ID") String tenantId) {
         // 协议转换：HTTP Request → 领域命令，收敛到同一应用层门面
-        ReviseProductCommand command = productWebMapper.toCommand(request, productId);
+        ReviseProductCommand command = productWebMapper.toCommand(request, productId, tenantId);
         String newProductId = productCommandAppService.reviseProduct(command);
         return ApiResponse.success(newProductId);
     }
