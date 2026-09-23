@@ -41,7 +41,7 @@ public class FeatureCenterResolutionAdapter implements FeatureResolutionPort {
 
     private FeatureResolveResponse invoke(PricingFeatureResolutionRequest request) {
         try {
-            ApiResponse<FeatureResolveResponse> response = featureCenterApi.resolve(toRequest(request), request.tenantId());
+            ApiResponse<FeatureResolveResponse> response = featureCenterApi.resolve(toRequest(request));
             if (response == null) {
                 throw invalidResponse("Feature Center响应为空", null);
             }

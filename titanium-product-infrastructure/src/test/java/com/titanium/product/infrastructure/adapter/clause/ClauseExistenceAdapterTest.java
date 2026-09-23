@@ -50,9 +50,9 @@ class ClauseExistenceAdapterTest {
     @Test
     @DisplayName("只报出条款域明确回答 404 的那些，且保持入参顺序")
     void shouldReportOnlyClausesTheDomainAnswersNotFound() {
-        when(clauseApi.getClauseById("clause-a", TENANT_ID)).thenReturn(activeClause());
-        when(clauseApi.getClauseById("clause-b", TENANT_ID)).thenThrow(notFound());
-        when(clauseApi.getClauseById("clause-c", TENANT_ID)).thenThrow(notFound());
+        when(clauseApi.getClauseById("clause-a")).thenReturn(activeClause());
+        when(clauseApi.getClauseById("clause-b")).thenThrow(notFound());
+        when(clauseApi.getClauseById("clause-c")).thenThrow(notFound());
 
         ClauseBindingCheck check = adapter.checkBindable(List.of("clause-a", "clause-b", "clause-c"), TENANT_ID);
 
@@ -64,7 +64,7 @@ class ClauseExistenceAdapterTest {
     @DisplayName("条款域响应体为 null 时判为缺失，不放行")
     void shouldTreatNullResponseAsMissing() {
         // Provider 端不存在时抛 404，不会返回 null；此兜底防的是「Feign 解码异常却不抛错」的下游变更
-        when(clauseApi.getClauseById("clause-a", TENANT_ID)).thenReturn(null);
+        when(clauseApi.getClauseById("clause-a")).thenReturn(null);
 
         assertThat(adapter.checkBindable(List.of("clause-a"), TENANT_ID).missingClauseIds())
                 .containsExactly("clause-a");
@@ -73,8 +73,8 @@ class ClauseExistenceAdapterTest {
     @Test
     @DisplayName("条款全部 ACTIVE 时结论为可绑定")
     void shouldBeCleanWhenEveryClauseIsActive() {
-        when(clauseApi.getClauseById("clause-a", TENANT_ID)).thenReturn(activeClause());
-        when(clauseApi.getClauseById("clause-b", TENANT_ID)).thenReturn(activeClause());
+        when(clauseApi.getClauseById("clause-a")).thenReturn(activeClause());
+        when(clauseApi.getClauseById("clause-b")).thenReturn(activeClause());
 
         ClauseBindingCheck check = adapter.checkBindable(List.of("clause-a", "clause-b"), TENANT_ID);
 
@@ -87,7 +87,7 @@ class ClauseExistenceAdapterTest {
     @EnumSource(value = ClauseEnum.ClauseStatus.class, names = "ACTIVE", mode = EnumSource.Mode.EXCLUDE)
     @DisplayName("🔴 除 ACTIVE 外的任一状态都不可绑定，且记入 nonActive 而非 missing")
     void shouldRejectEveryStatusOtherThanActiveIntoItsOwnBucket(ClauseEnum.ClauseStatus status) {
-        when(clauseApi.getClauseById("clause-a", TENANT_ID)).thenReturn(clauseWithStatus(status));
+        when(clauseApi.getClauseById("clause-a")).thenReturn(clauseWithStatus(status));
 
         ClauseBindingCheck check = adapter.checkBindable(List.of("clause-a"), TENANT_ID);
 
@@ -98,9 +98,9 @@ class ClauseExistenceAdapterTest {
     @Test
     @DisplayName("🔴 两类拒绝同时出现时各归各的桶，不得合并")
     void shouldKeepMissingAndNonActiveApart() {
-        when(clauseApi.getClauseById("clause-a", TENANT_ID)).thenReturn(activeClause());
-        when(clauseApi.getClauseById("clause-b", TENANT_ID)).thenThrow(notFound());
-        when(clauseApi.getClauseById("clause-c", TENANT_ID))
+        when(clauseApi.getClauseById("clause-a")).thenReturn(activeClause());
+        when(clauseApi.getClauseById("clause-b")).thenThrow(notFound());
+        when(clauseApi.getClauseById("clause-c"))
                 .thenReturn(clauseWithStatus(ClauseEnum.ClauseStatus.DRAFT));
 
         ClauseBindingCheck check = adapter.checkBindable(List.of("clause-a", "clause-b", "clause-c"), TENANT_ID);
@@ -123,7 +123,7 @@ class ClauseExistenceAdapterTest {
     @DisplayName("🔴 条款服务不可用时原样上抛，绝不记成「条款不存在」")
     void shouldPropagateServiceFailureInsteadOfReportingMissing() {
         FeignException serviceUnavailable = mock(FeignException.ServiceUnavailable.class);
-        when(clauseApi.getClauseById("clause-a", TENANT_ID)).thenThrow(serviceUnavailable);
+        when(clauseApi.getClauseById("clause-a")).thenThrow(serviceUnavailable);
 
         assertThatThrownBy(() -> adapter.checkBindable(List.of("clause-a"), TENANT_ID))
                 .isSameAs(serviceUnavailable);

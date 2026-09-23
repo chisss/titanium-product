@@ -33,7 +33,8 @@ class ProductApiContractTypeTest {
     }
 
     private Class<?> responseType(String methodName) throws NoSuchMethodException {
-        Type returnType = ProductApi.class.getMethod(methodName, String.class, String.class).getGenericReturnType();
+        // 租户已改由请求上下文承载，契约层不再有 tenantId 入参
+        Type returnType = ProductApi.class.getMethod(methodName, String.class).getGenericReturnType();
         ParameterizedType apiResponse = (ParameterizedType) returnType;
         Type dataType = apiResponse.getActualTypeArguments()[0];
         return (Class<?>) dataType;

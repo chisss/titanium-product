@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.request.product.AuditProductRequest;
@@ -38,64 +37,53 @@ public interface ProductApi {
 
     /** 创建产品 */
     @PostMapping
-    ApiResponse<String> createProduct(@RequestBody CreateProductRequest dto,
-                                      @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<String> createProduct(@RequestBody CreateProductRequest dto);
 
     /** 根据ID查询产品 */
     @GetMapping("/{productId}")
-    ApiResponse<ProductResponse> getProductById(@PathVariable("productId") String productId,
-                                           @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<ProductResponse> getProductById(@PathVariable String productId);
 
     /** 提交产品审核 */
     @PutMapping("/{productId}/submit-audit")
-    ApiResponse<Void> submitForAudit(@PathVariable("productId") String productId,
-                                      @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<Void> submitForAudit(@PathVariable String productId);
 
     /** 审核产品 */
     @PutMapping("/{productId}/audit")
-    ApiResponse<Void> auditProduct(@PathVariable("productId") String productId,
-                                    @RequestBody AuditProductRequest dto,
-                                    @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<Void> auditProduct(@PathVariable String productId,
+                                    @RequestBody AuditProductRequest dto);
 
     /** 驳回产品审核 */
     @PutMapping("/{productId}/reject")
-    ApiResponse<Void> rejectAudit(@PathVariable("productId") String productId,
-                                   @RequestBody AuditProductRequest dto,
-                                   @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<Void> rejectAudit(@PathVariable String productId,
+                                   @RequestBody AuditProductRequest dto);
 
     /** 下架产品 */
     @PutMapping("/{productId}/invalid")
-    ApiResponse<Void> invalidateProduct(@PathVariable("productId") String productId,
-                                         @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<Void> invalidateProduct(@PathVariable String productId);
 
     /** 查询产品出单流程配置（供Policy域调用） */
     @GetMapping("/{productId}/issuance-config")
     ApiResponse<IssuanceProcessConfigResponse> getIssuanceConfig(
-            @PathVariable("productId") String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @PathVariable String productId);
 
     /** 查询产品核保配置（供Underwriting域调用） */
     @GetMapping("/{productId}/underwriting-config")
     ApiResponse<UnderwritingConfigResponse> getUnderwritingConfig(
-            @PathVariable("productId") String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @PathVariable String productId);
 
     /** 按产品编码查询核保配置（供仅持有险种编码的 Underwriting 域调用） */
     @GetMapping("/by-code/{productCode}/underwriting-config")
     ApiResponse<UnderwritingConfigResponse> getUnderwritingConfigByCode(
-            @PathVariable("productCode") String productCode,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @PathVariable String productCode);
 
     /** 查询产品保单形态配置（供Policy域调用） */
     @GetMapping("/{productId}/policy-form-config")
     ApiResponse<PolicyFormConfigResponse> getPolicyFormConfig(
-            @PathVariable("productId") String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @PathVariable String productId);
 
     /** 查询产品定价基础规则（供Billing域保费计算调用） */
     @GetMapping("/{productId}/pricing-rule")
-    ApiResponse<PricingBasicRuleResponse> getPricingRule(@PathVariable("productId") String productId,
-                                                    @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<PricingBasicRuleResponse> getPricingRule(@PathVariable String productId);
 
     /**
      * 查询产品绑定的条款关联（供 Policy 域出单装配条款/责任快照调用）
@@ -106,10 +94,8 @@ public interface ProductApi {
      * </p>
      *
      * @param productId 产品ID
-     * @param tenantId 租户ID
      * @return 条款关联列表，未绑定时为空列表
      */
     @GetMapping("/{productId}/clauses")
-    ApiResponse<List<ProductClauseResponse>> getProductClauses(@PathVariable("productId") String productId,
-                                                          @RequestHeader("X-Tenant-ID") String tenantId);
+    ApiResponse<List<ProductClauseResponse>> getProductClauses(@PathVariable String productId);
 }

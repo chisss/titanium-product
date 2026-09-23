@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.response.product.ProductTemplateResponse;
@@ -49,8 +49,8 @@ public class ProductTemplateController {
      * 根据产品ID查询产品模板
      */
     @GetMapping("/by-product/{productId}")
-    public ApiResponse<ProductTemplateResponse> getByProductId(@PathVariable String productId,
-                                                          @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<ProductTemplateResponse> getByProductId(@PathVariable String productId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         ProductTemplateQueryResult result = queryAppService.getTemplateByProductId(productId, tenantId);
         return ApiResponse.success(webMapper.toResponse(result));
     }
@@ -59,8 +59,8 @@ public class ProductTemplateController {
      * 根据模板编码查询产品模板
      */
     @GetMapping("/by-code/{templateCode}")
-    public ApiResponse<ProductTemplateResponse> getByCode(@PathVariable String templateCode,
-                                                     @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<ProductTemplateResponse> getByCode(@PathVariable String templateCode) {
+        String tenantId = RequestContextHolder.requireTenantId();
         ProductTemplateQueryResult result = queryAppService.getTemplateByCode(templateCode, tenantId);
         return ApiResponse.success(webMapper.toResponse(result));
     }
@@ -69,8 +69,8 @@ public class ProductTemplateController {
      * 根据模板ID查询产品模板
      */
     @GetMapping("/{templateId}")
-    public ApiResponse<ProductTemplateResponse> getById(@PathVariable String templateId,
-                                                   @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<ProductTemplateResponse> getById(@PathVariable String templateId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         ProductTemplateQueryResult result = queryAppService.getTemplateById(templateId, tenantId);
         return ApiResponse.success(webMapper.toResponse(result));
     }
@@ -79,8 +79,8 @@ public class ProductTemplateController {
      * 创建产品模板
      */
     @PostMapping
-    public ApiResponse<String> createTemplate(@RequestBody CreateProductTemplateDTO request,
-                                              @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<String> createTemplate(@RequestBody CreateProductTemplateDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         // 协议转换：HTTP Request → 领域命令，收敛到应用层门面
         CreateProductTemplateCommand command = webMapper.toCommand(request, tenantId);
         String templateId = commandAppService.createTemplate(command);
@@ -97,13 +97,12 @@ public class ProductTemplateController {
      *
      * @param templateId 模板ID（路径变量）
      * @param request 更新产品模板请求
-     * @param tenantId 租户ID（请求头）
      * @return 空响应
      */
     @PutMapping("/{templateId}")
     public ApiResponse<Void> updateTemplate(@PathVariable String templateId,
-                                            @RequestBody UpdateProductTemplateDTO request,
-                                            @RequestHeader("X-Tenant-ID") String tenantId) {
+                                            @RequestBody UpdateProductTemplateDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.updateTemplate(webMapper.toUpdateCommand(templateId, request, tenantId));
         return ApiResponse.success(null);
     }
@@ -112,8 +111,8 @@ public class ProductTemplateController {
      * 激活产品模板
      */
     @PutMapping("/{templateId}/activate")
-    public ApiResponse<Void> activateTemplate(@PathVariable String templateId,
-                                              @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<Void> activateTemplate(@PathVariable String templateId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.activateTemplate(templateId, tenantId);
         return ApiResponse.success(null);
     }
@@ -122,8 +121,8 @@ public class ProductTemplateController {
      * 停用产品模板
      */
     @PutMapping("/{templateId}/deactivate")
-    public ApiResponse<Void> deactivateTemplate(@PathVariable String templateId,
-                                                @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<Void> deactivateTemplate(@PathVariable String templateId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.deactivateTemplate(templateId, tenantId);
         return ApiResponse.success(null);
     }
@@ -132,8 +131,8 @@ public class ProductTemplateController {
      * 根据险种类型查询模板列表
      */
     @GetMapping("/by-type/{insuranceTypeCode}")
-    public ApiResponse<List<ProductTemplateResponse>> getByInsuranceType(@PathVariable String insuranceTypeCode,
-                                                                    @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<List<ProductTemplateResponse>> getByInsuranceType(@PathVariable String insuranceTypeCode) {
+        String tenantId = RequestContextHolder.requireTenantId();
         InsuranceType type = InsuranceType.fromCode(insuranceTypeCode);
         List<ProductTemplateQueryResult> results = queryAppService.getTemplatesByInsuranceType(type, tenantId);
         return ApiResponse.success(results.stream().map(webMapper::toResponse).toList());

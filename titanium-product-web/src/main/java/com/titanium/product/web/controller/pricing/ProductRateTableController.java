@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.response.ApiResponse;
@@ -51,8 +51,8 @@ public class ProductRateTableController {
     @PostMapping
     public ApiResponse<String> createDraft(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @Valid @RequestBody CreateRateTableDraftDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         RateUnit rateUnit = RateUnit.fromCode(request.rateUnit());
         if (rateUnit == null) {
             throw new BusinessException(ProductErrorCode.PRICING_INPUT_INVALID);
@@ -67,8 +67,8 @@ public class ProductRateTableController {
     public ApiResponse<Void> replaceRows(
             @PathVariable String productId,
             @PathVariable String tableId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @Valid @RequestBody ReplaceRateTableRowsDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         rateTableCommandAppService.replaceRows(new ReplaceRateTableRowsCommand(
                 tenantId, productId, tableId, request.rows().stream().map(this::toDraft).toList()));
         return ApiResponse.success(null);
@@ -77,8 +77,8 @@ public class ProductRateTableController {
     @PostMapping("/{tableId}/validate")
     public ApiResponse<RateTableValidationVO> validate(
             @PathVariable String productId,
-            @PathVariable String tableId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String tableId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(toValidationResponse(
                 rateTableCommandAppService.validate(tenantId, productId, tableId)));
     }
@@ -86,8 +86,8 @@ public class ProductRateTableController {
     @PostMapping("/{tableId}/publish")
     public ApiResponse<RateTableValidationVO> publish(
             @PathVariable String productId,
-            @PathVariable String tableId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String tableId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(toValidationResponse(
                 rateTableCommandAppService.publish(tenantId, productId, tableId)));
     }
@@ -95,8 +95,8 @@ public class ProductRateTableController {
     @PostMapping("/{tableId}/retire")
     public ApiResponse<Void> retire(
             @PathVariable String productId,
-            @PathVariable String tableId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String tableId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         rateTableCommandAppService.retire(tenantId, productId, tableId);
         return ApiResponse.success(null);
     }
@@ -104,8 +104,8 @@ public class ProductRateTableController {
     @GetMapping
     public ApiResponse<List<RateTableVO>> list(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestParam(required = false) String status) {
+        String tenantId = RequestContextHolder.requireTenantId();
         RateTableStatus rateTableStatus = parseStatus(status);
         return ApiResponse.success(rateTableQueryAppService.list(tenantId, productId, rateTableStatus)
                 .stream()
@@ -116,8 +116,8 @@ public class ProductRateTableController {
     @GetMapping("/{tableId}")
     public ApiResponse<RateTableVO> get(
             @PathVariable String productId,
-            @PathVariable String tableId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String tableId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(toResponse(
                 rateTableQueryAppService.get(tenantId, productId, tableId)));
     }

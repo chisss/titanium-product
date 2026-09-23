@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.titanium.common.context.RequestContextInterceptor;
 import com.titanium.product.application.command.pricing.RateTableCommandAppService;
 import com.titanium.product.application.query.pricing.RateTableQueryAppService;
 import com.titanium.product.web.handler.ProductExceptionHandler;
@@ -29,6 +30,9 @@ class ProductRateTableControllerTest {
         ProductRateTableController controller = new ProductRateTableController(commandAppService, queryAppService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new ProductExceptionHandler())
+                // m18：显式注册请求上下文拦截器（standaloneSetup 不装配容器里的拦截器），
+                // 使 X-Tenant-ID 头经真实路径进入 RequestContextHolder
+                .addInterceptors(new RequestContextInterceptor())
                 .build();
     }
 

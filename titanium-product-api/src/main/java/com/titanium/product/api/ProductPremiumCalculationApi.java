@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.request.premium.PremiumCalculationRequest;
@@ -26,34 +25,28 @@ public interface ProductPremiumCalculationApi {
 
     @PostMapping("/products/{productId}/premium-calculations")
     ApiResponse<PremiumCalculationResponse> confirm(
-            @PathVariable("productId") String productId,
-            @Valid @RequestBody PremiumCalculationRequest request,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @PathVariable String productId,
+            @Valid @RequestBody PremiumCalculationRequest request);
 
     @GetMapping("/premium-calculations/{calculationId}")
     ApiResponse<PremiumCalculationResponse> get(
-            @PathVariable("calculationId") String calculationId,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @PathVariable String calculationId);
 
     @PostMapping("/premium-calculations/lifecycle-adjustments")
     ApiResponse<PremiumLifecycleAdjustmentResponse> createLifecycleAdjustment(
-            @Valid @RequestBody PremiumLifecycleAdjustmentRequest request,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @Valid @RequestBody PremiumLifecycleAdjustmentRequest request);
 
     /** 基于既有生命周期差额生成不可变反向差额事实。 */
     @PostMapping("/premium-lifecycle-adjustments/reversals")
     ApiResponse<PremiumLifecycleAdjustmentResponse> reverseLifecycleAdjustment(
-            @Valid @RequestBody PremiumLifecycleReversalRequest request,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @Valid @RequestBody PremiumLifecycleReversalRequest request);
 
     @GetMapping("/premium-lifecycle-adjustments/{adjustmentId}")
     ApiResponse<PremiumLifecycleAdjustmentResponse> getLifecycleAdjustment(
-            @PathVariable("adjustmentId") String adjustmentId,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @PathVariable String adjustmentId);
 
     /** 基于不可变确认计算和历史 Billing 期间基线生成版本化追溯差额。 */
     @PostMapping("/premium-calculations/retroactive-period-recalculations")
     ApiResponse<RetroactivePremiumPeriodRecalculationResponse> recalculateRetroactivePeriods(
-            @Valid @RequestBody RetroactivePremiumPeriodRecalculationRequest request,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @Valid @RequestBody RetroactivePremiumPeriodRecalculationRequest request);
 }

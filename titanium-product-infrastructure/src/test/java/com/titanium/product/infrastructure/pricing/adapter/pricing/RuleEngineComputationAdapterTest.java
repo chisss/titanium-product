@@ -59,7 +59,7 @@ class RuleEngineComputationAdapterTest {
                 .artifactHash("hash-7")
                 .durationMs(12)
                 .build();
-        when(ruleArtifactApi.compute(eq("premium-calc"), eq("7"), any(), eq(TENANT_ID),
+        when(ruleArtifactApi.compute(eq("premium-calc"), eq("7"), any(),
                 eq(BUSINESS_ID), eq(BUSINESS_TYPE)))
                 .thenReturn(ApiResponse.success(response));
 
@@ -68,15 +68,14 @@ class RuleEngineComputationAdapterTest {
         assertThat(result.computedValue()).isEqualByComparingTo("123.45");
         assertThat(result.artifactHash()).isEqualTo("hash-7");
         ArgumentCaptor<RuleArtifactComputeRequest> requestCaptor = ArgumentCaptor.forClass(RuleArtifactComputeRequest.class);
-        verify(ruleArtifactApi).compute(eq("premium-calc"), eq("7"), requestCaptor.capture(),
-                eq(TENANT_ID), eq(BUSINESS_ID), eq(BUSINESS_TYPE));
+        verify(ruleArtifactApi).compute(eq("premium-calc"), eq("7"), requestCaptor.capture(), eq(BUSINESS_ID), eq(BUSINESS_TYPE));
         assertThat(requestCaptor.getValue().getInputSchemaVersion()).isEqualTo("pricing-input:1");
         assertThat(requestCaptor.getValue().getExecutionId()).isEqualTo("execution-1");
     }
 
     @Test
     void shouldFailClosedWhenDownstreamReturnsBusinessFailure() {
-        when(ruleArtifactApi.compute(eq("premium-calc"), eq("7"), any(), eq(TENANT_ID),
+        when(ruleArtifactApi.compute(eq("premium-calc"), eq("7"), any(),
                 eq(BUSINESS_ID), eq(BUSINESS_TYPE)))
                 .thenReturn(new ApiResponse<>("62000001", "rule failed", null));
 
@@ -88,7 +87,7 @@ class RuleEngineComputationAdapterTest {
 
     @Test
     void shouldFailClosedWhenResponseDataIsEmpty() {
-        when(ruleArtifactApi.compute(eq("premium-calc"), eq("7"), any(), eq(TENANT_ID),
+        when(ruleArtifactApi.compute(eq("premium-calc"), eq("7"), any(),
                 eq(BUSINESS_ID), eq(BUSINESS_TYPE)))
                 .thenReturn(ApiResponse.success(null));
 
@@ -108,7 +107,7 @@ class RuleEngineComputationAdapterTest {
                 .computedValue(BigDecimal.ONE)
                 .artifactHash("hash-8")
                 .build();
-        when(ruleArtifactApi.compute(eq("premium-calc"), eq("7"), any(), eq(TENANT_ID),
+        when(ruleArtifactApi.compute(eq("premium-calc"), eq("7"), any(),
                 eq(BUSINESS_ID), eq(BUSINESS_TYPE)))
                 .thenReturn(ApiResponse.success(response));
 

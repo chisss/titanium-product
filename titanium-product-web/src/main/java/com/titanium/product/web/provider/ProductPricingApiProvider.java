@@ -4,6 +4,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductPricingApi;
 import com.titanium.product.api.request.premium.PremiumQuoteRequest;
@@ -29,9 +30,9 @@ public class ProductPricingApiProvider implements ProductPricingApi {
 
     @Override
     public ApiResponse<PremiumQuoteResponse> quotePremium(
-            String productId, PremiumQuoteRequest request, String tenantId) {
+            String productId, PremiumQuoteRequest request) {
         PremiumQuote quote = premiumPricingQueryAppService.quote(new PremiumQuoteQuery(
-                tenantId, productId, request.requestId(), request.businessTime(), request.currency(),
+                RequestContextHolder.requireTenantId(), productId, request.requestId(), request.businessTime(), request.currency(),
                 request.sumInsured(), request.age(), request.gender(), request.paymentTermYears(),
                 request.coverageTermYears(), request.paymentPeriods(), request.requestSnapshot(),
                 request.channelId(), request.policyYear() == null ? 1 : request.policyYear()));

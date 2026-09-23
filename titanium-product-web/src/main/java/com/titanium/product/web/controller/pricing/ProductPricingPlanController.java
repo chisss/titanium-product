@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.errorcode.ProductErrorCode;
@@ -69,8 +69,8 @@ public class ProductPricingPlanController {
     @PostMapping
     public ApiResponse<String> createDraft(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @Valid @RequestBody CreatePricingPlanDraftDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.createDraft(new CreatePricingPlanDraftCommand(
                 tenantId, productId, request.productVersion(), request.planVersion(),
                 parsePricingMode(request.pricingMode()), request.currency(), request.effectiveFrom(),
@@ -85,8 +85,8 @@ public class ProductPricingPlanController {
     public ApiResponse<Void> replaceTestCases(
             @PathVariable String productId,
             @PathVariable String planId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @Valid @RequestBody ReplacePricingTestCasesDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.replaceTestCases(new ReplacePricingTestCasesCommand(
                 tenantId, productId, planId, request.testCases().stream().map(this::toDraft).toList()));
         return ApiResponse.success(null);
@@ -95,32 +95,32 @@ public class ProductPricingPlanController {
     @PostMapping("/{planId}/approve")
     public ApiResponse<String> approve(
             @PathVariable String productId,
-            @PathVariable String planId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String planId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.approve(tenantId, productId, planId));
     }
 
     @PostMapping("/{planId}/test-cases:run")
     public ApiResponse<PricingPlanValidationVO> runTests(
             @PathVariable String productId,
-            @PathVariable String planId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String planId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(toValidation(queryAppService.runTests(tenantId, productId, planId)));
     }
 
     @PostMapping("/{planId}/publish")
     public ApiResponse<PricingPlanValidationVO> publish(
             @PathVariable String productId,
-            @PathVariable String planId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String planId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(toValidation(commandAppService.publish(tenantId, productId, planId)));
     }
 
     @PostMapping("/{planId}/retire")
     public ApiResponse<Void> retire(
             @PathVariable String productId,
-            @PathVariable String planId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String planId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.retire(tenantId, productId, planId);
         return ApiResponse.success(null);
     }
@@ -128,8 +128,8 @@ public class ProductPricingPlanController {
     @GetMapping
     public ApiResponse<List<PricingPlanVO>> list(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestParam(required = false) String status) {
+        String tenantId = RequestContextHolder.requireTenantId();
         PricingPlanStatus parsedStatus = parseStatus(status);
         return ApiResponse.success(queryAppService.list(tenantId, productId, parsedStatus).stream()
                 .map(this::toResponse)
@@ -139,8 +139,8 @@ public class ProductPricingPlanController {
     @GetMapping("/{planId}")
     public ApiResponse<PricingPlanVO> get(
             @PathVariable String productId,
-            @PathVariable String planId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String planId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(toResponse(queryAppService.get(tenantId, productId, planId)));
     }
 

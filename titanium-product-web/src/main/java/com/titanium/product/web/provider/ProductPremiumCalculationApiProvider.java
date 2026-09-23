@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.response.ApiResponse;
@@ -93,13 +94,13 @@ public class ProductPremiumCalculationApiProvider implements ProductPremiumCalcu
 
     @Override
     public ApiResponse<PremiumCalculationResponse> confirm(
-            String productId, @Valid PremiumCalculationRequest request, String tenantId) {
+            String productId, @Valid PremiumCalculationRequest request) {
         PricingCalculationPurpose purpose = PricingCalculationPurpose.fromCode(request.purpose());
         if (purpose == null) {
             throw new BusinessException(ProductErrorCode.PRICING_INPUT_INVALID);
         }
         PremiumCalculation calculation = calculationCommandAppService.confirm(new PremiumCalculationCommand(
-                tenantId, productId, request.calculationRequestId(), request.bizNo(), purpose,
+                RequestContextHolder.requireTenantId(), productId, request.calculationRequestId(), request.bizNo(), purpose,
                 request.productVersion(), request.businessTime(), request.currency(), request.sumInsured(),
                 request.age(), request.gender(), request.paymentTermYears(), request.coverageTermYears(),
                 request.paymentPeriods(), request.requestSnapshot(), toDomainAdjustments(request.underwritingAdjustments()),
@@ -108,21 +109,21 @@ public class ProductPremiumCalculationApiProvider implements ProductPremiumCalcu
     }
 
     @Override
-    public ApiResponse<PremiumCalculationResponse> get(String calculationId, String tenantId) {
+    public ApiResponse<PremiumCalculationResponse> get(String calculationId) {
         return ApiResponse.success(toResponse(calculationQueryAppService.get(
-                new PremiumCalculationQuery(tenantId, calculationId))));
+                new PremiumCalculationQuery(RequestContextHolder.requireTenantId(), calculationId))));
     }
 
     @Override
     public ApiResponse<PremiumLifecycleAdjustmentResponse> createLifecycleAdjustment(
-            @Valid PremiumLifecycleAdjustmentRequest request, String tenantId) {
+            @Valid PremiumLifecycleAdjustmentRequest request) {
         PremiumLifecycleType lifecycleType = PremiumLifecycleType.fromCode(request.lifecycleType());
         if (lifecycleType == null) {
             throw new BusinessException(ProductErrorCode.PRICING_INPUT_INVALID);
         }
         PremiumLifecycleAdjustment adjustment = lifecycleAdjustmentCommandAppService.create(
                 new CreatePremiumLifecycleAdjustmentCommand(
-                        tenantId, request.adjustmentRequestId(), request.bizNo(), lifecycleType,
+                        RequestContextHolder.requireTenantId(), request.adjustmentRequestId(), request.bizNo(), lifecycleType,
                         request.originalCalculationId(), request.replacementCalculationId(),
                         request.businessTime(), request.reason()));
         return ApiResponse.success(toResponse(adjustment));
@@ -130,25 +131,25 @@ public class ProductPremiumCalculationApiProvider implements ProductPremiumCalcu
 
     @Override
     public ApiResponse<PremiumLifecycleAdjustmentResponse> reverseLifecycleAdjustment(
-            @Valid PremiumLifecycleReversalRequest request, String tenantId) {
+            @Valid PremiumLifecycleReversalRequest request) {
         PremiumLifecycleAdjustment reversal = lifecycleAdjustmentCommandAppService.createReversal(
-                new CreatePremiumLifecycleReversalCommand(tenantId, request.adjustmentRequestId(),
+                new CreatePremiumLifecycleReversalCommand(RequestContextHolder.requireTenantId(), request.adjustmentRequestId(),
                         request.sourceAdjustmentId(), request.businessTime(), request.reason()));
         return ApiResponse.success(toResponse(reversal));
     }
 
     @Override
     public ApiResponse<PremiumLifecycleAdjustmentResponse> getLifecycleAdjustment(
-            String adjustmentId, String tenantId) {
-        return ApiResponse.success(toResponse(lifecycleAdjustmentQueryAppService.get(tenantId, adjustmentId)));
+            String adjustmentId) {
+        return ApiResponse.success(toResponse(lifecycleAdjustmentQueryAppService.get(RequestContextHolder.requireTenantId(), adjustmentId)));
     }
 
     @Override
     public ApiResponse<RetroactivePremiumPeriodRecalculationResponse> recalculateRetroactivePeriods(
-            @Valid RetroactivePremiumPeriodRecalculationRequest request, String tenantId) {
+            @Valid RetroactivePremiumPeriodRecalculationRequest request) {
         RetroactivePremiumPeriodRecalculationResult result = retroactivePeriodService.recalculate(
                 new RecalculateRetroactivePremiumPeriodsCommand(
-                        tenantId, request.recalculationRequestId(), request.maintenanceId(), request.policyId(),
+                        RequestContextHolder.requireTenantId(), request.recalculationRequestId(), request.maintenanceId(), request.policyId(),
                         request.analysisId(), request.analysisVersion(), request.analysisResultHash(),
                         request.originalCalculationId(), request.replacementCalculationId(),
                         request.scopeFrom(), request.scopeTo(), request.periods().stream()

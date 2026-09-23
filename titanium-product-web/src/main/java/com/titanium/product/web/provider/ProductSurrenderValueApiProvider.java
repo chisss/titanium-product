@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductSurrenderValueApi;
@@ -37,10 +38,10 @@ public class ProductSurrenderValueApiProvider implements ProductSurrenderValueAp
 
     @Override
     public ApiResponse<SurrenderValueCalculationResponse> calculate(
-            @Valid SurrenderValueCalculationRequest request, String tenantId) {
+            @Valid SurrenderValueCalculationRequest request) {
         SurrenderValueCalculationResult result = commandAppService.calculate(
                 new CalculateSurrenderValueCommand(
-                        tenantId, request.surrenderRequestId(), request.bizNo(), request.originalBizNo(),
+                        RequestContextHolder.requireTenantId(), request.surrenderRequestId(), request.bizNo(), request.originalBizNo(),
                         request.originalCalculationId(),
                         request.policyEffectiveDate(), request.surrenderDate(), request.policyYear(),
                         request.businessTime(), request.reason()));
@@ -60,8 +61,8 @@ public class ProductSurrenderValueApiProvider implements ProductSurrenderValueAp
     @Override
     public ApiResponse<CashValueQueryResponse> queryCashValue(String productId, int policyYear,
             BigDecimal customerPayable, LocalDate policyEffectiveDate, LocalDate valuationDate,
-            LocalDateTime businessTime, String tenantId) {
-        Optional<CashValueSnapshot> snapshot = cashValueQueryAppService.query(tenantId, productId, policyYear,
+            LocalDateTime businessTime) {
+        Optional<CashValueSnapshot> snapshot = cashValueQueryAppService.query(RequestContextHolder.requireTenantId(), productId, policyYear,
                 customerPayable, policyEffectiveDate, valuationDate, businessTime);
         // 该时点无已发布退保价值策略：返回业务码失败（非 HTTP 错误），上游据此降级为「取不到现金价值」
         return snapshot

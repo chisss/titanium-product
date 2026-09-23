@@ -72,7 +72,7 @@ public class ClauseExistenceAdapter implements ClauseExistencePort {
         try {
             // Provider 端不存在时抛 ClauseNotFoundException（404），不会返回 null；
             // 此处的 null 兜底是防「Feign 解码异常却未抛错」的下游变更，宁可判为缺失也不放行
-            return clauseApi.getClauseById(clauseId, tenantId);
+            return clauseApi.getClauseById(clauseId);
         } catch (FeignException.NotFound e) {
             log.warn("条款不存在，产品条款绑定校验将拒绝该引用: clauseId={}, tenantId={}", clauseId, tenantId);
             return null;

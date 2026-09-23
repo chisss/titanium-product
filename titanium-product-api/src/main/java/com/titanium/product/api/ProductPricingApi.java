@@ -4,7 +4,6 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.request.premium.PremiumQuoteRequest;
@@ -23,7 +22,6 @@ public interface ProductPricingApi {
      */
     @PostMapping("/{productId}/premium-quotes")
     ApiResponse<PremiumQuoteResponse> quotePremium(
-            @PathVariable("productId") String productId,
-            @Valid @RequestBody PremiumQuoteRequest request,
-            @RequestHeader("X-Tenant-ID") String tenantId);
+            @PathVariable String productId,
+            @Valid @RequestBody PremiumQuoteRequest request);
 }

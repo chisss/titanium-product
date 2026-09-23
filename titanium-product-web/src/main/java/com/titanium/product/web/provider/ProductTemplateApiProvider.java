@@ -3,6 +3,7 @@ package com.titanium.product.web.provider;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductTemplateApi;
 import com.titanium.product.api.response.product.ProductTemplateResponse;
@@ -32,20 +33,20 @@ public class ProductTemplateApiProvider implements ProductTemplateApi {
     private final ProductTemplateWebMapper       productTemplateWebMapper;
 
     @Override
-    public ApiResponse<ProductTemplateResponse> getByProductId(String productId, String tenantId) {
-        ProductTemplateQueryResult result = productTemplateQueryAppService.getTemplateByProductId(productId, tenantId);
+    public ApiResponse<ProductTemplateResponse> getByProductId(String productId) {
+        ProductTemplateQueryResult result = productTemplateQueryAppService.getTemplateByProductId(productId, RequestContextHolder.requireTenantId());
         return ApiResponse.success(productTemplateWebMapper.toResponse(result));
     }
 
     @Override
-    public ApiResponse<ProductTemplateResponse> getByCode(String templateCode, String tenantId) {
-        ProductTemplateQueryResult result = productTemplateQueryAppService.getTemplateByCode(templateCode, tenantId);
+    public ApiResponse<ProductTemplateResponse> getByCode(String templateCode) {
+        ProductTemplateQueryResult result = productTemplateQueryAppService.getTemplateByCode(templateCode, RequestContextHolder.requireTenantId());
         return ApiResponse.success(productTemplateWebMapper.toResponse(result));
     }
 
     @Override
-    public ApiResponse<ProductTemplateResponse> getById(String templateId, String tenantId) {
-        ProductTemplateQueryResult result = productTemplateQueryAppService.getTemplateById(templateId, tenantId);
+    public ApiResponse<ProductTemplateResponse> getById(String templateId) {
+        ProductTemplateQueryResult result = productTemplateQueryAppService.getTemplateById(templateId, RequestContextHolder.requireTenantId());
         return ApiResponse.success(productTemplateWebMapper.toResponse(result));
     }
 }

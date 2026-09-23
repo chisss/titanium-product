@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductApi;
 import com.titanium.product.api.request.product.AuditProductRequest;
@@ -53,76 +54,76 @@ public class ProductApiProvider implements ProductApi {
     }
 
     @Override
-    public ApiResponse<String> createProduct(CreateProductRequest dto, String tenantId) {
+    public ApiResponse<String> createProduct(CreateProductRequest dto) {
         // 协议转换：远程 DTO → 领域命令，收敛到同一应用层门面
-        CreateProductCommand command = productWebMapper.toCommand(dto, tenantId);
+        CreateProductCommand command = productWebMapper.toCommand(dto, RequestContextHolder.requireTenantId());
         String productId = productCommandAppService.createProduct(command);
         return ApiResponse.success(productId);
     }
 
     @Override
-    public ApiResponse<ProductResponse> getProductById(String productId, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
+    public ApiResponse<ProductResponse> getProductById(String productId) {
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, RequestContextHolder.requireTenantId());
         return ApiResponse.success(productWebMapper.toProductResponse(result));
     }
 
     @Override
-    public ApiResponse<Void> submitForAudit(String productId, String tenantId) {
+    public ApiResponse<Void> submitForAudit(String productId) {
         productCommandAppService.submitForAudit(productId);
         return ApiResponse.success(null);
     }
 
     @Override
-    public ApiResponse<Void> auditProduct(String productId, AuditProductRequest dto, String tenantId) {
+    public ApiResponse<Void> auditProduct(String productId, AuditProductRequest dto) {
         productCommandAppService.auditProduct(productWebMapper.toAuditCommand(productId, dto));
         return ApiResponse.success(null);
     }
 
     @Override
-    public ApiResponse<Void> rejectAudit(String productId, AuditProductRequest dto, String tenantId) {
+    public ApiResponse<Void> rejectAudit(String productId, AuditProductRequest dto) {
         productCommandAppService.rejectAudit(productWebMapper.toRejectCommand(productId, dto));
         return ApiResponse.success(null);
     }
 
     @Override
-    public ApiResponse<Void> invalidateProduct(String productId, String tenantId) {
+    public ApiResponse<Void> invalidateProduct(String productId) {
         productCommandAppService.invalidateProduct(productId);
         return ApiResponse.success(null);
     }
 
     @Override
-    public ApiResponse<IssuanceProcessConfigResponse> getIssuanceConfig(String productId, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
+    public ApiResponse<IssuanceProcessConfigResponse> getIssuanceConfig(String productId) {
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, RequestContextHolder.requireTenantId());
         return ApiResponse.success(productWebMapper.toIssuanceProcessConfigResponse(result.getIssuanceProcessConfig()));
     }
 
     @Override
-    public ApiResponse<UnderwritingConfigResponse> getUnderwritingConfig(String productId, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
+    public ApiResponse<UnderwritingConfigResponse> getUnderwritingConfig(String productId) {
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, RequestContextHolder.requireTenantId());
         return ApiResponse.success(productWebMapper.toUnderwritingConfigResponse(result.getUnderwritingConfig()));
     }
 
     @Override
-    public ApiResponse<UnderwritingConfigResponse> getUnderwritingConfigByCode(String productCode, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductByCode(productCode, tenantId);
+    public ApiResponse<UnderwritingConfigResponse> getUnderwritingConfigByCode(String productCode) {
+        ProductQueryResult result = productQueryAppService.queryProductByCode(productCode, RequestContextHolder.requireTenantId());
         return ApiResponse.success(productWebMapper.toUnderwritingConfigResponse(result.getUnderwritingConfig()));
     }
 
     @Override
-    public ApiResponse<PolicyFormConfigResponse> getPolicyFormConfig(String productId, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
+    public ApiResponse<PolicyFormConfigResponse> getPolicyFormConfig(String productId) {
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, RequestContextHolder.requireTenantId());
         return ApiResponse.success(productWebMapper.toPolicyFormConfigResponse(result.getPolicyFormConfig()));
     }
 
     @Override
-    public ApiResponse<PricingBasicRuleResponse> getPricingRule(String productId, String tenantId) {
-        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
+    public ApiResponse<PricingBasicRuleResponse> getPricingRule(String productId) {
+        ProductQueryResult result = productQueryAppService.queryProductDetail(productId, RequestContextHolder.requireTenantId());
         return ApiResponse.success(productWebMapper.toPricingRuleResponse(result));
     }
 
     @Override
     public ApiResponse<List<ProductClauseResponse>> getProductClauses(
-            String productId, String tenantId) {
+            String productId) {
         List<ProductClauseResponse> responses = productQueryAppService
                 .queryProductClauses(productId).stream()
                 .map(productWebMapper::toProductClauseResponse)

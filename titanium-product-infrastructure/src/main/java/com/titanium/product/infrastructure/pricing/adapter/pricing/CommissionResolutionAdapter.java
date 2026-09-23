@@ -51,8 +51,7 @@ public class CommissionResolutionAdapter implements CommissionResolutionPort {
                             request.roundingScale(), request.roundingMode().name(), request.baseComponents().stream()
                                     .map(line -> new CommissionBaseLineRequest(
                                             line.componentCode(), line.amount()))
-                                    .toList()),
-                    request.tenantId());
+                                    .toList()));
             CommissionCalculationResponse response = requireData(apiResponse, "Channel佣金计算");
             validateCalculationIdentity(request, response);
             return new CommissionResolutionResult(
@@ -75,8 +74,7 @@ public class CommissionResolutionAdapter implements CommissionResolutionPort {
         try {
             ApiResponse<CommissionSchemeResponse> response = commissionSchemeApi.getPublished(
                     request.reference().schemeCode(), request.reference().schemeVersion(),
-                    request.reference().channelId(), request.productId(), request.businessTime().toString(),
-                    request.tenantId());
+                    request.reference().channelId(), request.productId(), request.businessTime().toString());
             return requireData(response, "Channel佣金方案查询");
         } catch (BusinessException exception) {
             throw exception;

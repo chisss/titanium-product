@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.response.ApiResponse;
@@ -92,12 +92,11 @@ public class ProductController {
      * </p>
      *
      * @param productCode 产品编码（版本线归组键，必填）
-     * @param tenantId    租户ID（请求头）
      * @return 该编码下的全部版本（新版在前）
      */
     @GetMapping("/versions")
-    public ApiResponse<List<ProductVersionVO>> listVersions(@RequestParam("productCode") String productCode,
-                                                            @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<List<ProductVersionVO>> listVersions(@RequestParam String productCode) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(productQueryAppService.queryProductVersions(productCode, tenantId)
                 .stream()
                 .map(productWebMapper::toProductVersionVO)
@@ -108,8 +107,8 @@ public class ProductController {
      * 创建产品
      */
     @PostMapping
-    public ApiResponse<String> createProduct(@RequestBody CreateProductDTO request,
-                                             @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<String> createProduct(@RequestBody CreateProductDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         // 协议转换：HTTP Request → 领域命令，收敛到同一应用层门面
         CreateProductCommand command = productWebMapper.toCommand(request, tenantId);
         String productId = productCommandAppService.createProduct(command);
@@ -125,13 +124,12 @@ public class ProductController {
      *
      * @param productId 被修订的当前生效产品ID
      * @param request 修订请求（承载新版本完整配置）
-     * @param tenantId 租户ID（请求头）
      * @return 新版本产品ID
      */
     @PostMapping("/{productId}/revise")
-    public ApiResponse<String> reviseProduct(@PathVariable("productId") String productId,
-                                             @RequestBody ReviseProductDTO request,
-                                             @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<String> reviseProduct(@PathVariable String productId,
+                                             @RequestBody ReviseProductDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         // 协议转换：HTTP Request → 领域命令，收敛到同一应用层门面
         ReviseProductCommand command = productWebMapper.toCommand(request, productId, tenantId);
         String newProductId = productCommandAppService.reviseProduct(command);
@@ -150,7 +148,6 @@ public class ProductController {
      * @param status 产品状态编码（可选）
      * @param pageNum 页码（从 0 开始，默认 0）
      * @param pageSize 每页条数（默认 10）
-     * @param tenantId 租户ID（请求头）
      * @return 分页产品列表（对外 DTO）
      */
     @GetMapping
@@ -158,8 +155,8 @@ public class ProductController {
                                                       @RequestParam(required = false) String insuranceType,
                                                       @RequestParam(required = false) String status,
                                                       @RequestParam(defaultValue = "0") int pageNum,
-                                                      @RequestParam(defaultValue = "10") int pageSize,
-                                                      @RequestHeader("X-Tenant-ID") String tenantId) {
+                                                      @RequestParam(defaultValue = "10") int pageSize) {
+        String tenantId = RequestContextHolder.requireTenantId();
         Page<ProductQueryResult> page =
                 queryProducts(productName, insuranceType, status, pageNum, pageSize, tenantId);
         return ApiResponse.success(page.map(productWebMapper::toProductResponse));
@@ -175,14 +172,13 @@ public class ProductController {
      * @param productName 产品名称（模糊匹配，可选）
      * @param insuranceType 险种类型编码（可选）
      * @param status 产品状态编码（可选）
-     * @param tenantId 租户ID（请求头）
      * @return CSV 附件字节流（UTF-8 含 BOM，Excel 可直接打开）
      */
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportProducts(@RequestParam(required = false) String productName,
                                                  @RequestParam(required = false) String insuranceType,
-                                                 @RequestParam(required = false) String status,
-                                                 @RequestHeader("X-Tenant-ID") String tenantId) {
+                                                 @RequestParam(required = false) String status) {
+        String tenantId = RequestContextHolder.requireTenantId();
         Page<ProductQueryResult> page =
                 queryProducts(productName, insuranceType, status, 0, EXPORT_MAX_ROWS, tenantId);
         // RFC 5987 编码文件名，避免中文文件名在部分浏览器乱码
@@ -210,8 +206,8 @@ public class ProductController {
      * 根据ID查询产品
      */
     @GetMapping("/{productId}")
-    public ApiResponse<ProductResponse> getProductById(@PathVariable("productId") String productId,
-                                                  @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<ProductResponse> getProductById(@PathVariable String productId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(productWebMapper.toProductResponse(result));
     }
@@ -224,12 +220,10 @@ public class ProductController {
      * </p>
      *
      * @param productId 产品ID
-     * @param tenantId 租户ID（请求头）
      * @return 产品绑定条款关联清单
      */
     @GetMapping("/{productId}/clauses")
-    public ApiResponse<List<ProductClauseQueryResult>> getProductClauses(@PathVariable("productId") String productId,
-                                                                         @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<List<ProductClauseQueryResult>> getProductClauses(@PathVariable String productId) {
         return ApiResponse.success(productQueryAppService.queryProductClauses(productId));
     }
 
@@ -237,8 +231,7 @@ public class ProductController {
      * 提交产品审核
      */
     @PutMapping("/{productId}/submit-audit")
-    public ApiResponse<Void> submitForAudit(@PathVariable("productId") String productId,
-                                            @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<Void> submitForAudit(@PathVariable String productId) {
         productCommandAppService.submitForAudit(productId);
         return ApiResponse.success(null);
     }
@@ -247,9 +240,8 @@ public class ProductController {
      * 审核产品
      */
     @PutMapping("/{productId}/audit")
-    public ApiResponse<Void> auditProduct(@PathVariable("productId") String productId,
-                                          @RequestBody AuditProductDTO request,
-                                          @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<Void> auditProduct(@PathVariable String productId,
+                                          @RequestBody AuditProductDTO request) {
         productCommandAppService.auditProduct(productWebMapper.toAuditCommand(productId, request));
         return ApiResponse.success(null);
     }
@@ -258,9 +250,8 @@ public class ProductController {
      * 驳回产品审核
      */
     @PutMapping("/{productId}/reject")
-    public ApiResponse<Void> rejectAudit(@PathVariable("productId") String productId,
-                                         @RequestBody AuditProductDTO request,
-                                         @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<Void> rejectAudit(@PathVariable String productId,
+                                         @RequestBody AuditProductDTO request) {
         productCommandAppService.rejectAudit(productWebMapper.toRejectCommand(productId, request));
         return ApiResponse.success(null);
     }
@@ -269,8 +260,7 @@ public class ProductController {
      * 下架产品
      */
     @PutMapping("/{productId}/invalid")
-    public ApiResponse<Void> invalidateProduct(@PathVariable("productId") String productId,
-                                               @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<Void> invalidateProduct(@PathVariable String productId) {
         productCommandAppService.invalidateProduct(productId);
         return ApiResponse.success(null);
     }
@@ -280,8 +270,8 @@ public class ProductController {
      */
     @GetMapping("/{productId}/issuance-config")
     public ApiResponse<IssuanceProcessConfigResponse> getIssuanceConfig(
-            @PathVariable("productId") String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String productId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(productWebMapper.toIssuanceProcessConfigResponse(result.getIssuanceProcessConfig()));
     }
@@ -291,8 +281,8 @@ public class ProductController {
      */
     @GetMapping("/{productId}/underwriting-config")
     public ApiResponse<UnderwritingConfigResponse> getUnderwritingConfig(
-            @PathVariable("productId") String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String productId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(productWebMapper.toUnderwritingConfigResponse(result.getUnderwritingConfig()));
     }
@@ -302,8 +292,8 @@ public class ProductController {
      */
     @GetMapping("/{productId}/policy-form-config")
     public ApiResponse<PolicyFormConfigResponse> getPolicyFormConfig(
-            @PathVariable("productId") String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String productId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(productWebMapper.toPolicyFormConfigResponse(result.getPolicyFormConfig()));
     }
@@ -312,8 +302,8 @@ public class ProductController {
      * 查询产品定价基础规则
      */
     @GetMapping("/{productId}/pricing-rule")
-    public ApiResponse<PricingBasicRuleResponse> getPricingRule(@PathVariable("productId") String productId,
-                                                           @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<PricingBasicRuleResponse> getPricingRule(@PathVariable String productId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         ProductQueryResult result = productQueryAppService.queryProductDetail(productId, tenantId);
         return ApiResponse.success(productWebMapper.toPricingRuleResponse(result));
     }
@@ -328,13 +318,12 @@ public class ProductController {
      *
      * @param productId 产品ID
      * @param request 配置寿险产品请求
-     * @param tenantId 租户ID（请求头）
      * @return 空响应
      */
     @PostMapping("/{productId}/life-config")
-    public ApiResponse<Void> configureLifeProduct(@PathVariable("productId") String productId,
-                                                  @RequestBody ConfigureLifeProductDTO request,
-                                                  @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<Void> configureLifeProduct(@PathVariable String productId,
+                                                  @RequestBody ConfigureLifeProductDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         LifeProductSpec lifeProductSpec = productWebMapper.toLifeProductSpec(request);
         productCommandAppService.configureLifeProduct(productId, lifeProductSpec, tenantId);
         return ApiResponse.success(null);
@@ -347,12 +336,11 @@ public class ProductController {
      * </p>
      *
      * @param productId 产品ID
-     * @param tenantId 租户ID（请求头）
      * @return 寿险产品规格
      */
     @GetMapping("/{productId}/life-config")
-    public ApiResponse<LifeProductSpec> getLifeProductSpec(@PathVariable("productId") String productId,
-                                                           @RequestHeader("X-Tenant-ID") String tenantId) {
+    public ApiResponse<LifeProductSpec> getLifeProductSpec(@PathVariable String productId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(productQueryAppService.queryLifeProductSpec(productId, tenantId));
     }
 }

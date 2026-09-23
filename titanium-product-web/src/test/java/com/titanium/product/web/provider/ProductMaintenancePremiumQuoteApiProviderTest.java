@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import com.titanium.common.context.RequestContextInterceptor;
 import com.titanium.product.api.request.premium.MaintenancePremiumQuoteRequest;
 import com.titanium.product.api.request.premium.MaintenancePremiumQuoteRequest.SnapshotReferenceRequest;
 import com.titanium.product.application.command.maintenance.ProductMaintenancePremiumQuoteCommandService;
@@ -40,6 +41,8 @@ class ProductMaintenancePremiumQuoteApiProviderTest {
         mockMvc = MockMvcBuilders.standaloneSetup(
                         new ProductMaintenancePremiumQuoteApiProvider(commandService))
                 .setControllerAdvice(new ProductExceptionHandler())
+                // 租户已不再由契约入参显式传递，改由 RequestContextInterceptor 从请求头填充上下文供 provider 读取
+                .addInterceptors(new RequestContextInterceptor())
                 .build();
         objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }

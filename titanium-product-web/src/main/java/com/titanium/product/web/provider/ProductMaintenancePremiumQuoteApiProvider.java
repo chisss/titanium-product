@@ -6,6 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.response.ApiResponse;
@@ -35,14 +36,14 @@ public class ProductMaintenancePremiumQuoteApiProvider implements ProductMainten
 
     @Override
     public ApiResponse<MaintenancePremiumQuoteResponse> quote(
-            String productId, @Valid MaintenancePremiumQuoteRequest request, String tenantId) {
+            String productId, @Valid MaintenancePremiumQuoteRequest request) {
         PremiumLifecycleType lifecycleType = PremiumLifecycleType.fromCode(request.lifecycleType());
         if (lifecycleType == null || lifecycleType == PremiumLifecycleType.REVERSAL) {
             throw new BusinessException(ProductErrorCode.PRICING_INPUT_INVALID);
         }
         MaintenancePremiumQuoteResult result = commandService.quote(
                 new CreateMaintenancePremiumQuoteCommand(
-                        tenantId, productId, request.maintenanceId(), request.policyId(),
+                        RequestContextHolder.requireTenantId(), productId, request.maintenanceId(), request.policyId(),
                         request.policyBaselineVersion(), request.itemCode(), request.productVersion(),
                         request.planVersion(), lifecycleType, snapshot(request.beforeSnapshot()),
                         snapshot(request.proposedSnapshot()), request.originalCalculationId(),

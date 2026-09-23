@@ -3,7 +3,6 @@ package com.titanium.product.infrastructure.pricing.adapter.pricing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,7 +57,7 @@ class FeatureCenterResolutionAdapterTest {
                 .missingRequired(List.of())
                 .lineageDigest("digest-1")
                 .build();
-        when(featureCenterApi.resolve(any(), eq(TENANT_ID))).thenReturn(ApiResponse.success(response));
+        when(featureCenterApi.resolve(any())).thenReturn(ApiResponse.success(response));
 
         var result = adapter.resolve(request);
 
@@ -68,7 +67,7 @@ class FeatureCenterResolutionAdapterTest {
             assertThat(value.integerValue()).isEqualTo(35L);
         });
         ArgumentCaptor<FeatureResolveRequest> requestCaptor = ArgumentCaptor.forClass(FeatureResolveRequest.class);
-        verify(featureCenterApi).resolve(requestCaptor.capture(), eq(TENANT_ID));
+        verify(featureCenterApi).resolve(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getContractId()).isEqualTo("pricing-contract");
         assertThat(requestCaptor.getValue().getContractVersion()).isEqualTo("2026-08");
         assertThat(requestCaptor.getValue().getRequirements()).hasSize(1);
@@ -76,7 +75,7 @@ class FeatureCenterResolutionAdapterTest {
 
     @Test
     void shouldFailClosedWhenDownstreamReturnsBusinessFailure() {
-        when(featureCenterApi.resolve(any(), eq(TENANT_ID)))
+        when(featureCenterApi.resolve(any()))
                 .thenReturn(new ApiResponse<>("61000001", "feature failed", null));
 
         assertThatThrownBy(() -> adapter.resolve(request()))
@@ -87,7 +86,7 @@ class FeatureCenterResolutionAdapterTest {
 
     @Test
     void shouldFailClosedWhenResponseDataIsEmpty() {
-        when(featureCenterApi.resolve(any(), eq(TENANT_ID))).thenReturn(ApiResponse.success(null));
+        when(featureCenterApi.resolve(any())).thenReturn(ApiResponse.success(null));
 
         assertThatThrownBy(() -> adapter.resolve(request()))
                 .isInstanceOf(BusinessException.class)
@@ -110,7 +109,7 @@ class FeatureCenterResolutionAdapterTest {
                 .missingRequired(List.of())
                 .lineageDigest("digest-1")
                 .build();
-        when(featureCenterApi.resolve(any(), eq(TENANT_ID))).thenReturn(ApiResponse.success(response));
+        when(featureCenterApi.resolve(any())).thenReturn(ApiResponse.success(response));
 
         assertThatThrownBy(() -> adapter.resolve(request()))
                 .isInstanceOf(BusinessException.class)

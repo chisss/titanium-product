@@ -61,7 +61,7 @@ public class RuleEngineComputationAdapter implements RuleComputationPort {
         try {
             // executionId 即本次定价计算的执行标识（定价方案:用例），透传作业务上下文，供规则引擎执行审计反查
             ApiResponse<RuleArtifactComputeResponse> response = ruleArtifactApi.compute(
-                    request.artifactCode(), request.artifactVersion(), toRequest(request), request.tenantId(),
+                    request.artifactCode(), request.artifactVersion(), toRequest(request),
                     request.executionId(), BUSINESS_TYPE);
             if (response == null) {
                 throw invalidResponse("Rule Engine响应为空", null);

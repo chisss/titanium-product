@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.titanium.common.context.RequestContextInterceptor;
 import com.titanium.product.application.command.maintenance.ProductMaintenanceOfferingCommandService;
 import com.titanium.product.application.query.maintenance.ProductMaintenanceOfferingQueryService;
 import com.titanium.product.maintenance.aggregate.ProductMaintenanceOffering;
@@ -33,6 +34,9 @@ class ProductMaintenanceOfferingControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(
                         new ProductMaintenanceOfferingController(commandService, queryService))
                 .setControllerAdvice(new ProductExceptionHandler())
+                // m18：显式注册请求上下文拦截器（standaloneSetup 不装配容器里的拦截器），
+                // 使 X-Tenant-ID 头经真实路径进入 RequestContextHolder
+                .addInterceptors(new RequestContextInterceptor())
                 .build();
     }
 

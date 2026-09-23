@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.titanium.common.context.RequestContextInterceptor;
 import com.titanium.product.application.command.pricing.PremiumCalculationCommandAppService;
 import com.titanium.product.application.query.pricing.PremiumCalculationQueryAppService;
 import com.titanium.product.common.enums.PremiumAdjustmentType;
@@ -43,6 +44,8 @@ class ProductPremiumCalculationApiProviderTest {
                 calculationService, queryService);
         mockMvc = MockMvcBuilders.standaloneSetup(provider)
                 .setControllerAdvice(new ProductExceptionHandler())
+                // 租户已不再由契约入参显式传递，改由 RequestContextInterceptor 从请求头填充上下文供 provider 读取
+                .addInterceptors(new RequestContextInterceptor())
                 .build();
     }
 

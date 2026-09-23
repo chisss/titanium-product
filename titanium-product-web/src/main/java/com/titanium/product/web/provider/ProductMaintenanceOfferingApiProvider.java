@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductMaintenanceOfferingApi;
 import com.titanium.product.api.response.maintenance.ProductMaintenanceOfferingResolutionResponse;
@@ -31,10 +32,9 @@ public class ProductMaintenanceOfferingApiProvider implements ProductMaintenance
             String planVersion,
             String policyStatus,
             String source,
-            OffsetDateTime businessEffectiveAt,
-            String tenantId) {
+            OffsetDateTime businessEffectiveAt) {
         ProductMaintenanceOffering offering = queryService.resolve(
-                tenantId, productId, productVersion, planVersion, policyStatus, source,
+                RequestContextHolder.requireTenantId(), productId, productVersion, planVersion, policyStatus, source,
                 businessEffectiveAt.toLocalDateTime());
         return ApiResponse.success(new ProductMaintenanceOfferingResolutionResponse(
                 offering.tenantId(), offering.productId(), offering.productVersion(), offering.planVersion(),

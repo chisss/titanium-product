@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.titanium.common.context.RequestContextHolder;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.enums.pricing.AmountChannel;
 import com.titanium.metadata.enums.pricing.ChargeCategory;
@@ -71,8 +71,8 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/charge-components")
     public ApiResponse<String> createChargeComponent(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @Valid @RequestBody CreateChargeComponentDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.createChargeComponent(new CreateChargeComponentCommand(
                 tenantId, productId, request.componentCode(), request.componentVersion(), request.componentName(),
                 request.description(), require(ChargeCategory.fromCode(request.category())),
@@ -86,8 +86,8 @@ public class ProductActuarialWorkbenchController {
     @GetMapping("/charge-components")
     public ApiResponse<List<ChargeComponentVO>> listChargeComponents(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestParam(required = false) String status) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(queryAppService.listChargeComponents(
                         tenantId, productId, parseStatus(status)).stream()
                 .map(this::toResponse)
@@ -97,8 +97,8 @@ public class ProductActuarialWorkbenchController {
     @GetMapping("/charge-components/{componentId}")
     public ApiResponse<ChargeComponentVO> getChargeComponent(
             @PathVariable String productId,
-            @PathVariable String componentId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String componentId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(toResponse(
                 queryAppService.getChargeComponent(tenantId, productId, componentId)));
     }
@@ -106,16 +106,16 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/charge-components/{componentId}/approve")
     public ApiResponse<String> approveChargeComponent(
             @PathVariable String productId,
-            @PathVariable String componentId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String componentId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.approveChargeComponent(tenantId, productId, componentId));
     }
 
     @PostMapping("/charge-components/{componentId}/publish")
     public ApiResponse<Void> publishChargeComponent(
             @PathVariable String productId,
-            @PathVariable String componentId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String componentId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.publishChargeComponent(tenantId, productId, componentId);
         return ApiResponse.success(null);
     }
@@ -123,8 +123,8 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/charge-components/{componentId}/retire")
     public ApiResponse<Void> retireChargeComponent(
             @PathVariable String productId,
-            @PathVariable String componentId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String componentId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.retireChargeComponent(tenantId, productId, componentId);
         return ApiResponse.success(null);
     }
@@ -132,8 +132,8 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/calculation-models")
     public ApiResponse<String> createCalculationModel(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @Valid @RequestBody CreateCalculationModelDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.createCalculationModel(new CreateCalculationModelCommand(
                 tenantId, productId, request.modelCode(), request.modelVersion(), request.modelName(),
                 request.description(), request.currency(), request.nodes().stream().map(this::toDomain).toList(),
@@ -144,8 +144,8 @@ public class ProductActuarialWorkbenchController {
     @GetMapping("/calculation-models")
     public ApiResponse<List<CalculationModelVO>> listCalculationModels(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestParam(required = false) String status) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(queryAppService.listCalculationModels(
                         tenantId, productId, parseStatus(status)).stream()
                 .map(this::toResponse)
@@ -155,8 +155,8 @@ public class ProductActuarialWorkbenchController {
     @GetMapping("/calculation-models/{modelId}")
     public ApiResponse<CalculationModelVO> getCalculationModel(
             @PathVariable String productId,
-            @PathVariable String modelId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String modelId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(toResponse(
                 queryAppService.getCalculationModel(tenantId, productId, modelId)));
     }
@@ -164,16 +164,16 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/calculation-models/{modelId}/approve")
     public ApiResponse<String> approveCalculationModel(
             @PathVariable String productId,
-            @PathVariable String modelId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String modelId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.approveCalculationModel(tenantId, productId, modelId));
     }
 
     @PostMapping("/calculation-models/{modelId}/publish")
     public ApiResponse<Void> publishCalculationModel(
             @PathVariable String productId,
-            @PathVariable String modelId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String modelId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.publishCalculationModel(tenantId, productId, modelId);
         return ApiResponse.success(null);
     }
@@ -181,8 +181,8 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/calculation-models/{modelId}/retire")
     public ApiResponse<Void> retireCalculationModel(
             @PathVariable String productId,
-            @PathVariable String modelId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String modelId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.retireCalculationModel(tenantId, productId, modelId);
         return ApiResponse.success(null);
     }
@@ -190,8 +190,8 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/tax-policies")
     public ApiResponse<String> createTaxPolicy(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @Valid @RequestBody CreateTaxPolicyDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.createTaxPolicy(new CreateTaxPolicyCommand(
                 tenantId, productId, request.policyCode(), request.policyVersion(), request.policyName(),
                 request.description(), request.jurisdictionCode(), require(ChargeCategory.fromCode(request.category())),
@@ -204,8 +204,8 @@ public class ProductActuarialWorkbenchController {
     @GetMapping("/tax-policies")
     public ApiResponse<List<TaxPolicyVO>> listTaxPolicies(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestParam(required = false) String status) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(queryAppService.listTaxPolicies(tenantId, productId, parseStatus(status)).stream()
                 .map(this::toResponse)
                 .toList());
@@ -214,24 +214,24 @@ public class ProductActuarialWorkbenchController {
     @GetMapping("/tax-policies/{policyId}")
     public ApiResponse<TaxPolicyVO> getTaxPolicy(
             @PathVariable String productId,
-            @PathVariable String policyId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String policyId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(toResponse(queryAppService.getTaxPolicy(tenantId, productId, policyId)));
     }
 
     @PostMapping("/tax-policies/{policyId}/approve")
     public ApiResponse<String> approveTaxPolicy(
             @PathVariable String productId,
-            @PathVariable String policyId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String policyId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.approveTaxPolicy(tenantId, productId, policyId));
     }
 
     @PostMapping("/tax-policies/{policyId}/publish")
     public ApiResponse<Void> publishTaxPolicy(
             @PathVariable String productId,
-            @PathVariable String policyId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String policyId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.publishTaxPolicy(tenantId, productId, policyId);
         return ApiResponse.success(null);
     }
@@ -239,8 +239,8 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/tax-policies/{policyId}/retire")
     public ApiResponse<Void> retireTaxPolicy(
             @PathVariable String productId,
-            @PathVariable String policyId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String policyId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.retireTaxPolicy(tenantId, productId, policyId);
         return ApiResponse.success(null);
     }
@@ -248,8 +248,8 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/surrender-value-policies")
     public ApiResponse<String> createSurrenderValuePolicy(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @Valid @RequestBody CreateSurrenderValuePolicyDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.createSurrenderValuePolicy(
                 new CreateSurrenderValuePolicyCommand(
                         tenantId, productId, request.policyCode(), request.policyVersion(), request.policyYear(),
@@ -260,16 +260,16 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/surrender-value-policies/{policyId}/approve")
     public ApiResponse<String> approveSurrenderValuePolicy(
             @PathVariable String productId,
-            @PathVariable String policyId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String policyId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.approveSurrenderValuePolicy(tenantId, productId, policyId));
     }
 
     @PostMapping("/surrender-value-policies/{policyId}/publish")
     public ApiResponse<Void> publishSurrenderValuePolicy(
             @PathVariable String productId,
-            @PathVariable String policyId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String policyId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.publishSurrenderValuePolicy(tenantId, productId, policyId);
         return ApiResponse.success(null);
     }
@@ -277,8 +277,8 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/surrender-value-policies/{policyId}/retire")
     public ApiResponse<Void> retireSurrenderValuePolicy(
             @PathVariable String productId,
-            @PathVariable String policyId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String policyId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.retireSurrenderValuePolicy(tenantId, productId, policyId);
         return ApiResponse.success(null);
     }
@@ -286,8 +286,8 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/dynamic-factors")
     public ApiResponse<String> createDynamicFactor(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @Valid @RequestBody CreateDynamicFactorDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.createDynamicFactor(new CreateDynamicFactorCommand(
                 tenantId, productId, request.factorCode(), request.factorVersion(), request.factorName(),
                 request.description(), request.featureCode(), request.featureDefinitionVersion(),
@@ -302,8 +302,8 @@ public class ProductActuarialWorkbenchController {
     @GetMapping("/dynamic-factors")
     public ApiResponse<List<DynamicFactorVO>> listDynamicFactors(
             @PathVariable String productId,
-            @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestParam(required = false) String status) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(queryAppService.listDynamicFactors(tenantId, productId, parseStatus(status))
                 .stream().map(this::toResponse).toList());
     }
@@ -311,24 +311,24 @@ public class ProductActuarialWorkbenchController {
     @GetMapping("/dynamic-factors/{factorId}")
     public ApiResponse<DynamicFactorVO> getDynamicFactor(
             @PathVariable String productId,
-            @PathVariable String factorId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String factorId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(toResponse(queryAppService.getDynamicFactor(tenantId, productId, factorId)));
     }
 
     @PostMapping("/dynamic-factors/{factorId}/approve")
     public ApiResponse<String> approveDynamicFactor(
             @PathVariable String productId,
-            @PathVariable String factorId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String factorId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         return ApiResponse.success(commandAppService.approveDynamicFactor(tenantId, productId, factorId));
     }
 
     @PostMapping("/dynamic-factors/{factorId}/publish")
     public ApiResponse<Void> publishDynamicFactor(
             @PathVariable String productId,
-            @PathVariable String factorId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String factorId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.publishDynamicFactor(tenantId, productId, factorId);
         return ApiResponse.success(null);
     }
@@ -336,8 +336,8 @@ public class ProductActuarialWorkbenchController {
     @PostMapping("/dynamic-factors/{factorId}/retire")
     public ApiResponse<Void> retireDynamicFactor(
             @PathVariable String productId,
-            @PathVariable String factorId,
-            @RequestHeader("X-Tenant-ID") String tenantId) {
+            @PathVariable String factorId) {
+        String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.retireDynamicFactor(tenantId, productId, factorId);
         return ApiResponse.success(null);
     }
