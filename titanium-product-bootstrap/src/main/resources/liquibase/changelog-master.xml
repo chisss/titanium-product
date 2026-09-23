@@ -25,4 +25,5 @@
     <!-- DML：数据订正（非结构变更） -->
     <include file="classpath:liquibase/dml/t_product_view_202609211100_weisun_dml.sql"/>
     <include file="classpath:liquibase/dml/t_product_clause_rel_view_202609211700_weisun_dml.sql"/>
+    <include file="classpath:liquibase/ddl/product_do_version_column_202609231700_weisun_ddl.sql"/>
 </databaseChangeLog>
