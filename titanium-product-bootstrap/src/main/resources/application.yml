@@ -52,13 +52,8 @@ axon:
     general: jackson
   eventhandling:
     processors:
-      # ⚠️ 死配置（m6-909 实读登记，未改）：全仓无任何处理器声明组名 product-group，
-      #    所引用的 source bean「productEventBus」亦不存在。Axon 仅在组实际存在时才解析 source，
-      #    故本条被完全忽略、无启动风险。写侧两聚合为事件溯源，其 @EventSourcingHandler 由事件存储
-      #    重放驱动、不属任何处理组。
-      product-group:
-        mode: subscribing
-        source: productEventBus
+      # ✅ m21-04（审查报告 ORC-01）：原 product-group 死配置已删除（m6-909 实读登记的死配置，
+      #    全仓无处理器声明该组名；真实读侧组名为 product-query-group）。保留本行以留痕。
       # 跨域 Kafka 外发处理组（与写侧 product-group、读侧 product-query-group 隔离）
       # 🔴 tracking + DLQ（m6-909）：原为 subscribing——事件到达即同步发布、不经事件存储，看似更简单，
       #    但只有流式处理器（tracking/pooled-streaming）才支持 SequencedDeadLetterQueue，
