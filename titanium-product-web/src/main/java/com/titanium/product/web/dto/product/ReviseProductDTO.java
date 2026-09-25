@@ -14,6 +14,8 @@ import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
 import com.titanium.product.valueobject.rate.RateTableRef;
 import com.titanium.product.web.dto.pricing.basicrule.PricingBasicRuleDTO;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -29,10 +31,13 @@ import lombok.Data;
 public class ReviseProductDTO {
 
     /** 新版本产品ID（可选，不传则自动生成） */
+    @Size(max = 64)
     private String newProductId;
     /** 新版本产品名称 */
+    @Size(max = 128)
     private String newProductName;
     /** 新版本产品描述 */
+    @Size(max = 255)
     private String newProductDesc;
     /** 新版本产品形态（INDIVIDUAL/GROUP） */
     private ProductEnum.ProductForm newForm;
@@ -42,30 +47,44 @@ public class ReviseProductDTO {
     private ProductEnum.ProductCategory newCategory;
 
     /** 新版本投保条件 */
+    @Valid
     private InsureConditionDTO newInsureCondition;
     /** 新版本保障期间配置 */
+    @Valid
     private CoveragePeriodConfig newCoveragePeriod;
     /** 新版本缴费方式配置 */
+    @Valid
     private PaymentConfig newPaymentConfig;
     /** 新版本条款关联（由前端带出现有绑定关系，修订时可调整） */
+    @Size(max = 100)
+    @Valid
     private List<ClauseRelDTO> newClauseRels;
     /** 新版本定价基础规则 */
+    @Valid
     private PricingBasicRuleDTO newPricingBasicRule;
 
     /** 新版本销售渠道配置 */
+    @Size(max = 200)
+    @Valid
     private List<SalesChannelConfig> newSalesChannels;
     /** 新版本出单流程配置 */
+    @Valid
     private IssuanceProcessConfig newIssuanceProcessConfig;
     /** 新版本保单形态配置 */
+    @Valid
     private PolicyFormConfig newPolicyFormConfig;
     /** 新版本核保配置（核保模式/自动核保条件/转人工阈值/必需材料/时效/加费/特别约定） */
+    @Valid
     private UnderwritingConfig newUnderwritingConfig;
 
     /** 新版本定价模式编码（RATE_TABLE / ACTUARIAL_FORMULA） */
+    @Size(max = 64)
     private String newPricingMode;
     /** 新版本费率表引用 */
+    @Valid
     private RateTableRef newRateTableRef;
     /** 新版本精算基础参数 */
+    @Valid
     private ActuarialBasis newActuarialBasis;
 
     /**

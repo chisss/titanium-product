@@ -18,6 +18,9 @@ import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
 import com.titanium.product.valueobject.rate.RateTableRef;
 import com.titanium.product.web.dto.pricing.basicrule.PricingBasicRuleDTO;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -31,14 +34,21 @@ import lombok.Data;
 public class CreateProductDTO {
 
     /** 产品ID（可选，不传则自动生成） */
+    @Size(max = 64)
     private String productId;
     /** 所属产品模板ID（必填，单向引用 ProductTemplate） */
+    @Size(max = 64)
     private String templateId;
     /** 产品代码 */
+    @NotBlank
+    @Size(max = 64)
     private String productCode;
     /** 产品名称 */
+    @NotBlank
+    @Size(max = 128)
     private String productName;
     /** 产品描述 */
+    @Size(max = 255)
     private String productDesc;
     /** 产品形态（INDIVIDUAL/GROUP） */
     private ProductEnum.ProductForm form;
@@ -52,44 +62,63 @@ public class CreateProductDTO {
     private LocalDateTime saleEndTime;
 
     /** 投保条件 */
+    @Valid
     private InsureConditionDTO insureCondition;
     /** 保障期间配置（保障期间类型/固定期限选项/期间单位/最小最大期限） */
+    @Valid
     private CoveragePeriodConfig coveragePeriod;
     /** 缴费方式配置（允许缴费频率/缴费期限选项/期限单位/自动续保/宽限期） */
+    @Valid
     private PaymentConfig paymentConfig;
     /** 定价基础规则 */
+    @Valid
     private PricingBasicRuleDTO pricingBasicRule;
 
     /** 绑定的条款ID列表 */
+    @Size(max = 200)
     private List<String> clauseIds;
     /** 条款版本映射 */
+    @Size(max = 100)
     private Map<String, String> clauseVersionMap;
     /** 主条款ID */
+    @Size(max = 64)
     private String mainClauseId;
 
     /** 销售渠道配置 */
+    @Size(max = 200)
+    @Valid
     private List<SalesChannelConfig> salesChannels;
     /** 附加险产品ID列表 */
+    @Size(max = 200)
     private List<String> attachProductIds;
 
     /** 出单流程配置（出单模式/步骤链/是否需意向单/是否可跳核保/前置缴费/出单时效/附加步骤） */
+    @Valid
     private IssuanceProcessConfig issuanceProcessConfig;
     /** 保单形态配置（保单形态类型/清单制/子保单数量/层级/受益人要求） */
+    @Valid
     private PolicyFormConfig policyFormConfig;
     /** 核保配置（核保模式/自动核保条件/转人工阈值/必需材料/时效/加费/特别约定） */
+    @Valid
     private UnderwritingConfig underwritingConfig;
     /** 文档配置（所需投保材料清单 + 生成文档模板清单，纯产品配置不跨文档域） */
+    @Valid
     private DocumentConfig documentConfig;
     /** 保单结构配置（标的类型/标的字段Schema/多标的/参与方角色，宠物险等非人险标的产品的标的结构定义） */
+    @Valid
     private PolicyStructureConfig policyStructureConfig;
 
     /** 定价模式编码（RATE_TABLE 费率表查询 / ACTUARIAL_FORMULA 精算公式），billing 出单按此分派保费计算路径 */
+    @Size(max = 64)
     private String pricingMode;
     /** 费率表引用（pricingMode=RATE_TABLE 时有值，指向 clause 域费率表） */
+    @Valid
     private RateTableRef rateTableRef;
     /** 精算基础参数（pricingMode=ACTUARIAL_FORMULA 时有值，预定利率/死亡率表/附加费用率） */
+    @Valid
     private ActuarialBasis actuarialBasis;
 
     /** 创建人 */
+    @Size(max = 64)
     private String createdBy;
 }

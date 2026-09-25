@@ -43,6 +43,7 @@ import com.titanium.product.web.dto.product.ReviseProductDTO;
 import com.titanium.product.web.export.ProductCsvExporter;
 import com.titanium.product.web.mapper.ProductWebMapper;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -107,7 +108,7 @@ public class ProductController {
      * 创建产品
      */
     @PostMapping
-    public ApiResponse<String> createProduct(@RequestBody CreateProductDTO request) {
+    public ApiResponse<String> createProduct(@Valid @RequestBody CreateProductDTO request) {
         String tenantId = RequestContextHolder.requireTenantId();
         // 协议转换：HTTP Request → 领域命令，收敛到同一应用层门面
         CreateProductCommand command = productWebMapper.toCommand(request, tenantId);
@@ -128,7 +129,7 @@ public class ProductController {
      */
     @PostMapping("/{productId}/revise")
     public ApiResponse<String> reviseProduct(@PathVariable String productId,
-                                             @RequestBody ReviseProductDTO request) {
+                                             @Valid @RequestBody ReviseProductDTO request) {
         String tenantId = RequestContextHolder.requireTenantId();
         // 协议转换：HTTP Request → 领域命令，收敛到同一应用层门面
         ReviseProductCommand command = productWebMapper.toCommand(request, productId, tenantId);
@@ -241,7 +242,7 @@ public class ProductController {
      */
     @PutMapping("/{productId}/audit")
     public ApiResponse<Void> auditProduct(@PathVariable String productId,
-                                          @RequestBody AuditProductDTO request) {
+                                          @Valid @RequestBody AuditProductDTO request) {
         productCommandAppService.auditProduct(productWebMapper.toAuditCommand(productId, request));
         return ApiResponse.success(null);
     }
@@ -251,7 +252,7 @@ public class ProductController {
      */
     @PutMapping("/{productId}/reject")
     public ApiResponse<Void> rejectAudit(@PathVariable String productId,
-                                         @RequestBody AuditProductDTO request) {
+                                         @Valid @RequestBody AuditProductDTO request) {
         productCommandAppService.rejectAudit(productWebMapper.toRejectCommand(productId, request));
         return ApiResponse.success(null);
     }
@@ -322,7 +323,7 @@ public class ProductController {
      */
     @PostMapping("/{productId}/life-config")
     public ApiResponse<Void> configureLifeProduct(@PathVariable String productId,
-                                                  @RequestBody ConfigureLifeProductDTO request) {
+                                                  @Valid @RequestBody ConfigureLifeProductDTO request) {
         String tenantId = RequestContextHolder.requireTenantId();
         LifeProductSpec lifeProductSpec = productWebMapper.toLifeProductSpec(request);
         productCommandAppService.configureLifeProduct(productId, lifeProductSpec, tenantId);

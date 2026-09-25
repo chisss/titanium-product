@@ -2,6 +2,7 @@ package com.titanium.product.web.dto.product;
 
 import com.titanium.metadata.enums.product.ProductEnum;
 
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -16,9 +17,12 @@ public class AuditProductDTO {
     /** 审核结果（PASS/REJECT/RETURN） */
     private ProductEnum.AuditResult auditResult;
     /** 审核备注/意见 */
+    @Size(max = 255)
     private String auditOpinion;
     /** 审核人ID */
+    @Size(max = 64)
     private String auditorId;
     /** 审核人姓名 */
+    @Size(max = 128)
     private String auditorName;
 }

@@ -12,6 +12,8 @@ import com.titanium.product.valueobject.config.PolicyStructureConfig;
 import com.titanium.product.valueobject.config.ReinsuranceConfig;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -27,23 +29,33 @@ import lombok.Data;
 public class UpdateProductTemplateDTO {
 
     /** 模板名称 */
+    @Size(max = 128)
     private String templateName;
     /** 出单模式（ONE_STEP/TWO_STEP/THREE_STEP/CUSTOM） */
     private ProductEnum.IssuanceMode issuanceMode;
     /** 出单阶段定义列表 */
+    @Size(max = 200)
+    @Valid
     private List<PolicyStage> policyStages;
     /** 核保配置（核保模式/自动核保条件/转人工阈值/必需材料/时效/加费/特别约定） */
+    @Valid
     private UnderwritingConfig underwritingConfig;
     /** 保单结构配置（标的类型/标的字段Schema/多标的/参与方角色/责任结构） */
+    @Valid
     private PolicyStructureConfig policyStructure;
     /** 保全配置（允许保全类型/犹豫期/退保规则/批改规则） */
+    @Valid
     private MaintenanceConfig maintenanceConfig;
     /** 理赔配置（理赔阶段/报案时效/等待期/理赔规则集/所需材料） */
+    @Valid
     private ClaimConfig claimConfig;
     /** 缴费配置（允许缴费方式/宽限期/失效天数/自动扣款） */
+    @Valid
     private BillingConfig billingConfig;
     /** 再保险配置（是否自动分保/自留保额上限/默认再保合约） */
+    @Valid
     private ReinsuranceConfig reinsuranceConfig;
     /** 分红配置（红利分配方式/低中高档演示利率，分红险专属） */
+    @Valid
     private DividendConfig dividendConfig;
 }

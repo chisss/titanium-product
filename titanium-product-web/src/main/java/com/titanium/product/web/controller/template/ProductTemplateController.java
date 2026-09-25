@@ -22,6 +22,7 @@ import com.titanium.product.web.dto.template.CreateProductTemplateDTO;
 import com.titanium.product.web.dto.template.UpdateProductTemplateDTO;
 import com.titanium.product.web.mapper.ProductTemplateWebMapper;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -79,7 +80,7 @@ public class ProductTemplateController {
      * 创建产品模板
      */
     @PostMapping
-    public ApiResponse<String> createTemplate(@RequestBody CreateProductTemplateDTO request) {
+    public ApiResponse<String> createTemplate(@Valid @RequestBody CreateProductTemplateDTO request) {
         String tenantId = RequestContextHolder.requireTenantId();
         // 协议转换：HTTP Request → 领域命令，收敛到应用层门面
         CreateProductTemplateCommand command = webMapper.toCommand(request, tenantId);
@@ -101,7 +102,7 @@ public class ProductTemplateController {
      */
     @PutMapping("/{templateId}")
     public ApiResponse<Void> updateTemplate(@PathVariable String templateId,
-                                            @RequestBody UpdateProductTemplateDTO request) {
+                                            @Valid @RequestBody UpdateProductTemplateDTO request) {
         String tenantId = RequestContextHolder.requireTenantId();
         commandAppService.updateTemplate(webMapper.toUpdateCommand(templateId, request, tenantId));
         return ApiResponse.success(null);

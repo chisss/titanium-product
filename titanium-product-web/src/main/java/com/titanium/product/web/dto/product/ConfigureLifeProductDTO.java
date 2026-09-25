@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -22,15 +24,21 @@ public class ConfigureLifeProductDTO {
     private InsuranceProductType productType;
 
     /** 可投保年龄范围 */
+    @Valid
     private AgeRangeRequest entryAgeRange;
 
     /** 保额范围 */
+    @Valid
     private SumInsuredRangeRequest sumInsuredRange;
 
     /** 缴费期选项列表 */
+    @Size(max = 200)
+    @Valid
     private List<PremiumTermOptionRequest> premiumTermOptions;
 
     /** 保障期选项列表 */
+    @Size(max = 200)
+    @Valid
     private List<CoverageTermOptionRequest> coverageTermOptions;
 
     /**

@@ -7,6 +7,9 @@ import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.product.ProductEnum;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,9 +32,13 @@ import lombok.Setter;
 public class CreateProductTemplateDTO {
 
     @Schema(description = "模板编码", required = true)
+    @NotBlank
+    @Size(max = 64)
     private String templateCode;
 
     @Schema(description = "模板名称", required = true)
+    @NotBlank
+    @Size(max = 128)
     private String templateName;
 
     @Schema(description = "险种大类")
@@ -41,30 +48,39 @@ public class CreateProductTemplateDTO {
     private InsuranceType insuranceType;
 
     @Schema(description = "关联产品ID")
+    @Size(max = 64)
     private String productId;
 
     @Schema(description = "出单模式", required = true)
     private ProductEnum.IssuanceMode issuanceMode;
 
     @Schema(description = "出单阶段定义")
+    @Size(max = 200)
+    @Valid
     private List<PolicyStageRequest> policyStages;
 
     @Schema(description = "核保配置")
+    @Valid
     private UnderwritingConfigRequest underwritingConfig;
 
     @Schema(description = "保单结构配置")
+    @Valid
     private PolicyStructureConfigRequest policyStructure;
 
     @Schema(description = "保全配置")
+    @Valid
     private MaintenanceConfigRequest maintenanceConfig;
 
     @Schema(description = "理赔配置")
+    @Valid
     private ClaimConfigRequest claimConfig;
 
     @Schema(description = "缴费配置")
+    @Valid
     private BillingConfigRequest billingConfig;
 
     @Schema(description = "再保险配置")
+    @Valid
     private ReinsuranceConfigRequest reinsuranceConfig;
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
