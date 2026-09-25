@@ -39,7 +39,7 @@ class RateTableQueryAppServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> service.get("OTHER-TENANT", "PRODUCT-1", "TABLE-1"));
 
-        assertEquals(ProductErrorCode.PRODUCT_NOT_EXIST.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRODUCT_NOT_EXIST.getCode(), exception.getErrorCodeValue());
         verify(rateTableManagementRepository, never()).findById(any(), any(), any());
     }
 
@@ -53,6 +53,6 @@ class RateTableQueryAppServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> service.get("TENANT-1", "PRODUCT-1", "TABLE-1"));
 
-        assertEquals(ProductErrorCode.RATE_TABLE_NOT_FOUND.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_TABLE_NOT_FOUND.getCode(), exception.getErrorCodeValue());
     }
 }

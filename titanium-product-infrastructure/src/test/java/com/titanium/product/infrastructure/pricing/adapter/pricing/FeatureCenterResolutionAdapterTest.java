@@ -80,7 +80,7 @@ class FeatureCenterResolutionAdapterTest {
 
         assertThatThrownBy(() -> adapter.resolve(request()))
                 .isInstanceOf(BusinessException.class)
-                .extracting(exception -> ((BusinessException) exception).getErrorCode())
+                .extracting(exception -> ((BusinessException) exception).getErrorCodeValue())
                 .isEqualTo(ProductErrorCode.PRICING_DEPENDENCY_FAILED.getCode());
     }
 
@@ -90,7 +90,7 @@ class FeatureCenterResolutionAdapterTest {
 
         assertThatThrownBy(() -> adapter.resolve(request()))
                 .isInstanceOf(BusinessException.class)
-                .extracting(exception -> ((BusinessException) exception).getErrorCode())
+                .extracting(exception -> ((BusinessException) exception).getErrorCodeValue())
                 .isEqualTo(ProductErrorCode.PRICING_DEPENDENCY_RESPONSE_INVALID.getCode());
     }
 
@@ -113,7 +113,7 @@ class FeatureCenterResolutionAdapterTest {
 
         assertThatThrownBy(() -> adapter.resolve(request()))
                 .isInstanceOf(BusinessException.class)
-                .extracting(exception -> ((BusinessException) exception).getErrorCode())
+                .extracting(exception -> ((BusinessException) exception).getErrorCodeValue())
                 .isEqualTo(ProductErrorCode.PRICING_DEPENDENCY_RESPONSE_INVALID.getCode());
     }
 

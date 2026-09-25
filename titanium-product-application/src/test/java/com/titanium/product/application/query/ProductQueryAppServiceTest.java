@@ -45,6 +45,6 @@ class ProductQueryAppServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> service.queryProductDetail("missing", "tenant-a"));
 
-        assertEquals(ProductErrorCode.PRODUCT_NOT_EXIST.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRODUCT_NOT_EXIST.getCode(), exception.getErrorCodeValue());
     }
 }

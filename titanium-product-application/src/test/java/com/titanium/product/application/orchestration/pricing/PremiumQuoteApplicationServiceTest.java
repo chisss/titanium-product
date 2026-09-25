@@ -100,7 +100,7 @@ class PremiumQuoteApplicationServiceTest {
 
         BusinessException exception = assertThrows(BusinessException.class, () -> service.quote(command("CNY")));
 
-        assertEquals(ProductErrorCode.PRICING_PLAN_VALIDATION_FAILED.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRICING_PLAN_VALIDATION_FAILED.getCode(), exception.getErrorCodeValue());
         verifyNoInteractions(pricingPlanCalculator);
     }
 
@@ -135,7 +135,7 @@ class PremiumQuoteApplicationServiceTest {
 
         BusinessException exception = assertThrows(BusinessException.class, () -> service.quote(command("CNY")));
 
-        assertEquals(ProductErrorCode.RATE_TABLE_NOT_EFFECTIVE.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_TABLE_NOT_EFFECTIVE.getCode(), exception.getErrorCodeValue());
     }
 
     @Test
@@ -148,7 +148,7 @@ class PremiumQuoteApplicationServiceTest {
 
         BusinessException exception = assertThrows(BusinessException.class, () -> service.quote(command("CNY")));
 
-        assertEquals(ProductErrorCode.PRICING_CURRENCY_MISMATCH.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRICING_CURRENCY_MISMATCH.getCode(), exception.getErrorCodeValue());
     }
 
     @Test
@@ -159,7 +159,7 @@ class PremiumQuoteApplicationServiceTest {
 
         BusinessException exception = assertThrows(BusinessException.class, () -> service.quote(command("CNY")));
 
-        assertEquals(ProductErrorCode.PRICING_PLAN_NOT_EFFECTIVE.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRICING_PLAN_NOT_EFFECTIVE.getCode(), exception.getErrorCodeValue());
     }
 
     private PremiumQuoteCommand command(String currency) {

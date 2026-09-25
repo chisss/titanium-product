@@ -29,8 +29,8 @@ public class ProductExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException exception) {
-        return productError(exception.getErrorCode(), exception.getMessage())
-                .orElseGet(() -> systemError(exception.getErrorCode(), exception.getMessage()));
+        return productError(exception.getErrorCodeValue(), exception.getMessage())
+                .orElseGet(() -> systemError(exception.getErrorCodeValue(), exception.getMessage()));
     }
 
     /** 处理 Product 保全 Offering 的稳定跨域错误语义。 */

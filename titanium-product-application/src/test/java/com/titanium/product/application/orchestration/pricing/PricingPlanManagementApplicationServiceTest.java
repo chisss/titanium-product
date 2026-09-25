@@ -93,7 +93,7 @@ class PricingPlanManagementApplicationServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> service.createDraft(command(effectiveFrom, "a".repeat(64))));
 
-        assertEquals(ProductErrorCode.ACTUARIAL_MODEL_VALIDATION_FAILED.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.ACTUARIAL_MODEL_VALIDATION_FAILED.getCode(), exception.getErrorCodeValue());
         verify(pricingPlanRepository, never()).save(any());
     }
 
@@ -109,7 +109,7 @@ class PricingPlanManagementApplicationServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> service.publish("TENANT-1", "PRODUCT-1", "PLAN-1"));
 
-        assertEquals(ProductErrorCode.PRICING_PLAN_EFFECTIVE_PERIOD_CONFLICT.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRICING_PLAN_EFFECTIVE_PERIOD_CONFLICT.getCode(), exception.getErrorCodeValue());
         verify(testRunner, never()).run(any());
     }
 

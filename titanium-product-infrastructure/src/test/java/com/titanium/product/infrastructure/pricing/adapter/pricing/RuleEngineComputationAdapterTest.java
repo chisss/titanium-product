@@ -81,7 +81,7 @@ class RuleEngineComputationAdapterTest {
 
         assertThatThrownBy(() -> adapter.compute(request()))
                 .isInstanceOf(BusinessException.class)
-                .extracting(exception -> ((BusinessException) exception).getErrorCode())
+                .extracting(exception -> ((BusinessException) exception).getErrorCodeValue())
                 .isEqualTo(ProductErrorCode.PRICING_DEPENDENCY_FAILED.getCode());
     }
 
@@ -93,7 +93,7 @@ class RuleEngineComputationAdapterTest {
 
         assertThatThrownBy(() -> adapter.compute(request()))
                 .isInstanceOf(BusinessException.class)
-                .extracting(exception -> ((BusinessException) exception).getErrorCode())
+                .extracting(exception -> ((BusinessException) exception).getErrorCodeValue())
                 .isEqualTo(ProductErrorCode.PRICING_DEPENDENCY_RESPONSE_INVALID.getCode());
     }
 
@@ -113,7 +113,7 @@ class RuleEngineComputationAdapterTest {
 
         assertThatThrownBy(() -> adapter.compute(request()))
                 .isInstanceOf(BusinessException.class)
-                .extracting(exception -> ((BusinessException) exception).getErrorCode())
+                .extracting(exception -> ((BusinessException) exception).getErrorCodeValue())
                 .isEqualTo(ProductErrorCode.PRICING_DEPENDENCY_RESPONSE_INVALID.getCode());
     }
 

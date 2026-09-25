@@ -102,7 +102,7 @@ class PremiumCalculationApplicationServiceTest {
                 BusinessException.class,
                 () -> service.confirm(command("calc-1", "proposal-1", "100000", null)));
 
-        assertEquals(ProductErrorCode.PRICING_INPUT_INVALID.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRICING_INPUT_INVALID.getCode(), exception.getErrorCodeValue());
     }
 
     @Test

@@ -102,8 +102,8 @@ public class PricingPlanTestRunner {
         if (exception instanceof DomainException domain && domain.getErrorCodeValue() != null) {
             return domain.getErrorCodeValue();
         }
-        if (exception instanceof BusinessException business && business.getErrorCode() != null) {
-            return business.getErrorCode();
+        if (exception instanceof BusinessException business && business.getErrorCodeValue() != null) {
+            return business.getErrorCodeValue();
         }
         return exception.getClass().getSimpleName();
     }

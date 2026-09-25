@@ -58,7 +58,7 @@ class RateTableManagementApplicationServiceTest {
 
         BusinessException exception = assertThrows(BusinessException.class, () -> service.createDraft(createCommand()));
 
-        assertEquals(ProductErrorCode.RATE_TABLE_ALREADY_EXISTS.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_TABLE_ALREADY_EXISTS.getCode(), exception.getErrorCodeValue());
         verify(rateTableManagementRepository, never()).save(any());
     }
 
