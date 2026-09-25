@@ -1,5 +1,6 @@
 package com.titanium.product.web.provider;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -17,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.titanium.common.boundary.BoundaryExceptionHandler;
 import com.titanium.common.context.RequestContextInterceptor;
 import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.enums.pricing.AmountChannel;
@@ -24,6 +26,7 @@ import com.titanium.metadata.enums.pricing.ChargeCategory;
 import com.titanium.metadata.enums.pricing.ChargeDirection;
 import com.titanium.metadata.enums.pricing.ChargePayerType;
 import com.titanium.metadata.errorcode.ProductErrorCode;
+import com.titanium.metadata.errorcode.SystemErrorCode;
 import com.titanium.product.application.query.pricing.PremiumPricingQueryAppService;
 import com.titanium.product.valueobject.pricing.calculation.CalculationLine;
 import com.titanium.product.valueobject.pricing.calculation.CalculationTotals;
@@ -40,7 +43,11 @@ class ProductPricingApiProviderTest {
         pricingQueryAppService = mock(PremiumPricingQueryAppService.class);
         ProductPricingApiProvider provider = new ProductPricingApiProvider(pricingQueryAppService);
         mockMvc = MockMvcBuilders.standaloneSetup(provider)
-                .setControllerAdvice(new ProductExceptionHandler())
+                // 与真机一致地注册两个 advice：真机上 BoundaryExceptionHandler 由
+                // BoundaryWebMvcAutoConfiguration 以 @Bean 提供（序 HIGHEST_PRECEDENCE + 20），
+                // 它对 MethodArgumentNotValidException 等框架异常先于域 advice 命中。
+                // 若此处只注册域 advice，本类测的就是真机上不存在的派发路径。
+                .setControllerAdvice(new BoundaryExceptionHandler(), new ProductExceptionHandler())
                 // 租户已不再由契约入参显式传递，改由 RequestContextInterceptor 从请求头填充上下文供 provider 读取
                 .addInterceptors(new RequestContextInterceptor())
                 .build();
@@ -92,7 +99,10 @@ class ProductPricingApiProviderTest {
                         .header("X-Tenant-ID", "tenant-a")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validRequest()))
-                .andExpect(status().isUnprocessableEntity())
+                // 409 为字面量而非 ErrorCategoryHttpStatus.of(code) 的复述：
+                // 断言必须独立于「被测实现如何决定状态」，否则实现改错也照样绿。
+                // RATE_TABLE_NOT_EFFECTIVE 的类别是 STATE_CONFLICT → 409（改造前域内手写表为 422）。
+                .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value(ProductErrorCode.RATE_TABLE_NOT_EFFECTIVE.getCode()))
                 .andExpect(jsonPath("$.message").value(ProductErrorCode.RATE_TABLE_NOT_EFFECTIVE.getMessage()));
     }
@@ -104,7 +114,10 @@ class ProductPricingApiProviderTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(ProductErrorCode.PRICING_INPUT_INVALID.getCode()));
+                // 真机上 MANV 由边界处理器先接管（域内同名处理器不可达），故此处断言边界的行为：
+                // 400 + SystemErrorCode.PARAM_INVALID，字段级默认文案原样透出。
+                .andExpect(jsonPath("$.code").value(SystemErrorCode.PARAM_INVALID.getCode()))
+                .andExpect(jsonPath("$.message").value(containsString("must not")));
     }
 
     private String validRequest() {

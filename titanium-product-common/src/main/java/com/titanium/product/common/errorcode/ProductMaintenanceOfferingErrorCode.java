@@ -1,6 +1,7 @@
 package com.titanium.product.common.errorcode;
 
 import com.titanium.metadata.errorcode.BaseErrorCode;
+import com.titanium.metadata.errorcode.ErrorCategory;
 
 import lombok.Getter;
 
@@ -23,5 +24,31 @@ public enum ProductMaintenanceOfferingErrorCode implements BaseErrorCode {
         this.code = code;
         this.message = message;
         this.description = description;
+    }
+
+    /**
+     * 错误码的语义类别 → HTTP 状态的唯一依据（{@code ErrorCategoryHttpStatus} 按此映射）。
+     * <p>
+     * 🔴 <b>本枚举此前未覆写本方法</b>，即全部继承 {@code BaseErrorCode} 的默认值
+     * {@link ErrorCategory#INTERNAL_FAILURE}——凡进入统一边界/工厂的路径都会把「Offering 不存在」
+     * 「版本冲突」这类调用方错误一律渲染成 <b>500</b>，且文案被 5xx 规则替换成码表文案，
+     * 调用方既拿不到状态语义、也看不到细节。改造前之所以没有暴露，是因为 Web 层另写了一张
+     * 按 {@code reason} 的手写状态表兜住了它——那张表属第二份事实来源，已随本方法落地删除。
+     * </p>
+     * <p>
+     * 映射与删除前的手写表<b>逐项等价</b>：NOT_FOUND→404；ALREADY_EXISTS / PERIOD_CONFLICT /
+     * STATUS_INVALID→409；VERSION_MISMATCH / NOT_APPLICABLE / CONTRACT_INVALID→422。
+     * 刻意不写 {@code default}：本枚举新增常量而不表态类别即编译失败。
+     * </p>
+     *
+     * @return 语义类别
+     */
+    @Override
+    public ErrorCategory category() {
+        return switch (this) {
+            case NOT_FOUND -> ErrorCategory.RESOURCE_NOT_FOUND;
+            case ALREADY_EXISTS, PERIOD_CONFLICT, STATUS_INVALID -> ErrorCategory.STATE_CONFLICT;
+            case VERSION_MISMATCH, NOT_APPLICABLE, CONTRACT_INVALID -> ErrorCategory.BUSINESS_RULE_VIOLATION;
+        };
     }
 }
