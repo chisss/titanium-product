@@ -35,7 +35,7 @@ class RateTableDefinitionTest {
         assertEquals(64, table.contentHash().length());
         PricingDomainException exception = assertThrows(
                 PricingDomainException.class, () -> table.replaceRows(List.of()));
-        assertEquals(ProductErrorCode.RATE_TABLE_STATUS_INVALID.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_TABLE_STATUS_INVALID.getCode(), exception.getErrorCodeValue());
     }
 
     @Test
@@ -48,7 +48,7 @@ class RateTableDefinitionTest {
         PricingDomainException exception = assertThrows(
                 PricingDomainException.class, table::validateForPublish);
 
-        assertEquals(ProductErrorCode.RATE_TABLE_ROW_CONFLICT.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_TABLE_ROW_CONFLICT.getCode(), exception.getErrorCodeValue());
     }
 
     @Test
@@ -73,7 +73,7 @@ class RateTableDefinitionTest {
 
         PricingDomainException exception = assertThrows(PricingDomainException.class, table::retire);
 
-        assertEquals(ProductErrorCode.RATE_TABLE_STATUS_INVALID.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_TABLE_STATUS_INVALID.getCode(), exception.getErrorCodeValue());
     }
 
     @Test
@@ -102,7 +102,7 @@ class RateTableDefinitionTest {
         PricingDomainException exception = assertThrows(
                 PricingDomainException.class, table::validateForPublish);
 
-        assertEquals(ProductErrorCode.RATE_TABLE_ROW_CONFLICT.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_TABLE_ROW_CONFLICT.getCode(), exception.getErrorCodeValue());
     }
 
     @Test
@@ -118,7 +118,7 @@ class RateTableDefinitionTest {
                         flatRow("ROW-A", new BigDecimal("0.001")),
                         flatRow("ROW-B", new BigDecimal("0.002")))));
 
-        assertEquals(ProductErrorCode.RATE_TABLE_ROW_CONFLICT.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_TABLE_ROW_CONFLICT.getCode(), exception.getErrorCodeValue());
         assertTrue(exception.getMessage().contains("维度重复"), exception.getMessage());
         // 拒绝不得半提交：草稿行集合保持替换前状态
         assertEquals(List.of(), table.rows());

@@ -40,7 +40,7 @@ class PremiumAdjustmentServiceTest {
                 List.of(request("INVALID", PremiumAdjustmentType.DISCOUNT_RATE, "1.01")),
                 roundingRule));
 
-        assertEquals(ProductErrorCode.PRICING_ADJUSTMENT_INVALID.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRICING_ADJUSTMENT_INVALID.getCode(), exception.getErrorCodeValue());
     }
 
     @Test

@@ -27,7 +27,7 @@ class PremiumCalculationTest {
                 PricingDomainException.class,
                 () -> calculation.assertSameRequest(hash('b')));
 
-        assertEquals(ProductErrorCode.PRICING_IDEMPOTENCY_CONFLICT.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRICING_IDEMPOTENCY_CONFLICT.getCode(), exception.getErrorCodeValue());
     }
 
     private PremiumCalculation calculation() {

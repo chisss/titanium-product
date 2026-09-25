@@ -99,8 +99,8 @@ public class PricingPlanTestRunner {
      * </p>
      */
     private String failureMessage(RuntimeException exception) {
-        if (exception instanceof DomainException domain && domain.getErrorCode() != null) {
-            return domain.getErrorCode();
+        if (exception instanceof DomainException domain && domain.getErrorCodeValue() != null) {
+            return domain.getErrorCodeValue();
         }
         if (exception instanceof BusinessException business && business.getErrorCode() != null) {
             return business.getErrorCode();

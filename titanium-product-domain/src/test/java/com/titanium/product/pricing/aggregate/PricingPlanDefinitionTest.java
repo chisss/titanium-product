@@ -50,14 +50,14 @@ class PricingPlanDefinitionTest {
         PricingDomainException exception = assertThrows(PricingDomainException.class, () -> plan.publish(
                 new PricingPlanValidationResult(contentHash, 1, 0, List.of())));
 
-        assertEquals(ProductErrorCode.PRICING_TEST_CASE_FAILED.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRICING_TEST_CASE_FAILED.getCode(), exception.getErrorCodeValue());
     }
 
     @Test
     void shouldRejectApproveWithoutTestCases() {
         PricingDomainException exception = assertThrows(PricingDomainException.class, draft()::approve);
 
-        assertEquals(ProductErrorCode.PRICING_PLAN_VALIDATION_FAILED.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRICING_PLAN_VALIDATION_FAILED.getCode(), exception.getErrorCodeValue());
     }
 
     @Test

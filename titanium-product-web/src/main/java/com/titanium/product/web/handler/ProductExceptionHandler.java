@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.titanium.common.exception.BusinessException;
+import com.titanium.metadata.errorcode.BaseErrorCode;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.errorcode.SystemErrorCode;
 import com.titanium.metadata.exception.DomainException;
@@ -42,10 +43,20 @@ public class ProductExceptionHandler {
 
     /**
      * 处理领域规则异常。
+     * <p>
+     * 错误码字段自 2026-09-25 起为 {@link BaseErrorCode} 强类型：携 {@link ProductErrorCode} 者
+     * 直接按其语义定状态码（原有「按码串反查枚举」的结果等价，但不再丢失枚举身份）；
+     * 其余（存量裸串路径、系统通用码）维持原行为——按码串回查本域枚举，未命中则 422 + 参数无效。
+     * </p>
      */
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ApiResponse<Void>> handleDomainException(DomainException exception) {
-        return productError(exception.getErrorCode(), exception.getMessage())
+        BaseErrorCode errorCode = exception.getErrorCode();
+        if (errorCode instanceof ProductErrorCode productErrorCode) {
+            return ResponseEntity.status(statusFor(productErrorCode))
+                    .body(ApiResponse.error(productErrorCode, exception.getMessage()));
+        }
+        return productError(errorCode.getCode(), exception.getMessage())
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                         .body(ApiResponse.error(SystemErrorCode.PARAM_INVALID, exception.getMessage())));
     }
@@ -63,6 +74,10 @@ public class ProductExceptionHandler {
                 .body(ApiResponse.error(ProductErrorCode.PRICING_INPUT_INVALID, message));
     }
 
+    /**
+     * 按码串反查本域枚举（仅服务于 {@link BusinessException} 分支与存量裸串路径——
+     * 二者的错误码都只是字符串，无枚举身份可直取）。
+     */
     private Optional<ResponseEntity<ApiResponse<Void>>> productError(String code, String message) {
         return Arrays.stream(ProductErrorCode.values())
                 .filter(errorCode -> errorCode.getCode().equals(code))

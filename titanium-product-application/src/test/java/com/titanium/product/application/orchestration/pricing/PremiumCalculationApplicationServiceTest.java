@@ -130,7 +130,7 @@ class PremiumCalculationApplicationServiceTest {
         PricingDomainException exception = assertThrows(
                 PricingDomainException.class, () -> service.confirm(command("calc-1", "proposal-1", "110000")));
 
-        assertEquals(ProductErrorCode.PRICING_IDEMPOTENCY_CONFLICT.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.PRICING_IDEMPOTENCY_CONFLICT.getCode(), exception.getErrorCodeValue());
         verify(quoteService).quote(any());
     }
 

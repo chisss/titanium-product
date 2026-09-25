@@ -39,7 +39,7 @@ class RateTableMatchingServiceTest {
         PricingDomainException exception = assertThrows(PricingDomainException.class,
                 () -> service.match(snapshot, new RateTableCriteria(35, "M", 10, 20)));
 
-        assertEquals(ProductErrorCode.RATE_ROW_NOT_MATCHED.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_ROW_NOT_MATCHED.getCode(), exception.getErrorCodeValue());
     }
 
     @Test
@@ -51,7 +51,7 @@ class RateTableMatchingServiceTest {
         PricingDomainException exception = assertThrows(PricingDomainException.class,
                 () -> service.match(snapshot, new RateTableCriteria(35, "F", 10, 20)));
 
-        assertEquals(ProductErrorCode.RATE_ROW_MULTIPLE_MATCHED.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_ROW_MULTIPLE_MATCHED.getCode(), exception.getErrorCodeValue());
     }
 
     @Test
@@ -74,7 +74,7 @@ class RateTableMatchingServiceTest {
         PricingDomainException exception = assertThrows(PricingDomainException.class,
                 () -> service.match(snapshot, new RateTableCriteria(35, "M", 10, 20)));
 
-        assertEquals(ProductErrorCode.RATE_ROW_NOT_MATCHED.getCode(), exception.getErrorCode());
+        assertEquals(ProductErrorCode.RATE_ROW_NOT_MATCHED.getCode(), exception.getErrorCodeValue());
     }
 
     @Test
