@@ -38,7 +38,7 @@ public class PricingBasicRuleDTO {
      *         G7 守卫以 {@code PRICING_FACTORS_DEPRECATED} 明确拒绝，并提示改用定价计划的动态因子。
      *         保留该入参而非直接删除，是为了让误用者收到可执行的错误提示，而不是被静默忽略。
      */
-    @Deprecated
+    @Deprecated(since = "2026-08", forRemoval = true)
     private List<PricingFactor> factors;
     /** 费率计算公式 */
     private String rateFormula;

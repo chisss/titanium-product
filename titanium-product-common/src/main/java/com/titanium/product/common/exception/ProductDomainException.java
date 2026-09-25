@@ -37,7 +37,7 @@ public class ProductDomainException extends DomainException {
      * @param message 异常消息
      * @deprecated 裸串错误码违反红线 19，请改用 {@link #ProductDomainException(ProductErrorCode, String)}
      */
-    @Deprecated
+    @Deprecated(since = "2026-08", forRemoval = true)
     public ProductDomainException(String errorCode, String message) {
         super(errorCode, message);
     }
@@ -50,7 +50,7 @@ public class ProductDomainException extends DomainException {
      * @param cause 根因异常
      * @deprecated 裸串错误码违反红线 19，请改用 {@link #ProductDomainException(ProductErrorCode, String, Throwable)}
      */
-    @Deprecated
+    @Deprecated(since = "2026-08", forRemoval = true)
     public ProductDomainException(String errorCode, String message, Throwable cause) {
         super(errorCode, message, cause);
     }

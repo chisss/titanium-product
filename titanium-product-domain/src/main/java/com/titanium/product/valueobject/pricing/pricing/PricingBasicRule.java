@@ -24,6 +24,6 @@ import com.titanium.metadata.enums.product.ProductEnum;
  * @param typeSpecificConfig 险种专属配置（如投连险投资账户费率）
  */
 public record PricingBasicRule(ProductEnum.PricingType pricingType, BigDecimal baseRate,
-                               @Deprecated List<PricingFactor> factors,
+                               @Deprecated(since = "2026-08", forRemoval = true) List<PricingFactor> factors,
                                String rateFormula, Map<String, Object> typeSpecificConfig) {
 }
