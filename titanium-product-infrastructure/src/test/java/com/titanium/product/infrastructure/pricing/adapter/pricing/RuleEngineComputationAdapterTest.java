@@ -71,6 +71,9 @@ class RuleEngineComputationAdapterTest {
         verify(ruleArtifactApi).compute(eq("premium-calc"), eq("7"), requestCaptor.capture(), eq(BUSINESS_ID), eq(BUSINESS_TYPE));
         assertThat(requestCaptor.getValue().getInputSchemaVersion()).isEqualTo("pricing-input:1");
         assertThat(requestCaptor.getValue().getExecutionId()).isEqualTo("execution-1");
+        // 规则事实经 RuleFacts 封装后原样转发（键值逐项不变，未因包壳而丢失变量）
+        assertThat(requestCaptor.getValue().getVariables().values())
+                .containsExactlyInAnyOrderEntriesOf(request.variables());
     }
 
     @Test

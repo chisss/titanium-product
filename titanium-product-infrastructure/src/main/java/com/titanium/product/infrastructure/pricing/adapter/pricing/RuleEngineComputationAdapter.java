@@ -13,6 +13,7 @@ import com.titanium.product.valueobject.pricing.pricing.PricingRuleComputationRe
 import com.titanium.product.valueobject.pricing.pricing.PricingRuleComputationResult;
 import com.titanium.ruleengine.api.RuleArtifactApi;
 import com.titanium.ruleengine.api.request.artifact.RuleArtifactComputeRequest;
+import com.titanium.ruleengine.api.request.execution.RuleFacts;
 import com.titanium.ruleengine.api.response.artifact.RuleArtifactComputeResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -85,7 +86,7 @@ public class RuleEngineComputationAdapter implements RuleComputationPort {
         RuleArtifactComputeRequest target = new RuleArtifactComputeRequest();
         target.setExecutionId(request.executionId());
         target.setInputSchemaVersion(request.inputSchemaVersion());
-        target.setVariables(request.variables());
+        target.setVariables(RuleFacts.of(request.variables()));
         target.setExplain(request.explain());
         target.setBusinessTime(request.businessTime());
         return target;
