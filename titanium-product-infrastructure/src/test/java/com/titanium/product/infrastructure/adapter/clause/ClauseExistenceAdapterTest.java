@@ -20,6 +20,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.titanium.clause.api.ClauseApi;
 import com.titanium.clause.api.response.clause.ClauseResponse;
 import com.titanium.metadata.enums.clause.ClauseEnum;
+import com.titanium.metadata.errorcode.SystemErrorCode;
+import com.titanium.metadata.exception.DomainException;
+import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.port.clause.ClauseBindingCheck;
 
 import feign.FeignException;
@@ -87,7 +90,7 @@ class ClauseExistenceAdapterTest {
     @EnumSource(value = ClauseEnum.ClauseStatus.class, names = "ACTIVE", mode = EnumSource.Mode.EXCLUDE)
     @DisplayName("🔴 除 ACTIVE 外的任一状态都不可绑定，且记入 nonActive 而非 missing")
     void shouldRejectEveryStatusOtherThanActiveIntoItsOwnBucket(ClauseEnum.ClauseStatus status) {
-        when(clauseApi.getClauseById("clause-a")).thenReturn(clauseWithStatus(status));
+        when(clauseApi.getClauseById("clause-a")).thenReturn(successWithStatus(status));
 
         ClauseBindingCheck check = adapter.checkBindable(List.of("clause-a"), TENANT_ID);
 
@@ -101,7 +104,7 @@ class ClauseExistenceAdapterTest {
         when(clauseApi.getClauseById("clause-a")).thenReturn(activeClause());
         when(clauseApi.getClauseById("clause-b")).thenThrow(notFound());
         when(clauseApi.getClauseById("clause-c"))
-                .thenReturn(clauseWithStatus(ClauseEnum.ClauseStatus.DRAFT));
+                .thenReturn(successWithStatus(ClauseEnum.ClauseStatus.DRAFT));
 
         ClauseBindingCheck check = adapter.checkBindable(List.of("clause-a", "clause-b", "clause-c"), TENANT_ID);
 
@@ -129,20 +132,40 @@ class ClauseExistenceAdapterTest {
                 .isSameAs(serviceUnavailable);
     }
 
-    /** 可绑定的条款响应（ACTIVE） */
-    private ClauseResponse activeClause() {
-        return clauseWithStatus(ClauseEnum.ClauseStatus.ACTIVE);
+    /** 两种失败形态在信封化后新增，必须与「缺失」分桶 */
+    @Test
+    @DisplayName("🔴 成功信封但 data 为 null 时判为缺失，不放行")
+    void shouldTreatNullDataAsMissing() {
+        when(clauseApi.getClauseById("clause-a")).thenReturn(ApiResponse.success(null));
+
+        assertThat(adapter.checkBindable(List.of("clause-a"), TENANT_ID).missingClauseIds())
+                .containsExactly("clause-a");
     }
 
-    /** 构造指定状态的条款响应 */
-    private ClauseResponse clauseWithStatus(ClauseEnum.ClauseStatus status) {
-        ClauseResponse response = new ClauseResponse();
-        response.setStatus(status);
-        return response;
+    @Test
+    @DisplayName("🔴 错误信封（2xx + 错误码）必须上抛，绝不记成「条款不存在」")
+    void shouldPropagateErrorEnvelopeInsteadOfReportingMissing() {
+        when(clauseApi.getClauseById("clause-a"))
+                .thenReturn(ApiResponse.error(SystemErrorCode.DEPENDENCY_SERVICE_ERROR));
+
+        assertThatThrownBy(() -> adapter.checkBindable(List.of("clause-a"), TENANT_ID))
+                .isInstanceOf(DomainException.class);
     }
 
     /** 条款域回 404（ClauseNotFoundException → CLAUSE_NOT_EXIST）时 Feign 抛的异常 */
     private FeignException notFound() {
         return mock(FeignException.NotFound.class);
+    }
+
+    /** 可绑定的条款成功信封（ACTIVE） */
+    private ApiResponse<ClauseResponse> activeClause() {
+        return successWithStatus(ClauseEnum.ClauseStatus.ACTIVE);
+    }
+
+    /** 构造指定状态的条款成功信封（m24-01a 起契约统一返回 ApiResponse） */
+    private ApiResponse<ClauseResponse> successWithStatus(ClauseEnum.ClauseStatus status) {
+        ClauseResponse response = new ClauseResponse();
+        response.setStatus(status);
+        return ApiResponse.success(response);
     }
 }

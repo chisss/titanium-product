@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 import com.titanium.clause.api.ClauseApi;
 import com.titanium.clause.api.response.clause.ClauseResponse;
 import com.titanium.metadata.enums.clause.ClauseEnum;
+import com.titanium.metadata.errorcode.SystemErrorCode;
+import com.titanium.metadata.exception.DomainException;
+import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.port.clause.ClauseBindingCheck;
 import com.titanium.product.port.clause.ClauseExistencePort;
 
@@ -22,7 +25,10 @@ import lombok.extern.slf4j.Slf4j;
  * 复用条款域<b>已有</b>的 {@code GET /api/v1/clauses/{clauseId}}——条款不存在时该端点返回
  * 404（{@code ClauseErrorCode.CLAUSE_NOT_EXIST}，经条款域 {@code ClauseExceptionHandler} 映射），
  * 这正是「确不存在」唯一可靠的判据；条款存在时响应体自带 {@code status}，状态判据<b>零额外往返</b>，
- * 故条款域本次<b>零改动</b>。</p>
+ * 故本域无需新增端点。</p>
+ *
+ * <p>m24-01a 起该契约统一返回 {@code ApiResponse} 信封：成功体经 {@code data} 取条款详情，
+ * 404 判据不变（仍由 {@link FeignException.NotFound} 承载），错误信封一律上抛。</p>
  *
  * <p>🔴 <b>三种结局必须分开处理</b>（R7-01 的教训——把失败说成「资源不存在」会让排查方向被带偏）：</p>
  * <ul>
@@ -70,9 +76,21 @@ public class ClauseExistenceAdapter implements ClauseExistencePort {
      */
     private ClauseResponse fetch(String clauseId, String tenantId) {
         try {
-            // Provider 端不存在时抛 ClauseNotFoundException（404），不会返回 null；
-            // 此处的 null 兜底是防「Feign 解码异常却未抛错」的下游变更，宁可判为缺失也不放行
-            return clauseApi.getClauseById(clauseId);
+            ApiResponse<ClauseResponse> response = clauseApi.getClauseById(clauseId);
+            // 响应整体为 null（Provider 端不存在时抛 404，不会返回 null）：兜底防「Feign 解码异常却不抛错」
+            // 的下游变更，宁可判为缺失也不放行
+            if (response == null) {
+                return null;
+            }
+            // 信封化后新增的失败形态：错误信封（非 2xx 时 Feign 已抛，此处防「2xx + 错误码」）。
+            // 🔴 必须上抛而非返回 null——否则与「条款不存在」混为一谈，正是本类三结局分离要禁止的。
+            if (!response.isSuccess()) {
+                log.error("条款详情查询失败, clauseId={}, tenantId={}, error={}",
+                        clauseId, tenantId, response.getMessage());
+                throw new DomainException(SystemErrorCode.DEPENDENCY_SERVICE_ERROR,
+                        "条款服务调用失败: clauseId=" + clauseId + ", errorCode=" + response.getCode());
+            }
+            return response.getData();
         } catch (FeignException.NotFound e) {
             log.warn("条款不存在，产品条款绑定校验将拒绝该引用: clauseId={}, tenantId={}", clauseId, tenantId);
             return null;
