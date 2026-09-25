@@ -76,7 +76,7 @@ class FeatureCenterResolutionAdapterTest {
     @Test
     void shouldFailClosedWhenDownstreamReturnsBusinessFailure() {
         when(featureCenterApi.resolve(any()))
-                .thenReturn(new ApiResponse<>("61000001", "feature failed", null));
+                .thenReturn(ApiResponse.passthrough("61000001", "feature failed"));
 
         assertThatThrownBy(() -> adapter.resolve(request()))
                 .isInstanceOf(BusinessException.class)

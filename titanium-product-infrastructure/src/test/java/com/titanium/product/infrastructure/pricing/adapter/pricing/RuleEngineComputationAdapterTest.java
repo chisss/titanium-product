@@ -77,7 +77,7 @@ class RuleEngineComputationAdapterTest {
     void shouldFailClosedWhenDownstreamReturnsBusinessFailure() {
         when(ruleArtifactApi.compute(eq("premium-calc"), eq("7"), any(),
                 eq(BUSINESS_ID), eq(BUSINESS_TYPE)))
-                .thenReturn(new ApiResponse<>("62000001", "rule failed", null));
+                .thenReturn(ApiResponse.passthrough("62000001", "rule failed"));
 
         assertThatThrownBy(() -> adapter.compute(request()))
                 .isInstanceOf(BusinessException.class)
