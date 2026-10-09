@@ -12,13 +12,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.request.product.AuditProductRequest;
 import com.titanium.product.api.request.product.CreateProductRequest;
+import com.titanium.product.api.request.product.UpdateCoverageSumInsuredConfigRequest;
+import com.titanium.product.api.request.product.UpdateProductClauseRelRequest;
 import com.titanium.product.api.response.clause.ProductClauseResponse;
+import com.titanium.product.api.response.config.CoverageSumInsuredConfigResponse;
 import com.titanium.product.api.response.config.IssuanceProcessConfigResponse;
 import com.titanium.product.api.response.config.PolicyFormConfigResponse;
 import com.titanium.product.api.response.config.UnderwritingConfigResponse;
 import com.titanium.product.api.response.pricing.PricingBasicRuleResponse;
 import com.titanium.product.api.response.product.InsuranceProductDefinitionResponse;
 import com.titanium.product.api.response.product.ProductResponse;
+
+import jakarta.validation.Valid;
 
 /**
  * 产品聚合对外契约（Feign）
@@ -98,4 +103,65 @@ public interface ProductApi {
      */
     @GetMapping("/{productId}/clauses")
     ApiResponse<List<ProductClauseResponse>> getProductClauses(@PathVariable String productId);
+
+    /**
+     * 整体替换产品绑定的条款关联（上游 → product；远程写入口）
+     * <p>
+     * <b>整体替换</b>语义：提交的清单即替换后的全部绑定，不是增量。服务端实现置于 web 层
+     * {@code ProductApiProvider}（契约实现落 provider，Controller 不得 implements Api），
+     * 与后台/端上的 {@code PUT /web/v1/products/{productId}/clauses} <b>平行收敛</b>到同一个
+     * application 薄门面，互不依赖。
+     * </p>
+     *
+     * <p>🔴 仅 {@code DRAFT} 状态产品可改绑定，且新绑定须在条款域真实存在并处于 {@code ACTIVE}——
+     * 两条前置由<b>服务端</b>裁决（前者在聚合根、后者在应用层跨域校验），调用方无需自证。</p>
+     *
+     * @param productId 产品ID
+     * @param request   替换后的全部条款关联（非空）
+     * @return 无数据体的成功响应；失败时 {@code code} 承载产品域业务错误码
+     */
+    @PutMapping("/{productId}/clauses")
+    ApiResponse<Void> updateProductClauseRel(@PathVariable String productId,
+                                             @Valid @RequestBody UpdateProductClauseRelRequest request);
+
+    /**
+     * 查询产品的责任级保额档次配置（供出单/投保链路取「每个责任可填什么保额」）
+     * <p>
+     * 一个产品下每个已配置的责任一条，含档位清单、保额区间与是否开放自由填。未配置时返回空列表
+     * （不是 404——「该产品尚未配置档次」是正常状态，不是资源缺失）。
+     * </p>
+     * <p>
+     * ⚠️ <b>读自读模型，最终一致</b>：刚写入的配置可能需要短暂延迟才可见。调用方若要「写完立刻校验」，
+     * 应以服务端的写入结果为答，不要以本端点回读为准。
+     * </p>
+     *
+     * @param productId 产品ID
+     * @return 该产品全部责任的档次配置；未配置时为空列表
+     */
+    @GetMapping("/{productId}/coverage-sum-insured-configs")
+    ApiResponse<List<CoverageSumInsuredConfigResponse>> getCoverageSumInsuredConfigs(
+            @PathVariable String productId);
+
+    /**
+     * 整体替换产品的责任级保额档次配置（上游 → product；远程写入口）
+     * <p>
+     * <b>整体替换</b>语义：提交的清单即替换后的全部配置，不是增量；传空清单表示<b>清空</b>。
+     * 服务端实现置于 web 层 {@code ProductApiProvider}（契约实现落 provider，Controller 不得
+     * implements Api），与后台/端上的
+     * {@code PUT /web/v1/products/{productId}/coverage-sum-insured-configs} <b>平行收敛</b>到同一个
+     * application 薄门面，互不依赖。
+     * </p>
+     *
+     * <p>🔴 两条前置由<b>服务端</b>裁决，调用方无需自证：① 仅 {@code DRAFT} 状态产品可配置（聚合根）；
+     * ② 每条 {@code coverageCode} 须落在该产品<b>已绑定条款的责任集合</b>内（应用层跨域向条款域求证）——
+     * 后者是为了堵住「产品侧配了、投保侧永远匹配不到」的静默失效。</p>
+     *
+     * @param productId 产品ID
+     * @param request   替换后的全部责任档次配置（不得为 null，清空请传空清单）
+     * @return 无数据体的成功响应；失败时 {@code code} 承载产品域业务错误码
+     */
+    @PutMapping("/{productId}/coverage-sum-insured-configs")
+    ApiResponse<Void> updateCoverageSumInsuredConfig(
+            @PathVariable String productId,
+            @Valid @RequestBody UpdateCoverageSumInsuredConfigRequest request);
 }
