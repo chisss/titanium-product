@@ -3,6 +3,7 @@ package com.titanium.product.query.view;
 import com.titanium.common.jpa.BaseView;
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 
 import jakarta.persistence.Column;
@@ -50,10 +51,15 @@ public class ProductTemplateView extends BaseView {
     @Column(name = "insurance_category", length = 32)
     private ProductEnum.ProductCategory insuranceCategory;
 
-    /** 险种类型 */
+    /** 险种类型（权威三级编码，来源于遗留扁平码的唯一可解析映射；一对多/无对映值时为空——不猜值） */
     @Enumerated(EnumType.STRING)
-    @Column(name = "insurance_type", length = 32)
-    private InsuranceType               insuranceType;
+    @Column(name = "insurance_product_type", length = 32)
+    private InsuranceProductType        insuranceType;
+
+    /** 遗留扁平险种编码（metadata InsuranceType，G10 起废弃为产品分类标签；P1 双写期保留，供迁移与旧值回读） */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "legacy_insurance_type", length = 32)
+    private InsuranceType               legacyInsuranceType;
 
     /** 关联产品ID */
     @Column(name = "product_id", length = 36)

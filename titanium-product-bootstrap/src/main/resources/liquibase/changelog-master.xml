@@ -27,4 +27,20 @@
     <include file="classpath:liquibase/dml/t_product_clause_rel_view_202609211700_weisun_dml.sql"/>
     <include file="classpath:liquibase/ddl/product_do_version_column_202609231700_weisun_ddl.sql"/>
     <include file="classpath:liquibase/ddl/product_shedlock_202609231800_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/t_product_coverage_sum_insured_view_202609262000_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/rate_table_row_amount_dimensions_202609262100_weisun_ddl.sql"/>
+    <!-- G01-R3-F1：补齐 7 个枚举外维度键的行级承载列（9 列）。必须在上一行之后——新列以
+         AFTER deductible_to_exclusive 定位，依赖该 changeset 已建好的 deductible_* 两列。 -->
+    <include file="classpath:liquibase/ddl/rate_table_row_g01r_dimensions_202609261838_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_loan_policy_202609281130_weisun_ddl.sql"/>
+    <include file="classpath:liquibase/ddl/product_reduced_paid_up_policy_202609281800_weisun_ddl.sql"/>
+    <!-- g05-02：退保价值策略退费基准列（缺省 CASH_VALUE）+ 种子行内容哈希重算 -->
+    <include file="classpath:liquibase/ddl/product_surrender_value_refund_basis_202609301000_weisun_ddl.sql"/>
+    <!-- g05-05：退保价值策略手续费率列（可空=不适用）+ 种子行内容哈希重算 -->
+    <include file="classpath:liquibase/ddl/product_surrender_value_handling_fee_202609301400_weisun_ddl.sql"/>
+    <!-- G10/g10-02：模板读模型险种键语义切分——新增权威列 insurance_product_type + 原列更名 legacy_insurance_type（P1 双写） -->
+    <include file="classpath:liquibase/ddl/product_template_view_insurance_key_202610091849_weisun_ddl.sql"/>
+    <!-- G10/g10-03b：存量迁移——4 个 STD 模板行险种编码恢复（R-2 裁示）+ 2 个 NULL 产品行补 AUTO（D-3 裁示） -->
+    <include file="classpath:liquibase/dml/t_product_template_view_202610101049_weisun_dml.sql"/>
+    <include file="classpath:liquibase/dml/t_product_view_202610101049_weisun_dml.sql"/>
 </databaseChangeLog>

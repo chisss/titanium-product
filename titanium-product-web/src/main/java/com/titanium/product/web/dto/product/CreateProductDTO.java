@@ -20,6 +20,7 @@ import com.titanium.product.web.dto.pricing.basicrule.PricingBasicRuleDTO;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -52,7 +53,8 @@ public class CreateProductDTO {
     private String productDesc;
     /** 产品形态（INDIVIDUAL/GROUP） */
     private ProductEnum.ProductForm form;
-    /** 险种类型 */
+    /** 险种类型（必填：G10/g10-04 —— 缺值拒绝提交，禁止按大类兜底推断代表性细分类型） */
+    @NotNull
     private InsuranceProductType insuranceType;
     /** 产品类别（MAIN/RIDER） */
     private ProductEnum.ProductCategory category;

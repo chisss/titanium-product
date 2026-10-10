@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import com.alibaba.fastjson2.JSON;
 
 import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.insurance.SubjectType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.common.enums.LiabilityStructure;
@@ -61,6 +62,9 @@ class ProductViewMapperTemplateTest {
         ClaimConfig parsed = JSON.parseObject(view.getClaimConfigJson(), ClaimConfig.class);
         assertEquals(30, parsed.reportDeadlineDays());
         assertEquals("CLAIM_RULE_SET", parsed.claimRuleSet());
+        // G10/g10-02 双写：MEDICAL 属「同名异体系」唯一映射——权威列写三级 MEDICAL，遗留列原样保留扁平码
+        assertEquals(InsuranceProductType.MEDICAL, view.getInsuranceType());
+        assertEquals(InsuranceType.MEDICAL, view.getLegacyInsuranceType());
     }
 
     @Test
@@ -81,5 +85,38 @@ class ProductViewMapperTemplateTest {
         PolicyStructureConfig parsed = JSON.parseObject(view.getPolicyStructureJson(), PolicyStructureConfig.class);
         assertEquals(SubjectType.PET, parsed.subjectType());
         assertEquals(true, parsed.allowMultipleSubjects());
+        // G10/g10-02 双写：PET 映射到三级 PET_MEDICAL（异名同义）
+        assertEquals(InsuranceProductType.PET_MEDICAL, view.getInsuranceType());
+        assertEquals(InsuranceType.PET, view.getLegacyInsuranceType());
+    }
+
+    @Test
+    @DisplayName("模板创建事件投影：无对映遗留值不猜值——权威列为空、遗留列原样（AC-02 反向契约）")
+    void shouldNotGuessAuthoritativeTypeForUnmappedLegacy() {
+        // VESSEL 属 6 个「无对映」值之一（三级体系无编码），双写时权威列必须留空
+        ProductTemplateCreatedEvent event = ProductTemplateCreatedEvent.of("TPL-003", "CODE-003", "船舶险模板",
+                InsuranceType.VESSEL, "desc", null, null, null, null, null, null, List.of(), List.of(), "tenant-1",
+                "creator-1");
+
+        ProductTemplateView view = new ProductTemplateView();
+        mapper.applyTemplateCreated(view, event);
+
+        assertNull(view.getInsuranceType(), "无对映遗留值不得猜值映射出三级码");
+        assertEquals(InsuranceType.VESSEL, view.getLegacyInsuranceType(), "遗留列须原样保留");
+    }
+
+    @Test
+    @DisplayName("模板创建事件投影：一对多遗留值不猜值——权威列为空、遗留列原样（AC-02 反向契约）")
+    void shouldNotGuessAuthoritativeTypeForOneToManyLegacy() {
+        // LIFE 属「一对多」值（三级展开 4 个候选：TERM_LIFE/WHOLE_LIFE/ENDOWMENT/ANNUITY），归属未定前不猜
+        ProductTemplateCreatedEvent event = ProductTemplateCreatedEvent.of("TPL-004", "CODE-004", "寿险模板",
+                InsuranceType.LIFE, "desc", null, null, null, null, null, null, List.of(), List.of(), "tenant-1",
+                "creator-1");
+
+        ProductTemplateView view = new ProductTemplateView();
+        mapper.applyTemplateCreated(view, event);
+
+        assertNull(view.getInsuranceType(), "一对多遗留值不得猜值映射出三级码");
+        assertEquals(InsuranceType.LIFE, view.getLegacyInsuranceType(), "遗留列须原样保留");
     }
 }

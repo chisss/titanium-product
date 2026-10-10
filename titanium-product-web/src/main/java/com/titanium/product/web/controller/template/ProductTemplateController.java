@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.titanium.common.context.RequestContextHolder;
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.response.product.ProductTemplateResponse;
 import com.titanium.product.application.command.ProductTemplateCommandAppService;
@@ -129,12 +129,16 @@ public class ProductTemplateController {
     }
 
     /**
-     * 根据险种类型查询模板列表
+     * 根据险种类型查询模板列表（入参为权威三级码 InsuranceProductType 常量名；G10/g10-04 起）
      */
     @GetMapping("/by-type/{insuranceTypeCode}")
     public ApiResponse<List<ProductTemplateResponse>> getByInsuranceType(@PathVariable String insuranceTypeCode) {
         String tenantId = RequestContextHolder.requireTenantId();
-        InsuranceType type = InsuranceType.fromCode(insuranceTypeCode);
+        InsuranceProductType type = InsuranceProductType.fromCode(insuranceTypeCode);
+        if (type == null) {
+            // 未知码保持宽松语义（历史行为）：返回空列表而非报错
+            return ApiResponse.success(List.of());
+        }
         List<ProductTemplateQueryResult> results = queryAppService.getTemplatesByInsuranceType(type, tenantId);
         return ApiResponse.success(results.stream().map(webMapper::toResponse).toList());
     }

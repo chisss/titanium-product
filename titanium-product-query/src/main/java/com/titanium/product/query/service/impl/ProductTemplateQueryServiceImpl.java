@@ -10,7 +10,8 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
+import com.titanium.metadata.enums.insurance.LegacyInsuranceTypeMapping;
 import com.titanium.product.query.repository.ProductTemplateViewRepository;
 import com.titanium.product.query.repository.ProductViewRepository;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
@@ -75,9 +76,14 @@ public class ProductTemplateQueryServiceImpl implements ProductTemplateQueryServ
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductTemplateQueryResult> getTemplatesByInsuranceType(InsuranceType insuranceType, String tenantId) {
-        return templateViewRepository.findByInsuranceTypeAndTenantId(insuranceType, tenantId)
-                .stream()
+    public List<ProductTemplateQueryResult> getTemplatesByInsuranceType(InsuranceProductType insuranceType,
+            String tenantId) {
+        // G10/g10-04：入参契约已切权威三级码（g10-02 显式移交）。查询按「权威列 ∪ 遗留回退码」——
+        // 存量迁移后行命中权威列；迁移前历史行由该三级码的遗留扁平码兜住（legacyOf 确定性反向，不猜值）。
+        // 三级独有码（无遗留对映）传 null：JPQL 的 legacy 分支恒不命中，等价于只查权威列。
+        List<ProductTemplateView> views = templateViewRepository.findByAuthoritativeOrLegacyType(insuranceType,
+                LegacyInsuranceTypeMapping.legacyOf(insuranceType).orElse(null), tenantId);
+        return views.stream()
                 .map(this::toQueryResult)
                 .toList();
     }
@@ -91,7 +97,10 @@ public class ProductTemplateQueryServiceImpl implements ProductTemplateQueryServ
                 .templateCode(view.getTemplateCode())
                 .templateName(view.getTemplateName())
                 .insuranceCategory(view.getInsuranceCategory())
-                .insuranceType(view.getInsuranceType())
+                // G10/g10-04：对外查询契约已切权威三级码。迁移前存量行权威列为空时按遗留码「唯一可解析」
+                // 回读（resolve 不猜值）；一对多/无对映遗留值仍为空，由 g10-03b 存量迁移补权威列后回读
+                .insuranceType(view.getInsuranceType() != null ? view.getInsuranceType()
+                        : LegacyInsuranceTypeMapping.resolve(view.getLegacyInsuranceType()).orElse(null))
                 .productId(view.getProductId())
                 .issuanceMode(view.getIssuanceMode())
                 .policyStages(parseList(view.getPolicyStagesJson()))

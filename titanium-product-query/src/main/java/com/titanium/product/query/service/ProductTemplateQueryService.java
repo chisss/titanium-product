@@ -2,7 +2,7 @@ package com.titanium.product.query.service;
 
 import java.util.List;
 
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
 
 /**
@@ -30,7 +30,7 @@ public interface ProductTemplateQueryService {
     ProductTemplateQueryResult getTemplateByCode(String templateCode, String tenantId);
 
     /**
-     * 根据险种类型 + 租户ID查询产品模板列表
+     * 根据险种类型 + 租户ID查询产品模板列表（G10/g10-04 起入参为权威三级码 InsuranceProductType）
      */
-    List<ProductTemplateQueryResult> getTemplatesByInsuranceType(InsuranceType insuranceType, String tenantId);
+    List<ProductTemplateQueryResult> getTemplatesByInsuranceType(InsuranceProductType insuranceType, String tenantId);
 }

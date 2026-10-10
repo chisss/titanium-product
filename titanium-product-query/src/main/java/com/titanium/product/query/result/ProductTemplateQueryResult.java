@@ -3,7 +3,7 @@ package com.titanium.product.query.result;
 import java.util.List;
 
 import com.titanium.metadata.enums.CommonStatus;
-import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.valueobject.LifeProductSpec;
 import com.titanium.product.valueobject.PolicyStage;
@@ -35,7 +35,8 @@ public class ProductTemplateQueryResult {
     private String templateCode;
     private String templateName;
     private ProductEnum.ProductCategory insuranceCategory;
-    private InsuranceType insuranceType;
+    /** 险种类型（权威三级码；G10/g10-04 起对外契约，迁移前存量行按遗留码唯一可解析时回读） */
+    private InsuranceProductType insuranceType;
     private String productId;
     private String issuanceMode;
     private List<PolicyStage> policyStages;

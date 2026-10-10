@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import com.titanium.metadata.enums.CommonStatus;
-import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.insurance.SubjectType;
 import com.titanium.metadata.enums.product.ProductEnum;
@@ -40,8 +39,8 @@ public class ProductTemplateResponse {
     @Schema(description = "险种大类: MAIN/RIDER")
     private ProductEnum.ProductCategory insuranceCategory;
 
-    @Schema(description = "险种类型")
-    private InsuranceType insuranceType;
+    @Schema(description = "险种类型（权威三级码 InsuranceProductType；G10/g10-04 起）")
+    private InsuranceProductType insuranceType;
 
     @Schema(description = "关联产品ID")
     private String productId;

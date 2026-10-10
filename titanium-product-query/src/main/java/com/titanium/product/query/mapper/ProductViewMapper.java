@@ -9,6 +9,9 @@ import org.mapstruct.ReportingPolicy;
 
 import com.alibaba.fastjson2.JSON;
 
+import com.titanium.metadata.enums.InsuranceType;
+import com.titanium.metadata.enums.insurance.InsuranceProductType;
+import com.titanium.metadata.enums.insurance.LegacyInsuranceTypeMapping;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.product.event.ProductCreatedEvent;
 import com.titanium.product.event.ProductRevisedEvent;
@@ -91,6 +94,9 @@ public interface ProductViewMapper {
      * issuanceMode 含"值对象序列化否则回退 DEFAULT"的默认值语义，由投影处理器处理，此处 {@code ignore}。
      * </p>
      */
+    // G10/g10-02 双写：遗留扁平码原样入 legacyInsuranceType；权威三级码仅唯一可解析时写入，否则留空不猜值
+    @Mapping(target = "legacyInsuranceType", source = "insuranceType")
+    @Mapping(target = "insuranceType", source = "insuranceType", qualifiedByName = "resolveAuthoritativeType")
     @Mapping(target = "underwritingConfigJson", source = "underwritingConfig", qualifiedByName = "toJson")
     @Mapping(target = "maintenanceConfigJson", source = "maintenanceConfig", qualifiedByName = "toJson")
     @Mapping(target = "claimConfigJson", source = "claimsConfig", qualifiedByName = "toJson")
@@ -102,6 +108,19 @@ public interface ProductViewMapper {
     @Mapping(target = "updateTime", ignore = true)
     @Mapping(target = "version", ignore = true)
     void applyTemplateCreated(@MappingTarget ProductTemplateView view, ProductTemplateCreatedEvent event);
+
+    /**
+     * 遗留扁平险种码 → 权威三级码（G10/g10-02 双写列）。
+     * <p>
+     * 仅「唯一可解析」时返回目标；一对多（LIFE/ACCIDENT/PROPERTY/LIABILITY/CREDIT_GUARANTEE）与
+     * 无对映（投连/船舶/航空器/税优健康/万能/分红）一律返回 {@code null}——不猜值，
+     * 权威值待 g10-03 数据交叉核对后迁移。
+     * </p>
+     */
+    @Named("resolveAuthoritativeType")
+    default InsuranceProductType resolveAuthoritativeType(InsuranceType legacy) {
+        return LegacyInsuranceTypeMapping.resolve(legacy).orElse(null);
+    }
 
     /** 复杂值对象 → JSON 字符串（null 安全，与投影处理器原 toJson 语义一致） */
     @Named("toJson")
