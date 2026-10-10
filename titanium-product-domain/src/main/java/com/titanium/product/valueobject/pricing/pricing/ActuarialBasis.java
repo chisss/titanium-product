@@ -2,6 +2,8 @@ package com.titanium.product.valueobject.pricing.pricing;
 
 import java.math.BigDecimal;
 
+import com.titanium.metadata.enums.Reserved;
+
 /**
  * 精算基础参数值对象（精算公式模式专用）
  * <p>
@@ -35,13 +37,14 @@ import java.math.BigDecimal;
  * </p>
  *
  * @param predefinedInterestRate 预定利率（如 0.03 表示 3%，精算贴现因子 v=1/(1+i) 基础）
- * @param mortalityTableRef      预定死亡率表引用编码（如 "CL2010-2013" 或 "CL_LIFE_2023"）
+ * @param mortalityTableRef      预定死亡率表引用编码（如 "CL2010-2013" 或 "CL_LIFE_2023"；计算侧零消费、表值零载体，详见组件上的 {@code @Reserved}）
  * @param expenseLoadingRate     附加费用率（净保费×(1+expenseLoading)=毛保费，如 0.20 表示 20%）
  * @param reserveValuationRate   准备金评估利率（可选，评估精算准备金用；<b>null 表示与定价利率相同，
  *                               回落由消费方完成</b>——本值对象不做隐式取值）
  */
 public record ActuarialBasis(
         BigDecimal predefinedInterestRate,
+        @Reserved("2026-10-10 g12-07 核对：计算侧零消费、表值零载体——写入/持久化/回放/后台回显已贯通，但全域无任何试算/定价链路读取本值（三要素整体未落地，m16-1904 定性；对外承诺已下架 g03-05）。触发条件：G03 登记消费方（精算计算领域服务 + 计费域取数契约 + 值域校验接入命令链，三前提齐备）后接入，按纪律三「无登记消费方不立项」")
         String     mortalityTableRef,
         BigDecimal expenseLoadingRate,
         BigDecimal reserveValuationRate

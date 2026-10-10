@@ -21,10 +21,12 @@ import java.util.List;
  * @param maxInsuredCount 最大投保人数限制
  * @param waitingPeriodDays 等待期（天）
  * @param hesitationPeriodDays 犹豫期（天）
+ * @param healthDeclarationItems 自定义告知项清单（可空=不校验自定义告知项，G12/g12-02；编码用 String 常量名，见 HealthDeclarationItemResponse）
  */
 public record InsureConditionResponse(Integer minAge, Integer maxAge, List<String> forbiddenOccupations,
                                       List<String> allowedOccupations, Integer minGroupSize, Integer maxGroupSize,
                                       String healthNotice, BigDecimal minInsuredAmount, BigDecimal maxInsuredAmount,
                                       List<String> forbiddenRegions, List<String> allowedRegions,
-                                      Integer maxInsuredCount, Integer waitingPeriodDays, Integer hesitationPeriodDays) {
+                                      Integer maxInsuredCount, Integer waitingPeriodDays, Integer hesitationPeriodDays,
+                                      List<HealthDeclarationItemResponse> healthDeclarationItems) {
 }

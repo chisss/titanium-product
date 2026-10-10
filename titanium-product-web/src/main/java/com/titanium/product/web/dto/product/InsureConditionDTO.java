@@ -51,4 +51,6 @@ public class InsureConditionDTO {
     private Integer waitingPeriodDays;
     /** 犹豫期（天） */
     private Integer hesitationPeriodDays;
+    /** 自定义告知项清单（可空=不校验自定义告知项，G12/g12-02） */
+    private List<HealthDeclarationItemDTO> healthDeclarationItems;
 }

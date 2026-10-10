@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import com.titanium.metadata.enums.Reserved;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 
 /**
@@ -14,18 +15,24 @@ import com.titanium.metadata.enums.insurance.InsuranceProductType;
  * <p>
  * 定义寿险产品（定期寿/终身寿/两全/年金）的核保与投保规格边界：可投保年龄范围、保额范围、
  * 缴费期与保障期选项。作为 {@code ProductTemplate} 的行为配置字段，经
- * {@code ConfigureLifeProductCommand} 写入，供投保时校验被保人年龄/保额是否在产品允许区间、
- * 供计费时确定缴费期约束。替代原先将寿险规格泛化塞入通用 {@code InsureCondition}/{@code PaymentConfig}
+ * {@code ConfigureLifeProductCommand} 写入、经读模型回显。
+ * ⚠️ 旧 javadoc 承诺「供投保时校验被保人年龄/保额是否在产品允许区间、供计费时确定缴费期约束」
+ * 中<b>前半句已证伪</b>（G12/g12-07 实读）：本类校验方法（{@code isEntryAgeAllowed} 等）全仓零调用，
+ * 投保环节实际生效的是产品投保条件 {@code InsureCondition.minAge/maxAge}
+ * （{@code IssuanceEligibilityDomainServiceImpl.validateAge}），故 {@code entryAgeRange}
+ * 已标 {@code @Reserved}（见组件注解）。替代原先将寿险规格泛化塞入通用 {@code InsureCondition}/{@code PaymentConfig}
  * 的做法，让寿险规格成为一等建模对象。
  * </p>
  *
  * @param productType 险种三级分类（定期寿/终身寿/两全/年金）
- * @param entryAgeRange 可投保年龄范围（被保人投保时年龄边界）
+ * @param entryAgeRange 可投保年龄范围（被保人投保时年龄边界；触发条件与口径详见组件上的 {@code @Reserved}）
  * @param sumInsuredRange 保额范围（基本保额上下限）
  * @param premiumTermOptions 缴费期选项列表（如趸缴/5/10/20 年缴、缴至某年龄）
  * @param coverageTermOptions 保障期选项列表（如保 10/20/30 年、保至某年龄、终身）
  */
-public record LifeProductSpec(InsuranceProductType productType, AgeRange entryAgeRange,
+public record LifeProductSpec(InsuranceProductType productType,
+                              @Reserved("2026-10-10 g12-07 核对：准入判定零触达——全仓无任何调用方调用 isEntryAgeAllowed（grep 仅命中定义自身）；实际生效的年龄口径是 InsureCondition.minAge/maxAge（IssuanceEligibilityDomainServiceImpl.validateAge）。配置写入/回显链路存在，登记的是生效链路缺失。触发条件：R-3 裁示后接入（准入读本字段并统一双口径）或删除（须同批改 admin 镜像与前端契约）")
+                              AgeRange entryAgeRange,
                               SumInsuredRange sumInsuredRange, List<PremiumTermOption> premiumTermOptions,
                               List<CoverageTermOption> coverageTermOptions)
         implements

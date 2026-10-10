@@ -20,10 +20,26 @@ import java.util.List;
  * @param maxInsuredCount 最大投保人数限制
  * @param waitingPeriodDays 等待期（天）
  * @param hesitationPeriodDays 犹豫期（天）
+ * @param healthDeclarationItems 自定义告知项清单（可空；空/未配置=本产品不校验自定义告知项，G12/g12-02）
  */
 public record InsureCondition(Integer minAge, Integer maxAge, List<String> forbiddenOccupations,
                               List<String> allowedOccupations, Integer minGroupSize, Integer maxGroupSize,
                               String healthNotice, BigDecimal minInsuredAmount, BigDecimal maxInsuredAmount,
                               List<String> forbiddenRegions, List<String> allowedRegions, Integer maxInsuredCount,
-                              Integer waitingPeriodDays, Integer hesitationPeriodDays) {
+                              Integer waitingPeriodDays, Integer hesitationPeriodDays,
+                              List<HealthDeclarationItem> healthDeclarationItems) {
+
+    /**
+     * 14 组件兼容构造器（G12/g12-02 前的形态）
+     * <p>告知项清单沿用「未配置」语义（{@code null}），既有调用点零改动。</p>
+     */
+    public InsureCondition(Integer minAge, Integer maxAge, List<String> forbiddenOccupations,
+                           List<String> allowedOccupations, Integer minGroupSize, Integer maxGroupSize,
+                           String healthNotice, BigDecimal minInsuredAmount, BigDecimal maxInsuredAmount,
+                           List<String> forbiddenRegions, List<String> allowedRegions, Integer maxInsuredCount,
+                           Integer waitingPeriodDays, Integer hesitationPeriodDays) {
+        this(minAge, maxAge, forbiddenOccupations, allowedOccupations, minGroupSize, maxGroupSize, healthNotice,
+                minInsuredAmount, maxInsuredAmount, forbiddenRegions, allowedRegions, maxInsuredCount,
+                waitingPeriodDays, hesitationPeriodDays, null);
+    }
 }

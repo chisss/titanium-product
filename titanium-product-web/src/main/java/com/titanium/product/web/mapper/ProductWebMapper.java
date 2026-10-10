@@ -12,6 +12,8 @@ import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
+import com.titanium.metadata.enums.underwriting.HealthDeclarationHandling;
+import com.titanium.metadata.enums.underwriting.HealthDeclarationQuestion;
 import com.titanium.product.api.request.product.AuditProductRequest;
 import com.titanium.product.api.request.product.CreateProductRequest;
 import com.titanium.product.api.request.product.UpdateCoverageSumInsuredConfigRequest;
@@ -23,6 +25,7 @@ import com.titanium.product.api.response.config.CoveragePeriodConfigResponse;
 import com.titanium.product.api.response.config.CoverageSumInsuredConfigResponse;
 import com.titanium.product.api.response.config.CoverageSumInsuredTierResponse;
 import com.titanium.product.api.response.config.DocumentConfigResponse;
+import com.titanium.product.api.response.config.HealthDeclarationItemResponse;
 import com.titanium.product.api.response.config.InsureConditionResponse;
 import com.titanium.product.api.response.config.IssuanceProcessConfigResponse;
 import com.titanium.product.api.response.config.PaymentConfigResponse;
@@ -49,6 +52,7 @@ import com.titanium.product.valueobject.LifeProductSpec;
 import com.titanium.product.valueobject.config.CoveragePeriodConfig;
 import com.titanium.product.valueobject.config.CoverageSumInsuredConfig;
 import com.titanium.product.valueobject.config.DocumentConfig;
+import com.titanium.product.valueobject.config.HealthDeclarationItem;
 import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.PaymentConfig;
@@ -329,8 +333,25 @@ public interface ProductWebMapper {
      */
     ProductVersionVO toProductVersionVO(ProductQueryResult result);
 
-    /** 投保条件值对象 → 响应（同名字段声明式映射） */
+    /** 投保条件值对象 → 响应（同名字段声明式映射；告知项列表由 MapStruct 经 {@link #toHealthDeclarationItemResponse} 逐项映射，G12/g12-02） */
     InsureConditionResponse toInsureConditionResponse(InsureCondition vo);
+
+    /** 告知项值对象 → 响应（编码转权威常量名，G12/g12-02 AC-02） */
+    @Mapping(target = "question", qualifiedByName = "healthDeclarationQuestionToCode")
+    @Mapping(target = "handling", qualifiedByName = "healthDeclarationHandlingToCode")
+    HealthDeclarationItemResponse toHealthDeclarationItemResponse(HealthDeclarationItem item);
+
+    /** 问题编码枚举 → 跨域常量名（契约形态，不得改用 enumCode 数字码） */
+    @Named("healthDeclarationQuestionToCode")
+    default String healthDeclarationQuestionToCode(HealthDeclarationQuestion question) {
+        return question == null ? null : question.getCode();
+    }
+
+    /** 处置枚举 → 跨域常量名（契约形态，不得改用 enumCode 数字码） */
+    @Named("healthDeclarationHandlingToCode")
+    default String healthDeclarationHandlingToCode(HealthDeclarationHandling handling) {
+        return handling == null ? null : handling.getCode();
+    }
 
     /** 保障期间配置值对象 → 响应 */
     CoveragePeriodConfigResponse toCoveragePeriodConfigResponse(CoveragePeriodConfig vo);

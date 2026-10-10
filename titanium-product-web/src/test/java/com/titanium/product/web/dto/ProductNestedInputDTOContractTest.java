@@ -15,15 +15,18 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import com.titanium.product.valueobject.config.HealthDeclarationItem;
 import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
 import com.titanium.product.web.dto.pricing.basicrule.PricingBasicRuleDTO;
+import com.titanium.product.web.dto.product.HealthDeclarationItemDTO;
 import com.titanium.product.web.dto.product.InsureConditionDTO;
 
 /**
  * 产品入参嵌套 DTO 契约守护：web DTO 字段必须与领域值对象对齐
  * <p>
- * 嵌套 DTO（{@code InsureConditionDTO}/{@code PricingBasicRuleDTO}）→ 领域值对象由 MapStruct 隐式映射。
+ * 嵌套 DTO（{@code InsureConditionDTO}/{@code PricingBasicRuleDTO}/{@code HealthDeclarationItemDTO}）→
+ * 领域值对象由 MapStruct 隐式映射。
  * MapStruct 对目标端<b>完全不存在的属性</b>既不报错也不映射，只做静默丢弃——运营在后台配置了却从不生效，
  * 且无任何日志或异常可循。历史上 {@code pricingFactors}/{@code minPremium}/{@code maxPremium}/
  * {@code rateTableId}（定价规则）与 {@code occupationRestrictions}/{@code healthDeclaration}/
@@ -42,7 +45,8 @@ class ProductNestedInputDTOContractTest {
     private static Stream<Arguments> nestedDtoPairs() {
         return Stream.of(
                 Arguments.of(InsureConditionDTO.class, InsureCondition.class),
-                Arguments.of(PricingBasicRuleDTO.class, PricingBasicRule.class));
+                Arguments.of(PricingBasicRuleDTO.class, PricingBasicRule.class),
+                Arguments.of(HealthDeclarationItemDTO.class, HealthDeclarationItem.class));
     }
 
     /**

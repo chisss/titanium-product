@@ -10,6 +10,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,11 +23,13 @@ import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceTypeCapability;
 import com.titanium.metadata.enums.underwriting.UnderwritingInputType;
 import com.titanium.product.common.enums.LiabilityStructure;
+import com.titanium.product.valueobject.LifeProductSpec;
+import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
 
 /**
  * 「声明即登记」跨域守卫（G10/g10-06）：三处「声明了但无触发链路」的定性固化。
  * <p>
- * 守的是三处的<b>结构面</b>——标注存在、登记存在、边界未被越界：
+ * 守的是各处的<b>结构面</b>——标注存在、登记存在、边界未被越界：
  * <ol>
  *   <li>{@link UnderwritingInputType}：6 值当前全部零触达（数据由 underwriting 域四个平行值对象承载，
  *       不经本枚举），须逐个标 {@link Reserved}；</li>
@@ -35,6 +38,9 @@ import com.titanium.product.common.enums.LiabilityStructure;
  *   <li>{@code "COMPULSORY"}：裸字符串（险别而非责任编码，注解贴不上），
  *       g11-04 迁移后由 {@link InsuranceMandateType} 唯一承载（落点由 AUTO 默认责任清单迁至枚举文件），
  *       定性登记仍落在 {@link InsuranceCapabilityBit#DEFAULT_COVERAGE_CODES} 的 consumers 上。</li>
+ *   <li>（G12/g12-07 增补）{@link LifeProductSpec} 与 {@link ActuarialBasis} 的指定 record 组件：
+ *       前者 {@code entryAgeRange}（准入判定零触达）、后者 {@code mortalityTableRef}（计算侧零消费），
+ *       各自<b>恰</b>该组件标 {@link Reserved}（同对象其余组件多标即误标）。</li>
  * </ol>
  * </p>
  * <p>
@@ -118,6 +124,46 @@ class DeclarationRegistrationGuardTest {
         assertNotNull(target, "@Reserved 未标 @Target");
         assertEquals(List.of(ElementType.FIELD), List.of(target.value()),
                 "标注粒度必须是值（枚举常量在字节码里即 FIELD）；扩到 TYPE 会让粒度退化为全有或全无");
+    }
+
+    @Test
+    @DisplayName("⑤ LifeProductSpec/ActuarialBasis 恰指定组件标 @Reserved（G12/g12-07；其余组件多标即误标）")
+    void shouldReserveExactlyDesignatedRecordComponents() {
+        assertReservedComponent(LifeProductSpec.class, "entryAgeRange");
+        assertReservedComponent(ActuarialBasis.class, "mortalityTableRef");
+    }
+
+    /**
+     * 断言 {@code type} 的 record 组件中<b>恰</b> {@code reservedComponent} 标 {@link Reserved}，
+     * 且 value 写明 g12-07 核对来源（同对象其余组件多标即误标）。
+     */
+    private void assertReservedComponent(Class<?> type, String reservedComponent) {
+        List<String> reserved = new ArrayList<>();
+        for (RecordComponent component : type.getRecordComponents()) {
+            if (reservedOfField(type, component.getName()) != null) {
+                reserved.add(component.getName());
+            }
+        }
+        assertEquals(List.of(reservedComponent), reserved,
+                type.getSimpleName() + " 恰 " + reservedComponent + " 应标 @Reserved（g12-07 定性），多标即误标");
+
+        Reserved annotation = reservedOfField(type, reservedComponent);
+        assertNotNull(annotation);
+        assertFalse(annotation.value().isBlank(),
+                type.getSimpleName() + "." + reservedComponent + " 的 @Reserved 须写明核对时点、口径与触发条件");
+        assertTrue(annotation.value().contains("g12-07"),
+                "value 须写明核对来源（g12-07），当前: " + annotation.value());
+    }
+
+    /** 读 record 组件上的 {@link Reserved}（组件注解随编译器落在同名实例字段，JLS 8.10.3） */
+    private Reserved reservedOfField(Class<?> type, String fieldName) {
+        try {
+            Annotation annotation = type.getDeclaredField(fieldName).getAnnotation(Reserved.class);
+            return annotation instanceof Reserved reserved ? reserved : null;
+        } catch (NoSuchFieldException e) {
+            throw new IllegalStateException("record 组件在字节码里不是字段，判据口径失效: "
+                    + type.getSimpleName() + "." + fieldName, e);
+        }
     }
 
     /** 读枚举常量上的 {@link Reserved}（枚举常量在字节码里即字段，故按字段取） */
