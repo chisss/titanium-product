@@ -6,30 +6,46 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.titanium.common.multitenant.TenantContext;
 import com.titanium.metadata.enums.CommonStatus;
+import com.titanium.metadata.enums.product.ProductEnum;
+import com.titanium.metadata.errorcode.ProductErrorCode;
+import com.titanium.metadata.errorcode.SystemErrorCode;
 import com.titanium.metadata.exception.CommandValidationException;
+import com.titanium.metadata.exception.DomainException;
+import com.titanium.product.application.orchestration.product.ProductPublishValidator;
+import com.titanium.product.application.query.ProductQueryAppService;
+import com.titanium.product.command.AuditProductCommand;
 import com.titanium.product.command.CreateProductCommand;
 import com.titanium.product.command.ReviseProductCommand;
+import com.titanium.product.command.UpdateCoverageSumInsuredConfigCommand;
 import com.titanium.product.command.UpdateProductClauseRelCommand;
 import com.titanium.product.entity.ProductClauseRel;
 import com.titanium.product.port.clause.ClauseBindingCheck;
 import com.titanium.product.port.clause.ClauseExistencePort;
+import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
 import com.titanium.product.query.service.ProductTemplateQueryService;
+import com.titanium.product.valueobject.config.CoverageSumInsuredConfig;
+import com.titanium.product.valueobject.config.SumInsuredTier;
 
 import feign.FeignException;
 
@@ -45,6 +61,8 @@ import feign.FeignException;
  *   <li>🔴 创建与<b>整体替换</b>两条路径共用同一道校验——替换路径此前只做聚合内纯领域不变量，
  *       <b>任何字符串都能一次性抹掉</b>原有全部合法绑定。</li>
  * </ol>
+ *
+ * <p>另覆盖<b>审核（上架）路径</b>的编排：上架完整性校验不通过时审核命令<b>不得派发</b>（`G01/AC-01` 的编排侧判据，校验器自身的判据见 {@code ProductPublishValidatorTest}）。</p>
  */
 class ProductCommandAppServiceTest {
 
@@ -58,15 +76,20 @@ class ProductCommandAppServiceTest {
 
     private CommandGateway commandGateway;
     private ProductTemplateQueryService productTemplateQueryService;
+    private ProductQueryAppService productQueryAppService;
     private ClauseExistencePort clauseExistencePort;
+    private ProductPublishValidator productPublishValidator;
     private ProductCommandAppService appService;
 
     @BeforeEach
     void setUp() {
         commandGateway = mock(CommandGateway.class);
         productTemplateQueryService = mock(ProductTemplateQueryService.class);
+        productQueryAppService = mock(ProductQueryAppService.class);
         clauseExistencePort = mock(ClauseExistencePort.class);
-        appService = new ProductCommandAppService(commandGateway, productTemplateQueryService, clauseExistencePort);
+        productPublishValidator = mock(ProductPublishValidator.class);
+        appService = new ProductCommandAppService(commandGateway, productTemplateQueryService, productQueryAppService,
+                clauseExistencePort, productPublishValidator);
     }
 
     // ==================== 创建路径 ====================
@@ -262,6 +285,104 @@ class ProductCommandAppServiceTest {
         verify(commandGateway).sendAndWait(any(ReviseProductCommand.class));
     }
 
+    // ==================== 审核（上架）路径（G01/AC-01：上架此前是纯状态翻转，零完整性校验） ====================
+
+    @Test
+    @DisplayName("🔴 上架完整性校验不通过时拒绝派发审核命令——缺项产品不得落到 EFFECTIVE")
+    void shouldNotDispatchWhenPublishValidationFails() {
+        doThrow(new CommandValidationException(ProductErrorCode.PRODUCT_VALIDATION_FAILED,
+                AuditProductCommand.class.getSimpleName(), "productId", "未存在已发布（PUBLISHED）的费率表版本"))
+                .when(productPublishValidator).validate(TENANT_ID, PRODUCT_ID);
+
+        CommandValidationException error = assertThrows(CommandValidationException.class,
+                () -> TenantContext.runAs(TENANT_ID, () -> appService.auditProduct(auditCommand())));
+
+        assertTrue(error.getMessage().contains("费率表"), "缺项文案须原样透出: " + error.getMessage());
+        // 拒绝的关键：命令根本没被派发（否则缺项产品照样上架，校验成了一句空话）
+        verify(commandGateway, never()).sendAndWait(any(AuditProductCommand.class));
+    }
+
+    @Test
+    @DisplayName("上架校验通过后按当前租户派发审核命令")
+    void shouldValidateWithCurrentTenantThenDispatch() {
+        TenantContext.runAs(TENANT_ID, () -> appService.auditProduct(auditCommand()));
+
+        // 租户取自当前请求上下文——AuditProductCommand 不携带 tenantId（m18「请求身份显式传递移除」）
+        verify(productPublishValidator).validate(TENANT_ID, PRODUCT_ID);
+        verify(commandGateway).sendAndWait(any(AuditProductCommand.class));
+    }
+
+    // ==================== 责任级保额档次配置（G01-03 / AC-04） ====================
+
+    @Test
+    @DisplayName("🔴 责任编码不属于该产品已绑定条款的责任集合时拒绝，且不派发命令")
+    void shouldRejectAndNotDispatchWhenCoverageNotOwnedByProduct() {
+        givenProductClauses("clause-a");
+        when(clauseExistencePort.listCoverageCodes(List.of("clause-a"), TENANT_ID))
+                .thenReturn(Set.of("HOSPITAL", "ACCIDENT"));
+
+        DomainException error = assertThrows(DomainException.class,
+                () -> appService.updateCoverageSumInsuredConfig(
+                        coverageCommand(List.of(coverageConfig("DEATH")))));
+
+        assertTrue(error.getMessage().contains("DEATH"), "错误消息应点名责任编码: " + error.getMessage());
+        // 🔴 报文必须回显「本次读到的责任集合」：它与「确实配错了」的区分靠这一条——
+        // 没有它，运营无法判断是配错还是读到了投影未收敛的旧值（本路径读模型最终一致）
+        assertTrue(error.getMessage().contains("HOSPITAL"),
+                "错误消息应回显本次读到的责任集合: " + error.getMessage());
+        verify(commandGateway, never()).sendAndWait(any(UpdateCoverageSumInsuredConfigCommand.class));
+    }
+
+    @Test
+    @DisplayName("责任编码全部归属该产品时派发命令")
+    void shouldDispatchWhenAllCoverageCodesOwned() {
+        givenProductClauses("clause-a", "clause-b");
+        when(clauseExistencePort.listCoverageCodes(List.of("clause-a", "clause-b"), TENANT_ID))
+                .thenReturn(Set.of("HOSPITAL"));
+
+        appService.updateCoverageSumInsuredConfig(coverageCommand(List.of(coverageConfig("HOSPITAL"))));
+
+        verify(commandGateway).sendAndWait(any(UpdateCoverageSumInsuredConfigCommand.class));
+    }
+
+    @Test
+    @DisplayName("空清单（清空）跳过跨域取证并派发——清空是合法意图，无需求证责任归属")
+    void shouldSkipOwnershipCheckAndDispatchWhenClearing() {
+        appService.updateCoverageSumInsuredConfig(coverageCommand(List.of()));
+
+        verify(clauseExistencePort, never()).listCoverageCodes(any(), any());
+        verify(commandGateway).sendAndWait(any(UpdateCoverageSumInsuredConfigCommand.class));
+    }
+
+    @Test
+    @DisplayName("🔴 null 清单不在编排层拦截，交由聚合根以更精确的文案拒绝")
+    void shouldLeaveNullConfigsRejectionToAggregate() {
+        appService.updateCoverageSumInsuredConfig(coverageCommand(null));
+
+        // 编排层若也判一次 null，「null 非法 / 空清单合法」这条区分就有两份实现，必然漂移
+        verify(clauseExistencePort, never()).listCoverageCodes(any(), any());
+        verify(commandGateway).sendAndWait(any(UpdateCoverageSumInsuredConfigCommand.class));
+    }
+
+    @Test
+    @DisplayName("🔴 条款服务故障时原样上抛，不得被表述成「责任不属于本产品」")
+    void shouldPropagateDependencyFailureInsteadOfReportingOwnershipMismatch() {
+        givenProductClauses("clause-a");
+        DomainException dependencyFailure = new DomainException(SystemErrorCode.DEPENDENCY_SERVICE_ERROR,
+                "条款服务调用失败: clauseId=clause-a");
+        when(clauseExistencePort.listCoverageCodes(List.of("clause-a"), TENANT_ID))
+                .thenThrow(dependencyFailure);
+
+        DomainException error = assertThrows(DomainException.class,
+                () -> appService.updateCoverageSumInsuredConfig(
+                        coverageCommand(List.of(coverageConfig("HOSPITAL")))));
+
+        // 判据是「原样上抛同一个异常实例」而非「抛了某个异常」：后者无法区分
+        // 「依赖故障透传」与「被转写成了归属不符」——而后者会把基础设施故障伪装成输入错误
+        assertSame(dependencyFailure, error);
+        verify(commandGateway, never()).sendAndWait(any(UpdateCoverageSumInsuredConfigCommand.class));
+    }
+
     // ==================== 辅助 ====================
 
     /** 用给定结论触发一次创建，取回被抛出的文案（用于比较两类拒绝的措辞） */
@@ -278,6 +399,33 @@ class ProductCommandAppServiceTest {
                 .thenReturn(ProductTemplateQueryResult.builder().status(CommonStatus.ACTIVE).build());
     }
 
+    /** 桩：该产品当前已绑定的条款关联（保额档次的归属校验据此取条款ID清单） */
+    private void givenProductClauses(String... clauseIds) {
+        List<ProductClauseQueryResult> clauses = Arrays.stream(clauseIds).map(clauseId -> {
+            ProductClauseQueryResult result = mock(ProductClauseQueryResult.class);
+            when(result.getClauseId()).thenReturn(clauseId);
+            return result;
+        }).toList();
+        when(productQueryAppService.queryProductClauses(PRODUCT_ID)).thenReturn(clauses);
+    }
+
+    /** 构造整体替换保额档次命令（{@code configs} 可为 null，用于钉住「null 由聚合根拒绝」的边界） */
+    private UpdateCoverageSumInsuredConfigCommand coverageCommand(List<CoverageSumInsuredConfig> configs) {
+        return new UpdateCoverageSumInsuredConfigCommand(PRODUCT_ID, configs, TENANT_ID);
+    }
+
+    /**
+     * 构造单档次的合法档次配置（本组用例只关心责任编码的归属，档位取最小合法形态）。
+     *
+     * <p>不开放自由填时保额区间必须与档位对齐（不变量⑦），故区间取 {@code [10万, 10万]} 与唯一档位相等。</p>
+     */
+    private CoverageSumInsuredConfig coverageConfig(String coverageCode) {
+        BigDecimal amount = new BigDecimal("100000");
+        return new CoverageSumInsuredConfig(coverageCode,
+                List.of(new SumInsuredTier("T1", amount, List.of(1), 1)),
+                amount, amount, false, "T1");
+    }
+
     /**
      * 构造创建产品命令（仅填充本测试关心的字段，其余留空——应用层只校验 templateId 与条款引用，
      * 其余字段的业务校验在聚合根内，不属本编排测试的范围）。
@@ -290,7 +438,7 @@ class ProductCommandAppServiceTest {
                 clauseIds, Map.of(), clauseIds.isEmpty() ? null : clauseIds.get(0),
                 List.of(), List.of(),
                 null, null, null, TENANT_ID,
-                null, null, null, null, "tester", null);
+                null, null, null, null, "tester", null, null);
     }
 
     /** 构造整体替换命令 */
@@ -303,6 +451,11 @@ class ProductCommandAppServiceTest {
         return new ReviseProductCommand(PRODUCT_ID, NEW_PRODUCT_ID, "测试产品V2", null,
                 null, null, null, null, null, null, newClauseRels, null, null, null, null, null,
                 null, null, null, TENANT_ID);
+    }
+
+    /** 构造审核通过命令（仅填充本测试关心的字段） */
+    private AuditProductCommand auditCommand() {
+        return new AuditProductCommand(PRODUCT_ID, "auditor-1", "审核员", "同意", ProductEnum.AuditResult.PASS);
     }
 
     /** 构造一条条款关联 */

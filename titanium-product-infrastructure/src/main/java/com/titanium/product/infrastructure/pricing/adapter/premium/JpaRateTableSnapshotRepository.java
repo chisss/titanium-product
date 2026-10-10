@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.titanium.product.infrastructure.mapper.RateTablePersistenceMapper;
 import com.titanium.product.infrastructure.pricing.entity.premium.RateTableDO;
 import com.titanium.product.infrastructure.pricing.entity.premium.RateTableRowDO;
 import com.titanium.product.infrastructure.pricing.repository.premium.RateTableJpaRepository;
@@ -27,6 +28,7 @@ public class JpaRateTableSnapshotRepository implements RateTableSnapshotReposito
 
     private final RateTableJpaRepository rateTableJpaRepository;
     private final RateTableRowJpaRepository rateTableRowJpaRepository;
+    private final RateTablePersistenceMapper persistenceMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -56,10 +58,6 @@ public class JpaRateTableSnapshotRepository implements RateTableSnapshotReposito
     }
 
     private RateTableRow toDomainRow(RateTableRowDO row) {
-        return new RateTableRow(
-                row.getRowId(), row.getAgeFrom(), row.getAgeToExclusive(), row.getGender(),
-                row.getPaymentTermYears(), row.getCoverageTermYears(), row.getRate(),
-                row.getMinimumPremium(), row.getMaximumPremium(),
-                row.getOccupationClass(), row.getRegion(), row.getVehicleType());
+        return persistenceMapper.toDomain(row);
     }
 }

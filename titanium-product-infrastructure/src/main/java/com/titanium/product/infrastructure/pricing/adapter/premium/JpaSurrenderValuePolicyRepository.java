@@ -53,7 +53,8 @@ public class JpaSurrenderValuePolicyRepository implements SurrenderValuePolicyRe
         return SurrenderValuePolicy.restore(
                 entity.getPolicyId(), entity.getProductId(), entity.getPolicyCode(), entity.getPolicyVersion(),
                 entity.getPolicyYear(), entity.getCoolingOffDays(), entity.getCashValueRate(),
-                entity.getInternalCostRetentionRate(), entity.getEffectiveFrom(), entity.getEffectiveTo(),
+                entity.getInternalCostRetentionRate(), entity.getHandlingFeeRate(), entity.getRefundBasis(),
+                entity.getEffectiveFrom(), entity.getEffectiveTo(),
                 entity.getTenantId(), entity.getStatus(), entity.getContentHash());
     }
 }

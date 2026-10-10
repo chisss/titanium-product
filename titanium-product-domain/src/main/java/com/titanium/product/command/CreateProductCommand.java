@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
+import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
@@ -38,5 +39,6 @@ public record CreateProductCommand(@TargetAggregateIdentifier String productId, 
                                    UnderwritingConfig underwritingConfig, String tenantId,
                                    PricingMode pricingMode, RateTableRef rateTableRef,
                                    ActuarialBasis actuarialBasis, DocumentConfig documentConfig, String createdBy,
-                                   PolicyStructureConfig policyStructureConfig) {
+                                   PolicyStructureConfig policyStructureConfig,
+                                   InsuranceMandateType insuranceMandateType) {
 }

@@ -3,6 +3,7 @@ package com.titanium.product.web.provider;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +16,7 @@ import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductSurrenderValueApi;
 import com.titanium.product.api.request.premium.SurrenderValueCalculationRequest;
 import com.titanium.product.api.response.premium.CashValueQueryResponse;
+import com.titanium.product.api.response.premium.SurrenderFactorResponse;
 import com.titanium.product.api.response.premium.SurrenderValueCalculationResponse;
 import com.titanium.product.application.command.pricing.surrender.SurrenderValueCommandAppService;
 import com.titanium.product.application.model.pricing.surrender.CashValueSnapshot;
@@ -44,13 +46,21 @@ public class ProductSurrenderValueApiProvider implements ProductSurrenderValueAp
                         RequestContextHolder.requireTenantId(), request.surrenderRequestId(), request.bizNo(), request.originalBizNo(),
                         request.originalCalculationId(),
                         request.policyEffectiveDate(), request.surrenderDate(), request.policyYear(),
-                        request.businessTime(), request.reason()));
+                        request.businessTime(), request.reason(),
+                        request.annualPremium(), request.coverageEndDate(), request.premiumPaidUp(),
+                        request.loanOutstandingPrincipal(), request.loanOutstandingInterest(),
+                        request.overduePremium(), request.dividendBalance(), request.accountValue()));
         PremiumLifecycleAdjustment adjustment = result.adjustment();
+        List<SurrenderFactorResponse> factors = result.factors().stream()
+                .map(factor -> new SurrenderFactorResponse(factor.factorType().name(),
+                        factor.direction().getCode(), factor.amount(), factor.explainKey()))
+                .toList();
         return ApiResponse.success(new SurrenderValueCalculationResponse(
                 result.surrenderRequestId(), result.policyCode(), result.policyVersion(), result.policyContentHash(),
-                result.policyYear(), result.coolingOffDays(), result.refundType().name(),
+                result.policyYear(), result.coolingOffDays(), result.refundBasis().getCode(),
+                result.refundType().name(),
                 result.withinCoolingOff(), result.cashValueRate(), result.refundAmount(),
-                result.retainedCustomerAmount(), result.internalCostRetentionRate(),
+                result.retainedCustomerAmount(), result.internalCostRetentionRate(), factors,
                 adjustment.getOriginalCalculationId(), result.originalResultHash(),
                 adjustment.getReplacementCalculationId(), result.replacementResultHash(),
                 adjustment.getAdjustmentId(), result.requestHash(), adjustment.getResultHash(),

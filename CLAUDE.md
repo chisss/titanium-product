@@ -246,9 +246,10 @@ web Controller|Provider → application/command|query/pricing/*XxxService
 - **若要落地，前置有三（缺一不可）**：① 补 DTO/Mapper 写入入口**并覆盖更新路径**（否则仍是一次性死值）；② **先定义取值域**——"模板支持的保障责任"指条款责任编码、`CoverageSnapshot` 编码，还是别的标识？并划清与 `PolicyStructureConfig.LiabilityStructure` 的语义边界（二者当前极易混淆）；③ 明确消费场景与失败语义。
 - 🔴 **勿直接按"纳入产品创建校验"施工**：《Titanium全景建设规划-2026-09.md》§6 待办原第 141 项的前提（条款责任 ⊆ 模板支持范围）**当前不成立**——连写入入口与取值域定义都没有，无从校验；该项已在该文档改写为「前提不成立」。
 
-### 7.12 🟡 `ActuarialBasis` 属**未落地契约** + 产品级 `factors` 双层 `@Deprecated`（m16-1904 处置）
+### 7.12 🟡 `ActuarialBasis` 属**未落地契约**（🔴 对外承诺已下架）+ 产品级 `factors` 双层 `@Deprecated`（m16-1904 处置，2026-09-27 g03-05 下架）
 
 > 与 §7.11 同属 **🔶「契约/模型阶段」**判定：模型与传输链路齐备、消费端未建。登记以防后续把它当作"已建成的能力"施工。
+> 🟠 2026-09-27 g03-05 处置（R-4 裁示「下架承诺」）：**对外可配面已移除**——admin-web 修订表单不再携带该字段（后端「不传即继承」保留存量值）、列表页字段级权限提示与版本对比三标签（预定利率/费用附加率/生命表引用）同步移除，前端三要素键 grep 归零（AC-06 判据）；后端字段**保留为内部备案**（事件载荷固化不可删），待接入前提三者齐备后随精算计算能力一并恢复。
 
 #### (1) `ActuarialBasis` —— 未落地契约，**保留**，虚构 javadoc 已更正
 
@@ -313,6 +314,16 @@ web Controller|Provider → application/command|query/pricing/*XxxService
 - ✅ 影响面**不含种子产品**：`STD-PRD-*` 九个标准产品全绑 ACTIVE 条款，零受影响；受影响的 4 个均为 V2A 联调测试产物。
 
 **(6) 真机复核结论（2026-09-22，镜像 `product-acceptance-20260922-v1`）**：创建路径 A1 不存在→400 `60000006`「不存在」/ A2 DRAFT→400「未生效」/ A3′ ACTIVE→**200 落库**；修订路径 B1 不存在→400（**错误文案正确点名 `ReviseProductCommand`**，即 (4) 的实测证据）/ B2 DRAFT→400「未生效」/ B3 ACTIVE→200 新版本落地；存量绑 DRAFT 产品 C1 带块→400「未生效」（= 代价实测成立）/ C2 不带块→**200 且新版本继承到原 DRAFT 绑定**（旧代码此处会清空）。**5 个负向用例零写入**（产品表 31→34、条款关联表 31→34，恰为 3 个正向用例各 1 条绑定）。
+
+### 7.15 🔶 NCD 反算规则契约（G11/g11-03）：结构已交付、规则值与接入面双缺（R-3 阻断）
+
+> 定性：**🔶「契约/模型阶段」**（参 §7.11/§7.12 先例）——模型、端口、编排、持久化结构齐备，**规则值与消费接入未落地**，且未落地是 **R-3 闸门**（NCD 规则口径与版本待业务确认）的**刻意状态**，不是缺陷。
+
+- **已交付**（2026-10-10，`G11/g11-03`）：聚合 `NcdRuleSet`（`DRAFT→APPROVED→PUBLISHED→RETIRED`；`approve` 固化 `contentHash`，`publish` 后方可被反算取用）+ 档位 `NcdRule` → 出站端口 `domain/port/claim/ClaimHistoryPort`（+`ClaimHistoryQuery`/`ClaimHistoryItem`）+ `infrastructure/adapter/claim/ClaimHistoryAdapter`（**按消费方定义 Port** 的六边形落法，偏离 G11 文档所写「Port 落 claim 域」，详见该文档实施记录）→ 编排 `NcdResolutionOrchestrator`（`application/orchestration/pricing/ncd`）→ 契约 `ProductNcdApi`（`contextId=productNcdApi`）+ `NcdResolutionRequest/Response` → 两表零种子 DDL（`product_ncd_rule_set_202610101520_weisun_ddl.sql`）。
+- 🔴 **fail-closed 六码**（`ProductErrorCode` 60 段）：`NCD_RULE_NOT_CONFIGURED`(60000180)/`NCD_HISTORY_UNAVAILABLE`(60000181)/`NCD_BAND_NOT_MATCHED`(60000182)/`NCD_SUBJECT_IDENTIFIER_REQUIRED`(60000183)/`NCD_RULE_INVALID`(60000184)/`NCD_RULE_CONFLICT`(60000185)。全链**绝不回落默认系数 1.0**：「查不到历史」（拒）与「确无赔款」（空列表 + 正常命中 0 次档位）严格分离——回落 1.0 会让二者不可区分，静默少收保费且事后无从察觉。
+- 🔴 **三处 Feign 登记点已同批完成**（§7.13 规约）：① `ProductApplication#@EnableFeignClients` 加 `com.titanium.claim.api`；② `ProductDeadLetterQueueContextTest` mock 清单加 `ProductNcdApi`/`ClaimApi`；③ compose 锚点 `claimApi.url` **既已存在、未改动**。后续新增本契约相关 Feign 仍须按 §7.13 三处核查（前两处跑**全量** `mvn test` 兜、第三处只有真机暴露）。
+- 🔴 **区间口径双轨，不可互相套用**：时间区间 = 日粒度**半开** `[from, to)`（`NcdLookbackWindow`：`from` = 业务日 − `lookbackMonths` 当日 0 时，`to` = 业务日次日 0 时 ⇒ 当天赔案计入）；次数档位 = **闭区间** `[minCount, maxCount]`（`NcdRule.covers`；离散计数用半开会让恰好等于上界的次数落空）。
+- 🔴 **规则值导入与出单/试算接入受 R-3 阻断**，已登记索引文档 §五 第 10 条 `@Reserved` 清单（条目 2/3）；费率表既有 `ncd` 维度键（`RateTableRowDO.ncd`/`RateTableCriteria.ncd`/`RateTableRow.ncd`，null/ALL=通配）为受阻断的**试算侧**落点。**R-3 前不得向两表落种子**——空表 ⇒ 任何接入立即 `NCD_RULE_NOT_CONFIGURED` fail-closed，是正确形态。
 
 ---
 

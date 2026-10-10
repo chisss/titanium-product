@@ -57,6 +57,12 @@
             <groupId>com.titanium</groupId>
             <artifactId>titanium-clause-api</artifactId>
         </dependency>
+        <!-- 理赔域 Feign 契约：仅 ClaimHistoryAdapter 使用（G11/g11-03 NCD 反算按车辆取历史赔案）。
+             新增跨域 Feign 契约须同批完成三处登记，见 titanium-product/CLAUDE.md §7.13。 -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-claim-api</artifactId>
+        </dependency>
 
         <!-- Spring Boot Dependencies -->
         <dependency>

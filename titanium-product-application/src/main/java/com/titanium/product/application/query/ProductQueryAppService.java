@@ -12,9 +12,11 @@ import com.titanium.common.exception.BusinessException;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.errorcode.ProductErrorCode;
+import com.titanium.product.query.query.FindCoverageSumInsuredByProductIdQuery;
 import com.titanium.product.query.query.FindProductByIdQuery;
 import com.titanium.product.query.query.FindProductClauseByProductIdQuery;
 import com.titanium.product.query.query.GetTemplateByProductIdQuery;
+import com.titanium.product.query.result.CoverageSumInsuredConfigQueryResult;
 import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
@@ -118,6 +120,26 @@ public class ProductQueryAppService {
     public List<ProductClauseQueryResult> queryProductClauses(String productId) {
         return queryGateway.query(new FindProductClauseByProductIdQuery(productId),
                 ResponseTypes.multipleInstancesOf(ProductClauseQueryResult.class)).join();
+    }
+
+    /**
+     * 查询产品的责任级保额档次配置
+     * <p>
+     * 供承保前置链路（G02 投保单录入）按产品取「每个责任可填什么保额」。走读模型
+     * （{@code t_product_coverage_sum_insured_view}），最终一致；未配置或读模型未就绪时返回空列表。
+     * </p>
+     * <p>
+     * 🔴 本入口只<b>提供数据</b>，不做「这条保额算选档还是自由填」的裁决——该裁决实现只有一份，
+     * 在写侧值对象 {@code CoverageSumInsuredConfig#resolveSelection}。读侧复制一份必然漂移，
+     * 出现「产品侧算命中档位、投保侧算自由填」的两侧结论不一致。
+     * </p>
+     *
+     * @param productId 产品ID
+     * @return 该产品全部责任的档次配置；未配置时为空列表
+     */
+    public List<CoverageSumInsuredConfigQueryResult> queryCoverageSumInsuredConfigs(String productId) {
+        return queryGateway.query(new FindCoverageSumInsuredByProductIdQuery(productId),
+                ResponseTypes.multipleInstancesOf(CoverageSumInsuredConfigQueryResult.class)).join();
     }
 
     /**

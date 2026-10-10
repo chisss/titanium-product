@@ -8,15 +8,20 @@ import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 
 import com.titanium.common.util.SnowflakeIdGenerator;
+import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.api.request.product.AuditProductRequest;
 import com.titanium.product.api.request.product.CreateProductRequest;
+import com.titanium.product.api.request.product.UpdateCoverageSumInsuredConfigRequest;
+import com.titanium.product.api.request.product.UpdateProductClauseRelRequest;
 import com.titanium.product.api.response.clause.ProductClauseResponse;
 import com.titanium.product.api.response.config.AdditionalStepResponse;
 import com.titanium.product.api.response.config.AuditInfoResponse;
 import com.titanium.product.api.response.config.CoveragePeriodConfigResponse;
+import com.titanium.product.api.response.config.CoverageSumInsuredConfigResponse;
+import com.titanium.product.api.response.config.CoverageSumInsuredTierResponse;
 import com.titanium.product.api.response.config.DocumentConfigResponse;
 import com.titanium.product.api.response.config.InsureConditionResponse;
 import com.titanium.product.api.response.config.IssuanceProcessConfigResponse;
@@ -31,24 +36,33 @@ import com.titanium.product.command.AuditProductCommand;
 import com.titanium.product.command.CreateProductCommand;
 import com.titanium.product.command.RejectProductAuditCommand;
 import com.titanium.product.command.ReviseProductCommand;
+import com.titanium.product.command.UpdateCoverageSumInsuredConfigCommand;
+import com.titanium.product.command.UpdateProductClauseRelCommand;
 import com.titanium.product.entity.ProductClauseRel;
+import com.titanium.product.query.result.CoverageSumInsuredConfigQueryResult;
+import com.titanium.product.query.result.CoverageSumInsuredTierResult;
 import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.valueobject.AdditionalStep;
 import com.titanium.product.valueobject.AuditInfo;
 import com.titanium.product.valueobject.LifeProductSpec;
 import com.titanium.product.valueobject.config.CoveragePeriodConfig;
+import com.titanium.product.valueobject.config.CoverageSumInsuredConfig;
 import com.titanium.product.valueobject.config.DocumentConfig;
 import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.PaymentConfig;
 import com.titanium.product.valueobject.config.PolicyFormConfig;
+import com.titanium.product.valueobject.config.SumInsuredTier;
 import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.web.dto.product.AuditProductDTO;
+import com.titanium.product.web.dto.product.ClauseRelDTO;
 import com.titanium.product.web.dto.product.ConfigureLifeProductDTO;
 import com.titanium.product.web.dto.product.CreateProductDTO;
 import com.titanium.product.web.dto.product.ProductVersionVO;
 import com.titanium.product.web.dto.product.ReviseProductDTO;
+import com.titanium.product.web.dto.product.UpdateCoverageSumInsuredConfigDTO;
+import com.titanium.product.web.dto.product.UpdateProductClauseRelDTO;
 
 /**
  * 产品 Web 层对象映射器（MapStruct，声明式）
@@ -113,7 +127,7 @@ public interface ProductWebMapper {
      * @param rels 条款关联入参（可空）
      * @return 产品-条款关联值对象列表
      */
-    default List<ProductClauseRel> toClauseRels(List<ReviseProductDTO.ClauseRelDTO> rels) {
+    default List<ProductClauseRel> toClauseRels(List<ClauseRelDTO> rels) {
         if (rels == null) {
             return null;
         }
@@ -122,6 +136,126 @@ public interface ProductWebMapper {
                         Boolean.TRUE.equals(rel.isMainClause())))
                 .toList();
     }
+
+    /**
+     * 条款关联入参（api 契约）→ 条款关联入参（web 形态）——**跨契约形态的唯一桥接点**。
+     * <p>
+     * 🔴 为何需要它：api 层自包含，其 {@code ClauseRel} 与 web 层 {@link ClauseRelDTO} 是两套独立契约
+     * （项目 CLAUDE.md §3.4.11 ①），但二者落到领域后是<b>同一个</b> {@link ProductClauseRel}。
+     * 本方法由 MapStruct 按同名分量生成，把 api 形态搬到 web 形态后复用 {@link #toClauseRels}，
+     * 避免「三元组 → 领域值对象」这段派生逻辑写第二遍（同一个判断在两处各写一份 ⇒ 必漂移）。
+     * </p>
+     *
+     * @param rels api 契约条款关联（可空）
+     * @return web 形态条款关联（可空）
+     */
+    List<ClauseRelDTO> toClauseRelDTOs(List<UpdateProductClauseRelRequest.ClauseRel> rels);
+
+    /**
+     * HTTP DTO → 整体替换条款关联命令（Controller 用）
+     *
+     * <p>🔴 与 api 侧 {@link #toCommand(UpdateProductClauseRelRequest, String, String)} <b>平行</b>：
+     * 两条入口各自翻译、产出<b>同一个</b> {@link UpdateProductClauseRelCommand}，再汇入同一个
+     * application 薄门面 {@code ProductCommandAppService#updateProductClauseRel}，两侧互不依赖、不得互调。</p>
+     *
+     * @param request   整体替换请求（HTTP DTO）
+     * @param productId 产品ID（路径变量）
+     * @param tenantId  租户ID（请求头 X-Tenant-ID）
+     * @return 整体替换条款关联命令
+     */
+    @Mapping(target = "productId", source = "productId")
+    @Mapping(target = "tenantId", source = "tenantId")
+    @Mapping(target = "newClauseRels", expression = "java(toClauseRels(request.getClauseRels()))")
+    UpdateProductClauseRelCommand toCommand(UpdateProductClauseRelDTO request, String productId, String tenantId);
+
+    /**
+     * 远程 Request → 整体替换条款关联命令（Provider 用）
+     *
+     * <p>条款关联先经 {@link #toClauseRelDTOs} 从 api 契约形态搬到 web 形态，再走同一
+     * {@link #toClauseRels} 派生值对象——两条入口共享同一段领域派生逻辑。</p>
+     *
+     * @param request   整体替换请求（api 契约）
+     * @param productId 产品ID（路径变量）
+     * @param tenantId  租户ID（请求头，由 Provider 从请求上下文取）
+     * @return 整体替换条款关联命令
+     */
+    @Mapping(target = "productId", source = "productId")
+    @Mapping(target = "tenantId", source = "tenantId")
+    @Mapping(target = "newClauseRels",
+            expression = "java(toClauseRels(toClauseRelDTOs(request.getClauseRels())))")
+    UpdateProductClauseRelCommand toCommand(UpdateProductClauseRelRequest request, String productId,
+                                            String tenantId);
+
+    /**
+     * HTTP DTO → 整体替换保额档次配置命令（Controller 用）
+     *
+     * <p>🔴 与 api 侧 {@link #toCommand(UpdateCoverageSumInsuredConfigRequest, String, String)} 是
+     * MapStruct 的同名重载，靠<b>入参类型</b>区分（与本类既有的
+     * {@code toCommand(UpdateProductClauseRelDTO/Request, ...)} 同法）。两条入口各自翻译出<b>同一个</b>
+     * {@link UpdateCoverageSumInsuredConfigCommand}，汇入同一个 application 薄门面
+     * {@code ProductCommandAppService#updateCoverageSumInsuredConfig}，互不依赖、不得互调。</p>
+     *
+     * <p>档次清单与档位由 MapStruct 逐层构造领域值对象（{@code List} 映射由 MapStruct 生成，
+     * 自带 null 检查），七条不变量的校验在值对象紧凑构造器内完成——映射器只搬结构、不判业务。</p>
+     *
+     * @param request   整体替换请求（HTTP DTO）
+     * @param productId 产品ID（路径变量）
+     * @param tenantId  租户ID（请求头 X-Tenant-ID）
+     * @return 整体替换保额档次配置命令
+     */
+    @Mapping(target = "productId", source = "productId")
+    @Mapping(target = "tenantId", source = "tenantId")
+    UpdateCoverageSumInsuredConfigCommand toCommand(UpdateCoverageSumInsuredConfigDTO request, String productId,
+                                                    String tenantId);
+
+    /**
+     * 远程 Request → 整体替换保额档次配置命令（Provider 用）
+     *
+     * <p>与上者是同名重载（api 层自包含，其内嵌 record 与 web 层是两套独立契约，§3.4.11 ①），
+     * 落到领域后产出<b>同一个</b>命令。此处不需要再加一层「api 形态 → web 形态」的桥接：
+     * 与条款关联不同，本转换是<b>纯结构映射</b>，没有需要共享的手写派生逻辑。</p>
+     *
+     * @param request   整体替换请求（api 契约）
+     * @param productId 产品ID（路径变量）
+     * @param tenantId  租户ID（请求头，由 Provider 从请求上下文取）
+     * @return 整体替换保额档次配置命令
+     */
+    @Mapping(target = "productId", source = "productId")
+    @Mapping(target = "tenantId", source = "tenantId")
+    UpdateCoverageSumInsuredConfigCommand toCommand(UpdateCoverageSumInsuredConfigRequest request, String productId,
+                                                    String tenantId);
+
+    /**
+     * web 形态档次配置项 → 领域值对象（MapStruct 构造，七条不变量在紧凑构造器内裁决）
+     *
+     * @param item web 形态档次配置项
+     * @return 领域值对象
+     */
+    CoverageSumInsuredConfig toCoverageSumInsuredConfig(UpdateCoverageSumInsuredConfigDTO.CoverageSumInsuredConfigItem item);
+
+    /**
+     * api 契约档次配置项 → 领域值对象（同名重载，靠入参类型区分）
+     *
+     * @param item api 契约档次配置项
+     * @return 领域值对象
+     */
+    CoverageSumInsuredConfig toCoverageSumInsuredConfig(UpdateCoverageSumInsuredConfigRequest.CoverageSumInsuredConfigItem item);
+
+    /**
+     * web 形态档位 → 领域值对象
+     *
+     * @param item web 形态档位
+     * @return 领域值对象
+     */
+    SumInsuredTier toSumInsuredTier(UpdateCoverageSumInsuredConfigDTO.SumInsuredTierItem item);
+
+    /**
+     * api 契约档位 → 领域值对象（同名重载，靠入参类型区分）
+     *
+     * @param item api 契约档位
+     * @return 领域值对象
+     */
+    SumInsuredTier toSumInsuredTier(UpdateCoverageSumInsuredConfigRequest.SumInsuredTierItem item);
 
     /**
      * 远程 Request → 创建产品命令（Provider 用，形态/险种/类别 String → 领域枚举）
@@ -134,6 +268,8 @@ public interface ProductWebMapper {
             expression = "java(dto.getProductId() != null ? dto.getProductId() : SnowflakeIdGenerator.generate())")
     @Mapping(target = "form", source = "dto.form", qualifiedByName = "productFormFromCode")
     @Mapping(target = "insuranceType", source = "dto.insuranceType", qualifiedByName = "insuranceTypeFromCode")
+    @Mapping(target = "insuranceMandateType", source = "dto.insuranceMandateType",
+            qualifiedByName = "insuranceMandateTypeFromCode")
     @Mapping(target = "category", source = "dto.category", qualifiedByName = "productCategoryFromCode")
     @Mapping(target = "pricingBasicRule.pricingType", source = "dto.pricingBasicRule.pricingType",
             qualifiedByName = "pricingTypeFromCode")
@@ -267,6 +403,31 @@ public interface ProductWebMapper {
      */
     ProductClauseResponse toProductClauseResponse(ProductClauseQueryResult result);
 
+    /**
+     * 责任级保额档次读模型结果 → 对外响应（Controller 与 Provider <b>共用</b>）
+     * <p>
+     * 同名字段自动映射（coverageCode/minSumInsured/maxSumInsured/allowCustomAmount/defaultTierCode），
+     * 档位清单经 {@link #toSumInsuredTierResponse} 逐项映射，供承保前置链路（投保单录入）取
+     * 「每个责任可填什么保额」。
+     * </p>
+     * <p>
+     * 🔴 <b>此处只搬结构，不重算「选档 / 自由填」</b>：该裁决的唯一实现是写侧值对象
+     * {@code CoverageSumInsuredConfig#resolveSelection}。读侧复制一份必然漂移，出现「产品侧算命中档位、
+     * 投保侧算自由填」的两侧结论不一致。</p>
+     *
+     * @param result 档次配置查询结果
+     * @return 档次配置响应
+     */
+    CoverageSumInsuredConfigResponse toCoverageSumInsuredResponse(CoverageSumInsuredConfigQueryResult result);
+
+    /**
+     * 保额档位读模型结果 → 对外响应
+     *
+     * @param result 档位查询结果
+     * @return 档位响应
+     */
+    CoverageSumInsuredTierResponse toSumInsuredTierResponse(CoverageSumInsuredTierResult result);
+
     // ==================== 枚举 String → 领域枚举转换 ====================
 
     /** 定价模式 code → 定价模式枚举（null 安全）。 */
@@ -291,6 +452,12 @@ public interface ProductWebMapper {
     @Named("insuranceTypeFromCode")
     default InsuranceProductType insuranceTypeFromCode(String code) {
         return code != null ? InsuranceProductType.fromCode(code) : null;
+    }
+
+    /** 险别 code → 险别枚举（null 安全，G11/g11-04；仅 api 契约的 String 形态走此转换，DTO 侧为枚举直传）。 */
+    @Named("insuranceMandateTypeFromCode")
+    default InsuranceMandateType insuranceMandateTypeFromCode(String code) {
+        return code != null ? InsuranceMandateType.fromCode(code) : null;
     }
 
     /** 产品类别 code → 产品类别枚举（null 安全）。 */

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.titanium.product.application.model.pricing.surrender.CashValueSnapshot;
+import com.titanium.product.common.enums.SurrenderRefundBasis;
 import com.titanium.product.pricing.aggregate.surrender.SurrenderValuePolicy;
 import com.titanium.product.repository.SurrenderValuePolicyRepository;
 
@@ -42,8 +43,8 @@ class CashValueQueryAppServiceTest {
     /** 已发布的退保价值策略：第 2 保单年度，犹豫期 15 天，现金价值率 60%。 */
     private SurrenderValuePolicy publishedPolicy() {
         SurrenderValuePolicy policy = SurrenderValuePolicy.createDraft("SVP-1", PRODUCT_ID,
-                "LIFE-SURRENDER-CASH-VALUE", "V1.0", 2, 15, new BigDecimal("0.60000000"), BigDecimal.ZERO,
-                LocalDateTime.of(2026, 1, 1, 0, 0), null, TENANT_ID);
+                "LIFE-SURRENDER-CASH-VALUE", "V1.0", 2, 15, new BigDecimal("0.60000000"), BigDecimal.ZERO, null,
+                SurrenderRefundBasis.CASH_VALUE, LocalDateTime.of(2026, 1, 1, 0, 0), null, TENANT_ID);
         policy.approve();
         policy.publish();
         return policy;

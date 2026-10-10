@@ -2,14 +2,19 @@ package com.titanium.product.application.command;
 
 
 import java.util.List;
+import java.util.Set;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.titanium.common.multitenant.TenantContext;
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.exception.CommandValidationException;
+import com.titanium.metadata.exception.DomainException;
+import com.titanium.product.application.orchestration.product.ProductPublishValidator;
+import com.titanium.product.application.query.ProductQueryAppService;
 import com.titanium.product.command.AuditProductCommand;
 import com.titanium.product.command.ConfigureLifeProductCommand;
 import com.titanium.product.command.CreateProductCommand;
@@ -18,14 +23,17 @@ import com.titanium.product.command.RejectProductAuditCommand;
 import com.titanium.product.command.ReviseProductCommand;
 import com.titanium.product.command.SubmitProductForAuditCommand;
 import com.titanium.product.command.UpdateAttachProductCommand;
+import com.titanium.product.command.UpdateCoverageSumInsuredConfigCommand;
 import com.titanium.product.command.UpdateProductClauseRelCommand;
 import com.titanium.product.command.UpdateSalesChannelCommand;
 import com.titanium.product.entity.ProductClauseRel;
 import com.titanium.product.port.clause.ClauseBindingCheck;
 import com.titanium.product.port.clause.ClauseExistencePort;
+import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
 import com.titanium.product.query.service.ProductTemplateQueryService;
 import com.titanium.product.valueobject.LifeProductSpec;
+import com.titanium.product.valueobject.config.CoverageSumInsuredConfig;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,7 +51,9 @@ public class ProductCommandAppService {
 
     private final CommandGateway               commandGateway;
     private final ProductTemplateQueryService  productTemplateQueryService;
+    private final ProductQueryAppService       productQueryAppService;
     private final ClauseExistencePort          clauseExistencePort;
+    private final ProductPublishValidator      productPublishValidator;
 
     /** 平台级公共模板租户（default 租户模板对全租户可见，如宠物医疗险种子） */
     private static final String PUBLIC_TEMPLATE_TENANT = "default";
@@ -157,11 +167,21 @@ public class ProductCommandAppService {
     }
 
     /**
-     * 审核通过产品：派发审核命令。
+     * 审核通过产品：**先做上架完整性校验**，再派发审核命令。
+     *
+     * <p>🔴 校验落在本编排点而非聚合命令处理器：校验需跨聚合仓储与跨域端口，聚合不得依赖 Port
+     * （项目规约 §3.4.4 + ArchUnit）。聚合内原有的 {@code AUDITING} 状态前置检查<b>保留不动</b>，
+     * 二者职责不同——状态检查管「能不能审」，本校验管「审过了卖不卖得出去」。</p>
+     *
+     * <p>⚠️ <b>已知并发窗口</b>：校验在 {@code sendAndWait} <b>之前</b>执行，与聚合内状态检查之间存在
+     * 一瞬窗口——并发上架/并发改动定价组件时，可能出现「校验通过后、命令到达前」状态已变。
+     * 本批次<b>接受该窗口</b>：产品配置是低频人工操作，且聚合内的状态前置检查仍会兜住非法状态迁移。
+     * 若将来产品上架改为高频自动化流程，需改为「校验 + 命令」同事务或落聚合内不变量。</p>
      *
      * @param command 审核产品命令
      */
     public void auditProduct(AuditProductCommand command) {
+        productPublishValidator.validate(TenantContext.getTenantId(), command.productId());
         commandGateway.sendAndWait(command);
     }
 
@@ -260,5 +280,59 @@ public class ProductCommandAppService {
                     "产品关联的产品模板不存在: " + productId);
         }
         commandGateway.sendAndWait(new ConfigureLifeProductCommand(template.getTemplateId(), lifeProductSpec, tenantId));
+    }
+
+    /**
+     * 更新责任级保额档次配置：先校验责任编码归属，再派发整体替换命令。
+     * <p>
+     * 与条款绑定同构的编排——{@code DRAFT} 前置与七条不变量在聚合根/值对象内裁决，
+     * application 只做它做不到的那一件事：<b>跨域取责任清单</b>（产品域只有「产品-条款关联」，
+     * 不含条款主数据，见 {@code ClauseExistencePort#listCoverageCodes}）。
+     * </p>
+     * <p>
+     * 🔴 <b>归属校验的必要性</b>：{@code coverageCode} 是裸字符串，聚合根无从判定其真伪。
+     * 不校验就能给一个产品配上它根本没有的责任档次——产品侧写成功、投保侧永远匹配不到，
+     * 属「配了没用」的静默失效。判据是本产品<b>已绑定条款的责任集合</b>。
+     * </p>
+     * <p>
+     * ⚠️ <b>已知边界：绑定关系读自读模型，最终一致</b>。刚改完条款绑定立刻配置档次，
+     * 可能因投影未收敛而误判「责任不属于该产品」。此处刻意不做重试：重试会把
+     * 「确实配错了」也拖成长延迟；运营重试一次即可，且报文已列出<b>本次读到的责任集合</b>，
+     * 可直接判断是配错还是读到了旧值。
+     * </p>
+     *
+     * @param command 更新命令
+     */
+    public void updateCoverageSumInsuredConfig(UpdateCoverageSumInsuredConfigCommand command) {
+        validateCoverageOwnership(command);
+        commandGateway.sendAndWait(command);
+    }
+
+    /**
+     * 校验档次配置的责任编码是否都属于该产品已绑定条款的责任集合。
+     * <p>
+     * 清单为 {@code null} 时不在此拦截——{@code null} 与「空清单（清空）」的区分由聚合根以更精确的
+     * 文案拒绝，两处各判一次会漂移。空清单是合法「清空」，无需跨域取证。
+     * </p>
+     */
+    private void validateCoverageOwnership(UpdateCoverageSumInsuredConfigCommand command) {
+        List<CoverageSumInsuredConfig> configs = command.coverageSumInsuredConfigs();
+        if (configs == null || configs.isEmpty()) {
+            return;
+        }
+        List<String> clauseIds = productQueryAppService.queryProductClauses(command.productId()).stream()
+                .map(ProductClauseQueryResult::getClauseId)
+                .toList();
+        Set<String> ownedCoverageCodes = clauseExistencePort.listCoverageCodes(clauseIds, command.tenantId());
+        List<String> unknown = configs.stream()
+                .map(CoverageSumInsuredConfig::coverageCode)
+                .filter(code -> !ownedCoverageCodes.contains(code))
+                .toList();
+        if (!unknown.isEmpty()) {
+            throw new DomainException(ProductErrorCode.COVERAGE_SUM_INSURED_CONFIG_INVALID,
+                    "以下责任编码不属于该产品已绑定条款的责任集合，无法配置保额档次: "
+                            + String.join(", ", unknown)
+                            + "（本次读到的该产品责任集合=" + ownedCoverageCodes + "）");
+        }
     }
 }

@@ -2,11 +2,15 @@ package com.titanium.product.infrastructure.adapter.clause;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,13 +23,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.titanium.clause.api.ClauseApi;
 import com.titanium.clause.api.response.clause.ClauseResponse;
+import com.titanium.common.feign.TitaniumRemoteException;
 import com.titanium.metadata.enums.clause.ClauseEnum;
+import com.titanium.metadata.errorcode.ClauseErrorCode;
 import com.titanium.metadata.errorcode.SystemErrorCode;
 import com.titanium.metadata.exception.DomainException;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.port.clause.ClauseBindingCheck;
 
 import feign.FeignException;
+import feign.Request;
 
 /**
  * {@link ClauseExistenceAdapter} 单元测试
@@ -54,7 +61,7 @@ class ClauseExistenceAdapterTest {
     @DisplayName("只报出条款域明确回答 404 的那些，且保持入参顺序")
     void shouldReportOnlyClausesTheDomainAnswersNotFound() {
         when(clauseApi.getClauseById("clause-a")).thenReturn(activeClause());
-        when(clauseApi.getClauseById("clause-b")).thenThrow(notFound());
+        when(clauseApi.getClauseById("clause-b")).thenThrow(notExistViaUnifiedDecoder());
         when(clauseApi.getClauseById("clause-c")).thenThrow(notFound());
 
         ClauseBindingCheck check = adapter.checkBindable(List.of("clause-a", "clause-b", "clause-c"), TENANT_ID);
@@ -102,7 +109,7 @@ class ClauseExistenceAdapterTest {
     @DisplayName("🔴 两类拒绝同时出现时各归各的桶，不得合并")
     void shouldKeepMissingAndNonActiveApart() {
         when(clauseApi.getClauseById("clause-a")).thenReturn(activeClause());
-        when(clauseApi.getClauseById("clause-b")).thenThrow(notFound());
+        when(clauseApi.getClauseById("clause-b")).thenThrow(notExistViaUnifiedDecoder());
         when(clauseApi.getClauseById("clause-c"))
                 .thenReturn(successWithStatus(ClauseEnum.ClauseStatus.DRAFT));
 
@@ -152,7 +159,66 @@ class ClauseExistenceAdapterTest {
                 .isInstanceOf(DomainException.class);
     }
 
-    /** 条款域回 404（ClauseNotFoundException → CLAUSE_NOT_EXIST）时 Feign 抛的异常 */
+    @Test
+    @DisplayName("🔴 判据是业务码不是 HTTP 状态：同为 404 但码非 CLAUSE_NOT_EXIST，必须上抛")
+    void shouldNotJudgeMissingByHttpStatusAlone() {
+        // 一律按 status==404 判缺失是另一种会误报的走法——404 只说明「这个 URL 下没有该资源」，
+        // 下游若用 404 承载别的业务语义（本域 40 段里 STATE_CONFLICT 类都可能被渲染成 4xx），
+        // 照搬就会把「条款状态无效」说成「条款不存在」，与 R7-01 是同一类错误。
+        when(clauseApi.getClauseById("clause-a"))
+                .thenThrow(remoteError(404, ClauseErrorCode.CLAUSE_INVALID_STATUS));
+
+        TitaniumRemoteException thrown = catchThrowableOfType(TitaniumRemoteException.class,
+                () -> adapter.checkBindable(List.of("clause-a"), TENANT_ID));
+
+        // 🔴 这一行不是多余的：catchThrowableOfType 在「压根没抛」时返回 null 而不 fail，
+        // 直接解引用会得到一句 NPE（并被 JUnit 记成 error 而非 failure），失败原因不可读。
+        assertThat(thrown).as("非 CLAUSE_NOT_EXIST 的远程业务码必须上抛，不得判为缺失").isNotNull();
+        assertThat(thrown.getRemoteCode()).isEqualTo(ClauseErrorCode.CLAUSE_INVALID_STATUS.getCode());
+    }
+
+    @Test
+    @DisplayName("兜底：下游未走统一解码器的原生 404，仍判为缺失")
+    void shouldStillTreatRawNotFoundAsMissing() {
+        when(clauseApi.getClauseById("clause-a")).thenThrow(notFound());
+
+        assertThat(adapter.checkBindable(List.of("clause-a"), TENANT_ID).missingClauseIds())
+                .containsExactly("clause-a");
+    }
+
+    /**
+     * 条款域回答「不存在」时，经**统一解码器**（m21-07 {@code TitaniumFeignErrorDecoder}）抛出的异常。
+     *
+     * <p>🔴 这才是生产上的**主路径**：条款域 {@code ClauseExceptionHandler} 依
+     * {@code ErrorCategory.RESOURCE_NOT_FOUND} 把 {@code CLAUSE_NOT_EXIST} 渲染成 404 + 错误信封，
+     * 解码器见「非 2xx + 信封 + 非空业务码」即包成本类。它 {@code extends FeignException}，与
+     * {@link FeignException.NotFound} 是<b>兄弟类而非其子类</b>——G01-R1-F2 的缺陷正是原实现只 catch 了
+     * 后者，于是「条款不存在」一路落到 {@code catch (FeignException)}，被外层表达成「依赖服务错误」，
+     * 把输入问题报成基础设施故障。下面这个 {@link #notFound()} 对应的分支是兜底，不再是主路径。</p>
+     */
+    private TitaniumRemoteException notExistViaUnifiedDecoder() {
+        return remoteError(404, ClauseErrorCode.CLAUSE_NOT_EXIST);
+    }
+
+    /** 构造携带指定下游业务码的远程异常（status 与 code 分开给，便于验证「判码不判状态」）。 */
+    private TitaniumRemoteException remoteError(int status, ClauseErrorCode errorCode) {
+        return new TitaniumRemoteException(status, errorCode.getMessage(), dummyRequest(), new byte[0],
+                Map.of(), errorCode.getCode());
+    }
+
+    /**
+     * 构造供 {@link TitaniumRemoteException} 携带的占位请求。
+     * <p>用 6 参 {@code (HttpMethod, url, headers, byte[], Charset, RequestTemplate)} 重载：它是
+     * feign 13.6.1 里<b>唯一未标 {@code @Deprecated}</b> 的 create 族重载（5 参版与
+     * {@code (…, Body, RequestTemplate)} 版均已废弃），且 6 参形态与 Body 版不构成重载歧义，
+     * 末位可直接传 null。</p>
+     */
+    private static Request dummyRequest() {
+        return Request.create(Request.HttpMethod.GET, "http://clause-service/api/v1/clauses/x",
+                Map.<String, Collection<String>>of(), new byte[0], StandardCharsets.UTF_8, null);
+    }
+
+    /** 条款域回 404（ClauseNotFoundException → CLAUSE_NOT_EXIST）时 Feign 抛的**原生**异常——兜底路径 */
     private FeignException notFound() {
         return mock(FeignException.NotFound.class);
     }

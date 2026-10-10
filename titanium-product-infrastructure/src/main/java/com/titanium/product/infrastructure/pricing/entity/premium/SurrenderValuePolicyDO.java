@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
+import com.titanium.product.common.enums.SurrenderRefundBasis;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,6 +39,12 @@ public class SurrenderValuePolicyDO {
     private BigDecimal cashValueRate;
     @Column(name = "internal_cost_retention_rate", nullable = false, precision = 20, scale = 8)
     private BigDecimal internalCostRetentionRate;
+    /** 退保手续费率；{@code null} 表示该产品不适用（未配置），与「配置为 0」是两种业务事实。 */
+    @Column(name = "handling_fee_rate", precision = 20, scale = 8)
+    private BigDecimal handlingFeeRate;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "refund_basis", nullable = false, length = 32)
+    private SurrenderRefundBasis refundBasis;
     @Column(name = "effective_from", nullable = false)
     private LocalDateTime effectiveFrom;
     @Column(name = "effective_to")

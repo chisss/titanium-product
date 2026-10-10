@@ -2,6 +2,7 @@ package com.titanium.product.query.result;
 
 import java.time.LocalDateTime;
 
+import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
@@ -39,6 +40,8 @@ public class ProductQueryResult {
     // ====== 分类 ======
     private ProductEnum.ProductForm form;
     private InsuranceProductType insuranceType;
+    /** 险别（法定强制/自愿投保，G11/g11-04；与险种正交，null = 未声明） */
+    private InsuranceMandateType insuranceMandateType;
     private ProductEnum.ProductCategory category;
 
     // ====== 版本与状态 ======

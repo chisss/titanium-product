@@ -97,7 +97,4 @@ public class ReviseProductDTO {
      * @param clauseId 关联的条款ID
      * @param clauseVersion 条款版本
      * @param isMainClause 是否为主条款
-     */
-    public record ClauseRelDTO(String clauseId, String clauseVersion, Boolean isMainClause) {
-    }
-}
+     */}

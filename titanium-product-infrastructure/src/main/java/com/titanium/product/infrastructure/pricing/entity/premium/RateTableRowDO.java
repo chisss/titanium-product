@@ -53,6 +53,52 @@ public class RateTableRowDO {
     @Column(name = "vehicle_type", length = 64)
     private String vehicleType;
 
+    @Column(name = "sum_insured_from", precision = 18, scale = 2)
+    private BigDecimal sumInsuredFrom;
+
+    @Column(name = "sum_insured_to_exclusive", precision = 18, scale = 2)
+    private BigDecimal sumInsuredToExclusive;
+
+    @Column(name = "smoking", length = 32)
+    private String smoking;
+
+    @Column(name = "social_insurance", length = 32)
+    private String socialInsurance;
+
+    @Column(name = "deductible_from", precision = 18, scale = 2)
+    private BigDecimal deductibleFrom;
+
+    @Column(name = "deductible_to_exclusive", precision = 18, scale = 2)
+    private BigDecimal deductibleToExclusive;
+
+    // ── G01-R3-F1 补齐（2026-09-26）：与 RateDimensionKey 新增的 7 个维度键一一对应 ──
+    @Column(name = "employee_count")
+    private Integer employeeCount;
+
+    @Column(name = "payroll_amount_from", precision = 18, scale = 2)
+    private BigDecimal payrollAmountFrom;
+
+    @Column(name = "payroll_amount_to_exclusive", precision = 18, scale = 2)
+    private BigDecimal payrollAmountToExclusive;
+
+    @Column(name = "property_usage", length = 32)
+    private String propertyUsage;
+
+    @Column(name = "property_value_from", precision = 18, scale = 2)
+    private BigDecimal propertyValueFrom;
+
+    @Column(name = "property_value_to_exclusive", precision = 18, scale = 2)
+    private BigDecimal propertyValueToExclusive;
+
+    @Column(name = "occupancy_type", length = 32)
+    private String occupancyType;
+
+    @Column(name = "fire_protection_level", length = 32)
+    private String fireProtectionLevel;
+
+    @Column(name = "ncd", length = 16)
+    private String ncd;
+
     @Column(name = "rate", nullable = false, precision = 18, scale = 8)
     private BigDecimal rate;
 

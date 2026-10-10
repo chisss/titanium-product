@@ -58,10 +58,16 @@ public class CashValueQueryAppService {
 
     /**
      * 策略 → 现金价值快照：委托策略自身计算，仅补齐取证字段。
+     * <p>
+     * 🔴 走 {@link SurrenderValuePolicy#cashValueAt}（现金价值口径）而非
+     * {@code calculate}（退费口径）：本查询问的是「现金价值是多少」，无保费事实语境；
+     * 退费口径只有退保确认（有出单确认计算记录）才走得通。两者共用同一份因子组装与加总
+     * （策略内同一私有方法），不会产生两份口径。
+     * </p>
      */
     private CashValueSnapshot toSnapshot(SurrenderValuePolicy policy, BigDecimal customerPayable,
             LocalDate policyEffectiveDate, LocalDate valuationDate) {
-        SurrenderValueOutcome outcome = policy.calculate(customerPayable, policyEffectiveDate, valuationDate,
+        SurrenderValueOutcome outcome = policy.cashValueAt(customerPayable, policyEffectiveDate, valuationDate,
                 DEFAULT_SCALE, RoundingMode.HALF_UP);
         return new CashValueSnapshot(policy.getProductId(), policy.getPolicyYear(), policy.getCoolingOffDays(),
                 outcome.withinCoolingOff(), outcome.refundType().name(), outcome.cashValueRate(),

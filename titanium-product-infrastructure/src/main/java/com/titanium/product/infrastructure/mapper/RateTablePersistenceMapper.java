@@ -31,6 +31,18 @@ public interface RateTablePersistenceMapper {
     @Mapping(target = "dimensionHash", expression = "java(row.dimensionHash())")
     RateTableRowDO toDO(RateTableDefinition rateTable, RateTableRow row);
 
+    /**
+     * 费率行反向映射：持久化对象 → 领域行。
+     * <p>
+     * 🔴 唯一实现——此前两个适配器各自手写一遍 18 分量的记录构造，两处都错一格就静默错位。
+     * </p>
+     * <p>
+     * {@code dimensionHash} <b>不从库列回填</b>：领域记录在紧凑构造器里依维度重算，库列仅作
+     * 唯一约束与迁移校验用；库列与重算值不一致时以领域侧为准（同名字段自动映射，其余列忽略）。
+     * </p>
+     */
+    RateTableRow toDomain(RateTableRowDO row);
+
     /** 任意对象 → JSON 字符串。 */
     @Named("toJson")
     default String toJson(Object value) {

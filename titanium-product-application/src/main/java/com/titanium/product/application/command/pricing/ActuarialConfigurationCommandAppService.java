@@ -7,6 +7,8 @@ import com.titanium.product.command.pricing.CreateCalculationModelCommand;
 import com.titanium.product.command.pricing.CreateChargeComponentCommand;
 import com.titanium.product.command.pricing.CreateDynamicFactorCommand;
 import com.titanium.product.command.pricing.CreateTaxPolicyCommand;
+import com.titanium.product.command.pricing.loan.CreatePolicyLoanPolicyCommand;
+import com.titanium.product.command.pricing.paidup.CreateReducedPaidUpPolicyCommand;
 import com.titanium.product.command.pricing.surrender.CreateSurrenderValuePolicyCommand;
 
 import lombok.RequiredArgsConstructor;
@@ -98,5 +100,37 @@ public class ActuarialConfigurationCommandAppService {
 
     public void retireSurrenderValuePolicy(String tenantId, String productId, String policyId) {
         orchestrationService.retireSurrenderValuePolicy(tenantId, productId, policyId);
+    }
+
+    public String createPolicyLoanPolicy(CreatePolicyLoanPolicyCommand command) {
+        return orchestrationService.createPolicyLoanPolicy(command);
+    }
+
+    public String approvePolicyLoanPolicy(String tenantId, String productId, String policyId) {
+        return orchestrationService.approvePolicyLoanPolicy(tenantId, productId, policyId);
+    }
+
+    public void publishPolicyLoanPolicy(String tenantId, String productId, String policyId) {
+        orchestrationService.publishPolicyLoanPolicy(tenantId, productId, policyId);
+    }
+
+    public void retirePolicyLoanPolicy(String tenantId, String productId, String policyId) {
+        orchestrationService.retirePolicyLoanPolicy(tenantId, productId, policyId);
+    }
+
+    public String createReducedPaidUpPolicy(CreateReducedPaidUpPolicyCommand command) {
+        return orchestrationService.createReducedPaidUpPolicy(command);
+    }
+
+    public String approveReducedPaidUpPolicy(String tenantId, String productId, String policyId) {
+        return orchestrationService.approveReducedPaidUpPolicy(tenantId, productId, policyId);
+    }
+
+    public void publishReducedPaidUpPolicy(String tenantId, String productId, String policyId) {
+        orchestrationService.publishReducedPaidUpPolicy(tenantId, productId, policyId);
+    }
+
+    public void retireReducedPaidUpPolicy(String tenantId, String productId, String policyId) {
+        orchestrationService.retireReducedPaidUpPolicy(tenantId, productId, policyId);
     }
 }

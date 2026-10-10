@@ -10,7 +10,10 @@ import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.ProductApi;
 import com.titanium.product.api.request.product.AuditProductRequest;
 import com.titanium.product.api.request.product.CreateProductRequest;
+import com.titanium.product.api.request.product.UpdateCoverageSumInsuredConfigRequest;
+import com.titanium.product.api.request.product.UpdateProductClauseRelRequest;
 import com.titanium.product.api.response.clause.ProductClauseResponse;
+import com.titanium.product.api.response.config.CoverageSumInsuredConfigResponse;
 import com.titanium.product.api.response.config.IssuanceProcessConfigResponse;
 import com.titanium.product.api.response.config.PolicyFormConfigResponse;
 import com.titanium.product.api.response.config.UnderwritingConfigResponse;
@@ -129,5 +132,59 @@ public class ProductApiProvider implements ProductApi {
                 .map(productWebMapper::toProductClauseResponse)
                 .toList();
         return ApiResponse.success(responses);
+    }
+
+    /**
+     * 整体替换产品绑定的条款关联（远程写入口）
+     * <p>
+     * 与后台/端上的 {@code PUT /web/v1/products/{productId}/clauses} <b>平行</b>：各自经同一
+     * {@link ProductWebMapper} 翻译成同一个 {@code UpdateProductClauseRelCommand}，再汇入同一个 application
+     * 薄门面 {@code ProductCommandAppService#updateProductClauseRel}。本类不复制任何业务规则——
+     * 「仅 DRAFT 可改」在聚合根、条款 ACTIVE 门禁在应用层跨域校验。
+     * </p>
+     */
+    @Override
+    public ApiResponse<Void> updateProductClauseRel(String productId,
+                                                    UpdateProductClauseRelRequest request) {
+        // 协议转换：远程 Request → 领域命令，收敛到同一应用层门面
+        productCommandAppService.updateProductClauseRel(
+                productWebMapper.toCommand(request, productId, RequestContextHolder.requireTenantId()));
+        return ApiResponse.success(null);
+    }
+
+    /**
+     * 查询产品的责任级保额档次配置（远程读入口）
+     * <p>
+     * 与后台/端上的 {@code GET /web/v1/products/{productId}/coverage-sum-insured-configs} 平行，
+     * 共用同一个 {@link ProductWebMapper} 映射方法与同一个 application 薄门面。
+     * 未配置时返回空列表（不是 404——「尚未配置」是正常状态）。
+     * </p>
+     */
+    @Override
+    public ApiResponse<List<CoverageSumInsuredConfigResponse>> getCoverageSumInsuredConfigs(
+            String productId) {
+        List<CoverageSumInsuredConfigResponse> responses = productQueryAppService
+                .queryCoverageSumInsuredConfigs(productId).stream()
+                .map(productWebMapper::toCoverageSumInsuredResponse)
+                .toList();
+        return ApiResponse.success(responses);
+    }
+
+    /**
+     * 整体替换产品的责任级保额档次配置（远程写入口）
+     * <p>
+     * 与后台/端上的 {@code PUT /web/v1/products/{productId}/coverage-sum-insured-configs}
+     * <b>平行</b>：各自经同一 {@link ProductWebMapper} 翻译成同一个
+     * {@code UpdateCoverageSumInsuredConfigCommand}，再汇入同一个 application 薄门面
+     * {@code ProductCommandAppService#updateCoverageSumInsuredConfig}。本类不复制任何业务规则——
+     * 「仅 DRAFT 可配」在聚合根、责任编码归属门禁在应用层跨域校验。
+     * </p>
+     */
+    @Override
+    public ApiResponse<Void> updateCoverageSumInsuredConfig(
+            String productId, UpdateCoverageSumInsuredConfigRequest request) {
+        productCommandAppService.updateCoverageSumInsuredConfig(
+                productWebMapper.toCommand(request, productId, RequestContextHolder.requireTenantId()));
+        return ApiResponse.success(null);
     }
 }

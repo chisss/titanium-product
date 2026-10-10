@@ -97,6 +97,13 @@ public class RateTableManagementApplicationService {
         return new RateTableRow(
                 UUID.randomUUID().toString(), draft.ageFrom(), draft.ageToExclusive(), draft.gender(),
                 draft.paymentTermYears(), draft.coverageTermYears(), draft.rate(), draft.minimumPremium(),
-                draft.maximumPremium(), draft.occupationClass(), draft.region(), draft.vehicleType());
+                draft.maximumPremium(), draft.occupationClass(), draft.region(), draft.vehicleType(),
+                draft.sumInsuredFrom(), draft.sumInsuredToExclusive(), draft.smoking(),
+                draft.socialInsurance(), draft.deductibleFrom(), draft.deductibleToExclusive(),
+                // G01-R3-F1 补齐（2026-09-26）：以下 7 个维度原已存在于现网费率表数据。
+                // 🔴 此处是手写搬运（非 MapStruct），漏搬一个维度不会编译报错，只会让该维度恒落 NULL。
+                draft.employeeCount(), draft.payrollAmountFrom(), draft.payrollAmountToExclusive(),
+                draft.propertyUsage(), draft.propertyValueFrom(), draft.propertyValueToExclusive(),
+                draft.occupancyType(), draft.fireProtectionLevel(), draft.ncd());
     }
 }

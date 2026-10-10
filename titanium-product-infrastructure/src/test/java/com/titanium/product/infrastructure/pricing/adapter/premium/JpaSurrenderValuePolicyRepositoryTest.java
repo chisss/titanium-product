@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
+import com.titanium.product.common.enums.SurrenderRefundBasis;
 import com.titanium.product.infrastructure.mapper.SurrenderValuePolicyPersistenceMapperImpl;
 import com.titanium.product.infrastructure.pricing.entity.premium.SurrenderValuePolicyDO;
 import com.titanium.product.infrastructure.pricing.repository.premium.SurrenderValuePolicyJpaRepository;
@@ -65,6 +66,7 @@ class JpaSurrenderValuePolicyRepositoryTest {
                 () -> assertEquals(15, saved.getCoolingOffDays()),
                 () -> assertEquals(0, new BigDecimal("0.85").compareTo(saved.getCashValueRate())),
                 () -> assertEquals(0, new BigDecimal("0.30").compareTo(saved.getInternalCostRetentionRate())),
+                () -> assertEquals(0, new BigDecimal("0.05").compareTo(saved.getHandlingFeeRate())),
                 () -> assertEquals(EFFECTIVE_FROM, saved.getEffectiveFrom()),
                 () -> assertEquals(EFFECTIVE_TO, saved.getEffectiveTo()),
                 () -> assertEquals("tenant-a", saved.getTenantId()),
@@ -121,10 +123,12 @@ class JpaSurrenderValuePolicyRepositoryTest {
         assertTrue(repository.findById("tenant-a", "product-1", "missing").isEmpty());
     }
 
-    /** 构建草稿态退保价值策略（与新增链路 createDraft 同参）。 */
+    /** 构建草稿态退保价值策略（与新增链路 createDraft 同参）。手续费率取非空值以覆盖该列的持久化往返。 */
     private SurrenderValuePolicy draftPolicy() {
         return SurrenderValuePolicy.createDraft(
                 "surrender-1", "product-1", "SV-2026", "V1", 3, 15,
-                new BigDecimal("0.85"), new BigDecimal("0.30"), EFFECTIVE_FROM, EFFECTIVE_TO, "tenant-a");
+                new BigDecimal("0.85"), new BigDecimal("0.30"), new BigDecimal("0.05"),
+                SurrenderRefundBasis.CASH_VALUE,
+                EFFECTIVE_FROM, EFFECTIVE_TO, "tenant-a");
     }
 }

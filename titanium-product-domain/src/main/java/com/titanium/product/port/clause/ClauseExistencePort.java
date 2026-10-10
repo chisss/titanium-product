@@ -1,6 +1,7 @@
 package com.titanium.product.port.clause;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 条款可绑定性核查端口
@@ -43,4 +44,26 @@ public interface ClauseExistencePort {
      * @throws RuntimeException 条款服务不可用时原样抛出（<b>不得</b>把基础设施故障表达成「条款不存在」）
      */
     ClauseBindingCheck checkBindable(List<String> clauseIds, String tenantId);
+
+    /**
+     * 取给定条款集合下**全部保险责任**的编码全集。
+     *
+     * <p>用于「责任级保额档次」配置的归属校验：一条档次的 {@code coverageCode} 必须落在该产品
+     * 已绑定条款的责任集合内，否则这条配置永远不会被投保侧命中——产品侧配了，投保侧却匹配不到，
+     * 属于典型的「配了没用」。产品域只有「产品-条款关联」，不含条款主数据，故须向条款域取责任清单。</p>
+     *
+     * <p>🔴 <b>复用条款域已有端点</b>（{@code GET /api/v1/clauses/{clauseId}/coverages}），
+     * <b>不新增跨域契约</b>——该端点本就为上游取责任明细而存在（policy 出单装配责任快照即用它）。</p>
+     *
+     * <p>🔴 <b>与 {@link #checkBindable} 的失败语义刻意不同</b>：本方法<b>没有「明确不存在」这一结局</b>。
+     * 某条款取不到时，其责任集合是<b>不可知</b>的，若当成空集处理，就会把「问不到」静默降级成
+     * 「该责任不属于本产品」，进而给用户一个错误的拒绝理由（正是 {@code checkBindable} 三结局分离
+     * 要禁止的那类混淆）。故本方法<b>一律原样上抛</b>，由编排层表达为依赖服务故障。</p>
+     *
+     * @param clauseIds 条款引用（条款主键），可为 {@code null} 或空
+     * @param tenantId  租户ID
+     * @return 责任编码全集（去重）；条款集合为空时返回空集
+     * @throws RuntimeException 条款服务不可用、或某条款取不到时原样抛出（<b>不降级为空集</b>）
+     */
+    Set<String> listCoverageCodes(List<String> clauseIds, String tenantId);
 }

@@ -2,6 +2,7 @@ package com.titanium.product.api.response.product;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.insurance.SubjectType;
 import com.titanium.metadata.enums.product.ProductEnum;
@@ -31,6 +32,8 @@ public class ProductResponse {
     private String productDesc;
     private ProductEnum.ProductForm form;
     private InsuranceProductType insuranceType;
+    /** 险别（法定强制/自愿投保，G11/g11-04；与险种正交，null = 未声明） */
+    private InsuranceMandateType insuranceMandateType;
     private ProductEnum.ProductCategory category;
     private String version;
     private ProductEnum.ProductStatus status;

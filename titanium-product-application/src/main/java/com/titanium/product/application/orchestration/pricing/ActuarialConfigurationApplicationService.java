@@ -11,17 +11,24 @@ import com.titanium.product.command.pricing.CreateCalculationModelCommand;
 import com.titanium.product.command.pricing.CreateChargeComponentCommand;
 import com.titanium.product.command.pricing.CreateDynamicFactorCommand;
 import com.titanium.product.command.pricing.CreateTaxPolicyCommand;
+import com.titanium.product.command.pricing.loan.CreatePolicyLoanPolicyCommand;
+import com.titanium.product.command.pricing.paidup.CreateReducedPaidUpPolicyCommand;
 import com.titanium.product.command.pricing.surrender.CreateSurrenderValuePolicyCommand;
 import com.titanium.product.common.enums.ActuarialDefinitionStatus;
+import com.titanium.product.common.enums.SurrenderRefundBasis;
 import com.titanium.product.pricing.aggregate.CalculationModelDefinition;
 import com.titanium.product.pricing.aggregate.ChargeComponentDefinition;
 import com.titanium.product.pricing.aggregate.DynamicFactorDefinition;
 import com.titanium.product.pricing.aggregate.TaxPolicyDefinition;
+import com.titanium.product.pricing.aggregate.loan.PolicyLoanPolicy;
+import com.titanium.product.pricing.aggregate.paidup.ReducedPaidUpPolicy;
 import com.titanium.product.pricing.aggregate.surrender.SurrenderValuePolicy;
 import com.titanium.product.query.service.ProductQueryService;
 import com.titanium.product.repository.CalculationModelRepository;
 import com.titanium.product.repository.ChargeComponentRepository;
 import com.titanium.product.repository.DynamicFactorRepository;
+import com.titanium.product.repository.PolicyLoanPolicyRepository;
+import com.titanium.product.repository.ReducedPaidUpPolicyRepository;
 import com.titanium.product.repository.SurrenderValuePolicyRepository;
 import com.titanium.product.repository.TaxPolicyRepository;
 
@@ -40,6 +47,8 @@ public class ActuarialConfigurationApplicationService {
     private final TaxPolicyRepository taxPolicyRepository;
     private final DynamicFactorRepository dynamicFactorRepository;
     private final SurrenderValuePolicyRepository surrenderValuePolicyRepository;
+    private final PolicyLoanPolicyRepository policyLoanPolicyRepository;
+    private final ReducedPaidUpPolicyRepository reducedPaidUpPolicyRepository;
 
     @Transactional
     public String createChargeComponent(CreateChargeComponentCommand command) {
@@ -209,7 +218,9 @@ public class ActuarialConfigurationApplicationService {
         SurrenderValuePolicy policy = SurrenderValuePolicy.createDraft(
                 UUID.randomUUID().toString(), command.productId(), command.policyCode(), command.policyVersion(),
                 command.policyYear(), command.coolingOffDays(), command.cashValueRate(),
-                command.internalCostRetentionRate(), command.effectiveFrom(), command.effectiveTo(),
+                command.internalCostRetentionRate(), command.handlingFeeRate(),
+                refundBasisOrDefault(command.refundBasis()),
+                command.effectiveFrom(), command.effectiveTo(),
                 command.tenantId());
         surrenderValuePolicyRepository.save(policy);
         return policy.getPolicyId();
@@ -235,6 +246,80 @@ public class ActuarialConfigurationApplicationService {
         SurrenderValuePolicy policy = requireSurrenderValuePolicy(tenantId, productId, policyId);
         policy.retire();
         surrenderValuePolicyRepository.save(policy);
+    }
+
+    @Transactional
+    public String createPolicyLoanPolicy(CreatePolicyLoanPolicyCommand command) {
+        requireProduct(command.tenantId(), command.productId());
+        if (policyLoanPolicyRepository.existsByBusinessKey(
+                command.tenantId(), command.productId(), command.policyCode(), command.policyVersion())) {
+            throw new BusinessException(ProductErrorCode.ACTUARIAL_COMPONENT_ALREADY_EXISTS);
+        }
+        PolicyLoanPolicy policy = PolicyLoanPolicy.createDraft(
+                UUID.randomUUID().toString(), command.productId(), command.policyCode(), command.policyVersion(),
+                command.loanableRatio(), command.interestRate(), command.effectiveFrom(), command.effectiveTo(),
+                command.tenantId());
+        policyLoanPolicyRepository.save(policy);
+        return policy.getPolicyId();
+    }
+
+    @Transactional
+    public String approvePolicyLoanPolicy(String tenantId, String productId, String policyId) {
+        PolicyLoanPolicy policy = requirePolicyLoanPolicy(tenantId, productId, policyId);
+        String hash = policy.approve();
+        policyLoanPolicyRepository.save(policy);
+        return hash;
+    }
+
+    @Transactional
+    public void publishPolicyLoanPolicy(String tenantId, String productId, String policyId) {
+        PolicyLoanPolicy policy = requirePolicyLoanPolicy(tenantId, productId, policyId);
+        policy.publish();
+        policyLoanPolicyRepository.save(policy);
+    }
+
+    @Transactional
+    public void retirePolicyLoanPolicy(String tenantId, String productId, String policyId) {
+        PolicyLoanPolicy policy = requirePolicyLoanPolicy(tenantId, productId, policyId);
+        policy.retire();
+        policyLoanPolicyRepository.save(policy);
+    }
+
+    @Transactional
+    public String createReducedPaidUpPolicy(CreateReducedPaidUpPolicyCommand command) {
+        requireProduct(command.tenantId(), command.productId());
+        if (reducedPaidUpPolicyRepository.existsByBusinessKey(
+                command.tenantId(), command.productId(), command.policyCode(), command.policyVersion())) {
+            throw new BusinessException(ProductErrorCode.ACTUARIAL_COMPONENT_ALREADY_EXISTS);
+        }
+        ReducedPaidUpPolicy policy = ReducedPaidUpPolicy.createDraft(
+                UUID.randomUUID().toString(), command.productId(), command.policyCode(), command.policyVersion(),
+                command.netSinglePremiumRatePerUnit(), command.effectiveFrom(), command.effectiveTo(),
+                command.tenantId());
+        reducedPaidUpPolicyRepository.save(policy);
+        return policy.getPolicyId();
+    }
+
+    @Transactional
+    public String approveReducedPaidUpPolicy(String tenantId, String productId, String policyId) {
+        ReducedPaidUpPolicy policy = requireReducedPaidUpPolicy(tenantId, productId, policyId);
+        String hash = policy.approve();
+        reducedPaidUpPolicyRepository.save(policy);
+        return hash;
+    }
+
+    @Transactional
+    public void publishReducedPaidUpPolicy(String tenantId, String productId, String policyId) {
+        ReducedPaidUpPolicy policy = requireReducedPaidUpPolicy(tenantId, productId, policyId);
+        policy.publish();
+        reducedPaidUpPolicyRepository.save(policy);
+    }
+
+    @Transactional
+    public void retireReducedPaidUpPolicy(String tenantId, String productId, String policyId) {
+        ReducedPaidUpPolicy policy = requireReducedPaidUpPolicy(tenantId, productId, policyId);
+        policy.retire();
+        reducedPaidUpPolicyRepository.save(policy);
     }
 
     private void validatePublishedComponents(CalculationModelDefinition model) {
@@ -271,6 +356,24 @@ public class ActuarialConfigurationApplicationService {
 
     private SurrenderValuePolicy requireSurrenderValuePolicy(String tenantId, String productId, String policyId) {
         return surrenderValuePolicyRepository.findById(tenantId, productId, policyId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.ACTUARIAL_COMPONENT_NOT_FOUND));
+    }
+
+    /**
+     * 退费基准缺省为现金价值：未显式指定时保持历史口径（长期险现金价值），
+     * 使存量调用方与存量策略行零行为变化；一年期短期险须显式传 {@code UNEARNED_PREMIUM}。
+     */
+    private static SurrenderRefundBasis refundBasisOrDefault(SurrenderRefundBasis refundBasis) {
+        return refundBasis != null ? refundBasis : SurrenderRefundBasis.CASH_VALUE;
+    }
+
+    private PolicyLoanPolicy requirePolicyLoanPolicy(String tenantId, String productId, String policyId) {
+        return policyLoanPolicyRepository.findById(tenantId, productId, policyId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.ACTUARIAL_COMPONENT_NOT_FOUND));
+    }
+
+    private ReducedPaidUpPolicy requireReducedPaidUpPolicy(String tenantId, String productId, String policyId) {
+        return reducedPaidUpPolicyRepository.findById(tenantId, productId, policyId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.ACTUARIAL_COMPONENT_NOT_FOUND));
     }
 

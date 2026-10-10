@@ -31,6 +31,7 @@ import com.titanium.product.application.command.ProductCommandAppService;
 import com.titanium.product.application.query.ProductQueryAppService;
 import com.titanium.product.command.CreateProductCommand;
 import com.titanium.product.command.ReviseProductCommand;
+import com.titanium.product.command.UpdateProductClauseRelCommand;
 import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductQueryResult;
 import com.titanium.product.valueobject.LifeProductSpec;
@@ -40,6 +41,7 @@ import com.titanium.product.web.dto.product.ConfigureLifeProductDTO;
 import com.titanium.product.web.dto.product.CreateProductDTO;
 import com.titanium.product.web.dto.product.ProductVersionVO;
 import com.titanium.product.web.dto.product.ReviseProductDTO;
+import com.titanium.product.web.dto.product.UpdateProductClauseRelDTO;
 import com.titanium.product.web.export.ProductCsvExporter;
 import com.titanium.product.web.mapper.ProductWebMapper;
 
@@ -226,6 +228,31 @@ public class ProductController {
     @GetMapping("/{productId}/clauses")
     public ApiResponse<List<ProductClauseQueryResult>> getProductClauses(@PathVariable String productId) {
         return ApiResponse.success(productQueryAppService.queryProductClauses(productId));
+    }
+
+    /**
+     * 整体替换产品绑定的条款关联
+     * <p>
+     * <b>整体替换</b>语义：提交的清单即替换后的全部绑定，不是增量。<b>仅 {@code DRAFT}</b> 状态产品可改，
+     * 且新绑定须在条款域真实存在并处于 {@code ACTIVE}——两条前置分别由聚合根与应用层跨域校验裁决，
+     * 本层<b>不复制</b>该判断（避免同一判断两处各写一份而漂移）。
+     * </p>
+     *
+     * <p>与远程同能力入口 {@code PUT /api/v1/products/{productId}/clauses}（{@code ProductApiProvider}）
+     * <b>平行</b>：各自翻译成同一个命令，汇入同一个 application 薄门面，互不依赖。</p>
+     *
+     * @param productId 产品ID
+     * @param request   替换后的全部条款关联（{@code @NotEmpty} 在前置拒空，绑定非空是聚合硬不变量）
+     * @return 无数据体的成功响应
+     */
+    @PutMapping("/{productId}/clauses")
+    public ApiResponse<Void> updateProductClauseRel(@PathVariable String productId,
+                                                    @Valid @RequestBody UpdateProductClauseRelDTO request) {
+        String tenantId = RequestContextHolder.requireTenantId();
+        // 协议转换：HTTP DTO → 领域命令，收敛到同一应用层门面
+        UpdateProductClauseRelCommand command = productWebMapper.toCommand(request, productId, tenantId);
+        productCommandAppService.updateProductClauseRel(command);
+        return ApiResponse.success(null);
     }
 
     /**

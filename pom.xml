@@ -54,6 +54,12 @@
                 <artifactId>titanium-clause-api</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
             </dependency>
+            <!-- 理赔域契约：NCD 反算按车辆取历史赔案（ClaimHistoryAdapter）需要，G11/g11-03 -->
+            <dependency>
+                <groupId>com.titanium</groupId>
+                <artifactId>titanium-claim-api</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

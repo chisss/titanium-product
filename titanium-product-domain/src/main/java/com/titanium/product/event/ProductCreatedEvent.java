@@ -3,6 +3,7 @@ package com.titanium.product.event;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
@@ -35,5 +36,6 @@ public record ProductCreatedEvent(String productId, String templateId, String pr
                                   PolicyFormConfig policyFormConfig, UnderwritingConfig underwritingConfig,
                                   String tenantId, PricingMode pricingMode, RateTableRef rateTableRef,
                                   ActuarialBasis actuarialBasis, DocumentConfig documentConfig, String createdBy,
-                                  PolicyStructureConfig policyStructureConfig) {
+                                  PolicyStructureConfig policyStructureConfig,
+                                  InsuranceMandateType insuranceMandateType) {
 }

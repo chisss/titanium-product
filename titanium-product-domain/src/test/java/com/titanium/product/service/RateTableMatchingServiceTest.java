@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -106,5 +107,116 @@ class RateTableMatchingServiceTest {
         return new RateTableRow(
                 rowId, 18, 61, "M", 10, 20, new BigDecimal(rate), null, null,
                 occupationClass, null, null);
+    }
+
+    // ==================== G01 新增维度的匹配语义（保额/免赔额为区间，吸烟/社保为文本） ====================
+
+    @Test
+    void shouldMatchRowBySumInsuredRangeWhenPointFallsInside() {
+        RateTableSnapshot snapshot = snapshot(List.of(
+                sumInsuredRow("si-low", "10000", "50000", "0.01000000"),
+                sumInsuredRow("si-high", "50000", "200000", "0.00800000")));
+
+        RateTableRow matched = service.match(snapshot,
+                new RateTableCriteria(35, "M", 10, 20, null, null, null,
+                        new BigDecimal("50000"), null, null, null));
+
+        // 半开区间：下界含、上界不含，50000 归入 si-high
+        assertEquals("si-high", matched.rowId());
+    }
+
+    @Test
+    void shouldNotMatchSumInsuredRangeWhenPointOutsideAllRanges() {
+        RateTableSnapshot snapshot = snapshot(List.of(
+                sumInsuredRow("si-low", "10000", "50000", "0.01000000")));
+
+        PricingDomainException exception = assertThrows(PricingDomainException.class,
+                () -> service.match(snapshot, new RateTableCriteria(35, "M", 10, 20, null, null, null,
+                        new BigDecimal("999999"), null, null, null)));
+
+        assertEquals(ProductErrorCode.RATE_ROW_NOT_MATCHED.getCode(), exception.getErrorCodeValue());
+    }
+
+    @Test
+    void shouldNotMatchSumInsuredRowWhenCriteriaOmitsSumInsured() {
+        // 「没填保额」是未知，不得当成「任意保额」——否则会静默命中某个保额档并据此计价
+        RateTableSnapshot snapshot = snapshot(List.of(
+                sumInsuredRow("si-low", "10000", "50000", "0.01000000")));
+
+        PricingDomainException exception = assertThrows(PricingDomainException.class,
+                () -> service.match(snapshot, new RateTableCriteria(35, "M", 10, 20)));
+
+        assertEquals(ProductErrorCode.RATE_ROW_NOT_MATCHED.getCode(), exception.getErrorCodeValue());
+    }
+
+    @Test
+    void shouldMatchSumInsuredWildcardRowRegardlessOfCriteriaValue() {
+        // 正对照：行未限定保额（两侧皆空）时，criteria 有没有保额都必须命中
+        RateTableSnapshot snapshot = snapshot(List.of(
+                sumInsuredRow("si-wildcard", null, null, "0.01000000")));
+
+        assertEquals("si-wildcard", service.match(snapshot,
+                new RateTableCriteria(35, "M", 10, 20, null, null, null,
+                        null, null, null, null)).rowId());
+    }
+
+    @Test
+    void shouldMatchSmokingAndSocialInsuranceTextDimensions() {
+        RateTableRow smoker = textDimensionRow("smk-yes", "YES", "NO", "0.01200000");
+        RateTableRow nonSmoker = textDimensionRow("smk-no", "NO", "YES", "0.01000000");
+        RateTableSnapshot snapshot = snapshot(List.of(smoker, nonSmoker));
+
+        RateTableRow matched = service.match(snapshot,
+                new RateTableCriteria(35, "M", 10, 20, null, null, null,
+                        null, "yes", "no", null));
+
+        assertEquals("smk-yes", matched.rowId());
+    }
+
+    @Test
+    void shouldNotMatchSmokingRowWhenCriteriaOmitsDimension() {
+        RateTableSnapshot snapshot = snapshot(List.of(textDimensionRow("smk-yes", "YES", "NO", "0.01200000")));
+
+        PricingDomainException exception = assertThrows(PricingDomainException.class,
+                () -> service.match(snapshot, new RateTableCriteria(35, "M", 10, 20)));
+
+        assertEquals(ProductErrorCode.RATE_ROW_NOT_MATCHED.getCode(), exception.getErrorCodeValue());
+    }
+
+    @Test
+    void shouldReadAmountAndTextDimensionsFromRequestSnapshot() {
+        RateTableCriteria criteria = RateTableCriteria.fromSnapshot(
+                35, "M", 10, 20,
+                Map.of("sumInsured", new BigDecimal("30000"),
+                        "deductible", "500",
+                        "smoking", "YES",
+                        "socialInsurance", "NO"));
+
+        assertEquals(0, new BigDecimal("30000").compareTo(criteria.sumInsured()));
+        assertEquals(0, new BigDecimal("500").compareTo(criteria.deductible()));
+        assertEquals("YES", criteria.smoking());
+        assertEquals("NO", criteria.socialInsurance());
+    }
+
+    @Test
+    void shouldRejectUnparsableAmountDimensionInSnapshot() {
+        // 静默置 null 会让「保额填错了」表现为「按未限定保额的行计价」——金额错而无声
+        PricingDomainException exception = assertThrows(PricingDomainException.class,
+                () -> RateTableCriteria.fromSnapshot(35, "M", 10, 20, Map.of("sumInsured", "abc")));
+
+        assertEquals(ProductErrorCode.PRICING_INPUT_INVALID.getCode(), exception.getErrorCodeValue());
+    }
+
+    private RateTableRow sumInsuredRow(String rowId, String from, String toExclusive, String rate) {
+        return new RateTableRow(rowId, 18, 61, "M", 10, 20, new BigDecimal(rate), null, null,
+                null, null, null,
+                from == null ? null : new BigDecimal(from),
+                toExclusive == null ? null : new BigDecimal(toExclusive),
+                null, null, null, null);
+    }
+
+    private RateTableRow textDimensionRow(String rowId, String smoking, String socialInsurance, String rate) {
+        return new RateTableRow(rowId, 18, 61, "M", 10, 20, new BigDecimal(rate), null, null,
+                null, null, null, null, null, smoking, socialInsurance, null, null);
     }
 }

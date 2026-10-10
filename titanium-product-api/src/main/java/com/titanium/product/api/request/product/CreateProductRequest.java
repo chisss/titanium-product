@@ -32,6 +32,8 @@ public class CreateProductRequest {
     private String form;
     /** 险种类型编码 */
     private String insuranceType;
+    /** 险别编码（COMPULSORY 法定强制 / VOLUNTARY 自愿投保；与险种正交，可不传 = 未声明） */
+    private String insuranceMandateType;
     /** 产品类别编码（MAIN/RIDER） */
     private String category;
     /** 销售开始时间 */

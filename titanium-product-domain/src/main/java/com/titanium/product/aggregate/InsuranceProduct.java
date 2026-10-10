@@ -12,11 +12,13 @@ import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.spring.stereotype.Aggregate;
 
 import com.titanium.common.domain.BaseAggregate;
+import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.PricingMode;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.metadata.exception.CommandValidationException;
+import com.titanium.metadata.exception.DomainException;
 import com.titanium.product.command.AuditProductCommand;
 import com.titanium.product.command.CreateProductCommand;
 import com.titanium.product.command.InvalidateProductCommand;
@@ -24,9 +26,11 @@ import com.titanium.product.command.RejectProductAuditCommand;
 import com.titanium.product.command.ReviseProductCommand;
 import com.titanium.product.command.SubmitProductForAuditCommand;
 import com.titanium.product.command.UpdateAttachProductCommand;
+import com.titanium.product.command.UpdateCoverageSumInsuredConfigCommand;
 import com.titanium.product.command.UpdateProductClauseRelCommand;
 import com.titanium.product.command.UpdateSalesChannelCommand;
 import com.titanium.product.entity.ProductClauseRel;
+import com.titanium.product.event.CoverageSumInsuredConfigUpdatedEvent;
 import com.titanium.product.event.ProductAttachUpdatedEvent;
 import com.titanium.product.event.ProductAuditRejectedEvent;
 import com.titanium.product.event.ProductAuditedEvent;
@@ -41,6 +45,7 @@ import com.titanium.product.exception.ProductStatusPreconditionException;
 import com.titanium.product.service.ProductDomainService;
 import com.titanium.product.valueobject.AuditInfo;
 import com.titanium.product.valueobject.config.CoveragePeriodConfig;
+import com.titanium.product.valueobject.config.CoverageSumInsuredConfig;
 import com.titanium.product.valueobject.config.DocumentConfig;
 import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
@@ -84,6 +89,15 @@ public class InsuranceProduct extends BaseAggregate {
     private ProductEnum.ProductForm     form;
     /** 险种类型 */
     private InsuranceProductType        insuranceType;
+    /**
+     * 险别（法定强制/自愿投保，G11/g11-04 新增）。
+     * <p>
+     * 与险种<b>正交</b>的维度（见 {@link InsuranceMandateType} javadoc）：车险「交强 + 商业同单」即
+     * 同一 {@code AUTO} 险种下的两个险别。{@code null} = 未声明险别，消费方（{@code PolicyProduct#isCompulsory()}）
+     * 按「非强制」处理——存量产品与全部非车险产品均不声明，不得据此推断为自愿。
+     * </p>
+     */
+    private InsuranceMandateType        insuranceMandateType;
     /** 产品类别（MAIN-主险/RIDER-附加险） */
     private ProductEnum.ProductCategory category;
 
@@ -114,6 +128,16 @@ public class InsuranceProduct extends BaseAggregate {
     private PaymentConfig               paymentConfig;
     /** 定价基础规则 */
     private PricingBasicRule            pricingBasicRule;
+
+    // ====== 责任级保额档次 ======
+    /**
+     * 责任级保额档次配置（按 coverageCode 唯一，见 {@link CoverageSumInsuredConfig#assertDistinctCoverageCodes}）。
+     * <p>
+     * 空清单合法——「暂不为任何责任配置保额档次」是允许的中间状态。持久化为「一条责任一行」的配置集合，
+     * 不是产品级的一个大列表。
+     * </p>
+     */
+    private List<CoverageSumInsuredConfig> coverageSumInsuredConfigs;
 
     // ====== 关联 ======
     /** 条款关联列表 */
@@ -178,6 +202,8 @@ public class InsuranceProduct extends BaseAggregate {
         this.productDesc = command.productDesc();
         this.form = command.form();
         this.insuranceType = command.insuranceType();
+        // 险别（G11/g11-04）：与险种正交的可选维度，未传即 null（「未声明」，非「自愿」）
+        this.insuranceMandateType = command.insuranceMandateType();
         this.category = command.category() != null ? command.category() : ProductEnum.ProductCategory.MAIN;
         this.version = "V1.0";
         this.status = ProductEnum.ProductStatus.DRAFT;
@@ -213,7 +239,8 @@ public class InsuranceProduct extends BaseAggregate {
                         version, ProductEnum.ProductStatus.DRAFT, LocalDateTime.now(), saleStartTime, saleEndTime,
                         insureCondition, coveragePeriod, paymentConfig, pricingBasicRule, clauseRels, salesChannels,
                         attachProductIds, issuanceProcessConfig, policyFormConfig, underwritingConfig, tenantId,
-                        pricingMode, rateTableRef, actuarialBasis, documentConfig, createdBy, policyStructureConfig));
+                        pricingMode, rateTableRef, actuarialBasis, documentConfig, createdBy, policyStructureConfig,
+                        insuranceMandateType));
     }
 
     /**
@@ -299,13 +326,22 @@ public class InsuranceProduct extends BaseAggregate {
         List<ProductClauseRel> newClauseRels = command.newClauseRels() != null
                 ? command.newClauseRels() : this.clauseRels;
         validateClauseRels(ReviseProductCommand.class.getSimpleName(), newClauseRels);
+        // 保额档次：责任级配置，随版本整体承继。新版本落在 DRAFT，运营再经
+        // UpdateCoverageSumInsuredConfigCommand 按需调整；修订命令不承载该配置，
+        // 以免「改保额档次」这条有专用入口的路径被复制成第二份实现。
+        List<CoverageSumInsuredConfig> newCoverageSumInsuredConfigs = this.coverageSumInsuredConfigs != null
+                ? this.coverageSumInsuredConfigs : List.of();
         ProductRevisedEvent revisedEvent = new ProductRevisedEvent(command.newProductId(), this.templateId,
                 this.productId, newVersion, this.productCode, command.newProductName(), command.newProductDesc(),
                 command.newForm(), command.newInsuranceType(), command.newCategory(), command.newInsureCondition(),
                 command.newCoveragePeriod(), command.newPaymentConfig(), newClauseRels,
                 command.newPricingBasicRule(), newSalesChannels, command.newIssuanceProcessConfig(),
                 command.newPolicyFormConfig(), command.newUnderwritingConfig(), this.attachProductIds,
-                command.newPricingMode(), newRateTableRef, newActuarialBasis, this.tenantId);
+                command.newPricingMode(), newRateTableRef, newActuarialBasis, this.tenantId,
+                newCoverageSumInsuredConfigs,
+                // 险别继承原版本（与 templateId/productCode/attachProductIds 同族）：险别是产品身份的一部分，
+                // 修订改定价与条款、不改变「法定强制/自愿投保」的定性；要换险别应另建产品
+                this.insuranceMandateType);
         // 修订不改写当前 EFFECTIVE 版本，而以全新的 newProductId 创建独立聚合，使新版本拥有自己的事件流并可被命令寻址
         try {
             AggregateLifecycle.createNew(InsuranceProduct.class, () -> new InsuranceProduct(revisedEvent));
@@ -339,6 +375,37 @@ public class InsuranceProduct extends BaseAggregate {
         validateClauseRels(UpdateProductClauseRelCommand.class.getSimpleName(), command.newClauseRels());
         this.clauseRels = command.newClauseRels();
         AggregateLifecycle.apply(new ProductClauseRelUpdatedEvent(productId, clauseRels));
+    }
+
+    /**
+     * 更新责任级保额档次配置（仅 DRAFT 状态，整体替换语义）
+     * <p>
+     * 🔴 <b>命令清单为 {@code null} 一律拒绝，不用「null 即清空」的宽松解释</b>。与条款绑定不同，
+     * 这里「一条都不配」是<b>合法</b>状态，于是 null 与空清单若都当清空处理，调用方漏传字段就会
+     * <b>静默抹掉全部保额档次</b>——正是 §7.14 记载的那类事故（修订一次静默清空全部条款绑定）。
+     * 故显式要求调用方用空清单表达「清空」，让「漏传」与「有意清空」在协议层就分得开。
+     * </p>
+     * <p>
+     * 不变量①（同产品下 coverageCode 不可重复）在本处理器裁决：它是「一组配置之间」的性质，
+     * 单个 {@link CoverageSumInsuredConfig} 自身判不了。②～⑦ 已在值对象紧凑构造器内裁决，此处不重复。
+     * </p>
+     *
+     * @param command 更新命令
+     */
+    @CommandHandler
+    public void handle(UpdateCoverageSumInsuredConfigCommand command) {
+        if (!ProductEnum.ProductStatus.DRAFT.equals(this.status)) {
+            throw new ProductStatusPreconditionException(this.productId, statusName(), "更新保额档次配置");
+        }
+        if (command.coverageSumInsuredConfigs() == null) {
+            throw new DomainException(ProductErrorCode.COVERAGE_SUM_INSURED_CONFIG_INVALID,
+                    "命令 " + UpdateCoverageSumInsuredConfigCommand.class.getSimpleName()
+                            + " 字段 coverageSumInsuredConfigs 校验失败: 不得为 null，清空请传空清单");
+        }
+        CoverageSumInsuredConfig.assertDistinctCoverageCodes(command.coverageSumInsuredConfigs());
+        this.coverageSumInsuredConfigs = command.coverageSumInsuredConfigs();
+        AggregateLifecycle.apply(new CoverageSumInsuredConfigUpdatedEvent(productId,
+                command.coverageSumInsuredConfigs(), this.tenantId));
     }
 
     /**
@@ -437,6 +504,8 @@ public class InsuranceProduct extends BaseAggregate {
         this.productDesc = event.productDesc();
         this.form = event.form();
         this.insuranceType = event.insuranceType();
+        // 尾部分量（G11/g11-04 追加）：存量事件载荷无该字段，按属性名绑定读到 null = 「未声明险别」
+        this.insuranceMandateType = event.insuranceMandateType();
         this.category = event.category();
         this.version = event.version();
         this.status = event.status();
@@ -447,6 +516,9 @@ public class InsuranceProduct extends BaseAggregate {
         this.paymentConfig = event.paymentConfig();
         this.pricingBasicRule = event.pricingBasicRule();
         this.clauseRels = event.clauseRels();
+        // 保额档次不由创建命令承载：新产品先建空白档，再由 UpdateCoverageSumInsuredConfigCommand 按责任录入。
+        // 显式赋空而非留 null，使「未配置」与「已配置为空」在聚合内同形，免去后续各处判空。
+        this.coverageSumInsuredConfigs = List.of();
         this.salesChannels = event.salesChannels();
         this.attachProductIds = event.attachProductIds();
         this.issuanceProcessConfig = event.issuanceProcessConfig();
@@ -501,11 +573,16 @@ public class InsuranceProduct extends BaseAggregate {
         this.version = event.newVersion();
         this.form = event.newForm();
         this.insuranceType = event.newInsuranceType();
+        // 尾部分量（G11/g11-04 追加）：同上，存量载荷读到 null；修订路径的取值由 handle(ReviseProductCommand) 传原值继承
+        this.insuranceMandateType = event.insuranceMandateType();
         this.category = event.newCategory();
         this.insureCondition = event.newInsureCondition();
         this.coveragePeriod = event.newCoveragePeriod();
         this.paymentConfig = event.newPaymentConfig();
         this.clauseRels = event.newClauseRels();
+        // 尾部分量：存量事件载荷无该字段，授权序列化按属性名绑定会读到 null ⇒ 兜底为空清单
+        this.coverageSumInsuredConfigs = event.newCoverageSumInsuredConfigs() != null
+                ? event.newCoverageSumInsuredConfigs() : List.of();
         this.pricingBasicRule = event.newPricingBasicRule();
         this.salesChannels = event.newSalesChannels();
         this.attachProductIds = event.attachProductIds();
@@ -530,6 +607,11 @@ public class InsuranceProduct extends BaseAggregate {
     @EventSourcingHandler
     public void on(ProductClauseRelUpdatedEvent event) {
         this.clauseRels = event.clauseRels();
+    }
+
+    @EventSourcingHandler
+    public void on(CoverageSumInsuredConfigUpdatedEvent event) {
+        this.coverageSumInsuredConfigs = event.coverageSumInsuredConfigs();
     }
 
     @EventSourcingHandler

@@ -43,4 +43,8 @@
     <!-- G10/g10-03b：存量迁移——4 个 STD 模板行险种编码恢复（R-2 裁示）+ 2 个 NULL 产品行补 AUTO（D-3 裁示） -->
     <include file="classpath:liquibase/dml/t_product_template_view_202610101049_weisun_dml.sql"/>
     <include file="classpath:liquibase/dml/t_product_view_202610101049_weisun_dml.sql"/>
+    <!-- G11/g11-04：产品险别列（法定强制/自愿投保，与险种正交，可空=未声明） -->
+    <include file="classpath:liquibase/ddl/product_view_insurance_mandate_202610101332_weisun_ddl.sql"/>
+    <!-- G11/g11-03：NCD 反算规则集 + 档位两表（🔴 只建结构，不落规则值——R-3 未裁前空表是刻意状态） -->
+    <include file="classpath:liquibase/ddl/product_ncd_rule_set_202610101520_weisun_ddl.sql"/>
 </databaseChangeLog>

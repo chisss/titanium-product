@@ -121,8 +121,10 @@ class ProductProjectionEventHandlerTest {
 
     /** 构造最小可用的产品修订事件：除标识外一律留空（映射器为 mock，不参与本组断言） */
     private static ProductRevisedEvent reviseEvent(String newProductId) {
+        // 末位两分量 newCoverageSumInsuredConfigs（m24 追加）、insuranceMandateType（g11-04 追加）为尾部组件；
+        // 本组断言不涉及档次配置与险别，留 null
         return new ProductRevisedEvent(newProductId, null, "PROD_V1", "V2.0", "CODE_001", "产品V2", null,
                 null, null, null, null, null, null, null, null, null, null, null, null, null,
-                null, null, null, "1");
+                null, null, null, "1", null, null);
     }
 }

@@ -22,6 +22,12 @@ import java.math.BigDecimal;
  * （如 {@link #hasValidInterestRate()}）。在此之前不得对外承诺精算口径。
  * </p>
  * <p>
+ * ✅ <b>对外承诺已下架（g03-05，2026-09-27）</b>：管理后台的可配面已移除——修订请求不再携带本字段
+ * （后端「不传即继承」保留存量值）、字段级权限提示与版本对比标签同步移除；后端字段<b>保留为内部备案</b>
+ * （事件载荷固化不可删），待接入前提三者齐备后随精算计算能力一并恢复对外承诺。详见
+ * {@code titanium-product/CLAUDE.md} §7.12。
+ * </p>
+ * <p>
  * ⚠️ <b>历史 javadoc 更正（m16-1904）</b>：原文称「提供 {@code LifePremiumCalculationDomainService}
  * 计算均衡净保费…billing 经 {@code ProductRatePort} 取到本对象作为入参传给精算领域服务」——
  * 这两个类型在<b>全仓均不存在</b>（除本注释自身外零命中，billing 侧 {@code actuarial} 亦零命中），

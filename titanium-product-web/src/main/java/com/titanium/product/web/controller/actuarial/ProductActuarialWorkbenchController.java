@@ -254,6 +254,7 @@ public class ProductActuarialWorkbenchController {
                 new CreateSurrenderValuePolicyCommand(
                         tenantId, productId, request.policyCode(), request.policyVersion(), request.policyYear(),
                         request.coolingOffDays(), request.cashValueRate(), request.internalCostRetentionRate(),
+                        request.handlingFeeRate(), request.refundBasis(),
                         request.effectiveFrom(), request.effectiveTo())));
     }
 

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.valueobject.config.CoveragePeriodConfig;
@@ -56,6 +57,8 @@ public class CreateProductDTO {
     /** 险种类型（必填：G10/g10-04 —— 缺值拒绝提交，禁止按大类兜底推断代表性细分类型） */
     @NotNull
     private InsuranceProductType insuranceType;
+    /** 险别（法定强制 COMPULSORY / 自愿投保 VOLUNTARY，G11/g11-04；与险种正交，可不传 = 未声明） */
+    private InsuranceMandateType insuranceMandateType;
     /** 产品类别（MAIN/RIDER） */
     private ProductEnum.ProductCategory category;
     /** 销售开始时间 */

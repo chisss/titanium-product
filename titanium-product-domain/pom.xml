@@ -68,5 +68,11 @@
             <artifactId>hamcrest</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- g11-01：模板 Schema 对齐用例需解析 SQL 夹具内的 JSON Schema（版本由 parent 管理） -->
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

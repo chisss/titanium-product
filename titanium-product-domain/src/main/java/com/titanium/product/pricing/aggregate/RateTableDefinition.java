@@ -1,18 +1,23 @@
 package com.titanium.product.pricing.aggregate;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.titanium.metadata.enums.product.RateDimensionKey;
 import com.titanium.metadata.errorcode.ProductErrorCode;
 import com.titanium.product.common.enums.RateTableStatus;
 import com.titanium.product.common.enums.RateUnit;
@@ -27,10 +32,6 @@ import com.titanium.product.valueobject.rate.RateTableValidationResult;
  * </p>
  */
 public class RateTableDefinition {
-
-    private static final Set<String> SUPPORTED_DIMENSIONS =
-            Set.of("age", "gender", "paymentTerm", "coverageTerm",
-                    "occupationClass", "region", "vehicleType");
 
     private final String tableId;
     private final String productId;
@@ -180,10 +181,42 @@ public class RateTableDefinition {
         if (currency.length() != 3) {
             throw invalid(ProductErrorCode.RATE_TABLE_VALIDATION_FAILED, "币种必须是3位代码");
         }
-        if (dimensionKeys.isEmpty() || dimensionKeys.size() != Set.copyOf(dimensionKeys).size()
-                || !SUPPORTED_DIMENSIONS.containsAll(dimensionKeys)) {
-            throw invalid(ProductErrorCode.RATE_TABLE_VALIDATION_FAILED, "维度定义为空、重复或包含不支持的维度");
+        // 三类拒绝理由分开报，且不支持的键要点名并附受支持全集——合并成一句「为空、重复或不支持」
+        // 会让运营不知道该改哪一个键，只能逐个试。
+        if (dimensionKeys.isEmpty()) {
+            throw invalid(ProductErrorCode.RATE_TABLE_VALIDATION_FAILED, "维度定义不能为空");
         }
+        if (dimensionKeys.size() != Set.copyOf(dimensionKeys).size()) {
+            throw invalid(ProductErrorCode.RATE_TABLE_VALIDATION_FAILED,
+                    "维度定义存在重复: " + dimensionKeys);
+        }
+        // 🔴 成员判定一律走 RateDimensionKey.isSupported——它是该取值域的唯一入口。此前这里另有一份
+        // 写死的维度键字面量（"age" / "gender" / …）与枚举各存一份清单，改一处必漂移，且漂移后表现为
+        // 「维度在下拉里选不到」或「配了维度却永不命中」这类静默失效。
+        // （措辞上刻意不写出「Set + of + 具体键」的原文：AC-05 的反向断言是文本级 grep，
+        //   注释里复现该 token 会让「字面量已清零」这条机械判据恒假。）
+        List<String> unsupported = dimensionKeys.stream()
+                .filter(key -> !RateDimensionKey.isSupported(key))
+                .distinct()
+                .toList();
+        if (!unsupported.isEmpty()) {
+            throw invalid(ProductErrorCode.RATE_TABLE_VALIDATION_FAILED,
+                    "不支持的费率维度: " + String.join(", ", unsupported)
+                            + "；受支持维度: " + String.join(", ", supportedDimensionCodes()));
+        }
+    }
+
+    /**
+     * 受支持维度键的全集（稳定排序，供错误提示与前端契约自证）。
+     * <p>
+     * 取自 {@link RateDimensionKey}，<b>不是</b>另写的字符串清单。
+     * </p>
+     */
+    public static Set<String> supportedDimensionCodes() {
+        return Arrays.stream(RateDimensionKey.values())
+                .sorted(Comparator.comparingInt(RateDimensionKey::getEnumCode))
+                .map(RateDimensionKey::getCode)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private boolean overlaps(RateTableRow left, RateTableRow right) {
@@ -193,7 +226,13 @@ public class RateTableDefinition {
                 && valueOverlaps(left.coverageTermYears(), right.coverageTermYears())
                 && textOverlaps(left.occupationClass(), right.occupationClass())
                 && textOverlaps(left.region(), right.region())
-                && textOverlaps(left.vehicleType(), right.vehicleType());
+                && textOverlaps(left.vehicleType(), right.vehicleType())
+                && amountOverlaps(left.sumInsuredFrom(), left.sumInsuredToExclusive(),
+                        right.sumInsuredFrom(), right.sumInsuredToExclusive())
+                && textOverlaps(left.smoking(), right.smoking())
+                && textOverlaps(left.socialInsurance(), right.socialInsurance())
+                && amountOverlaps(left.deductibleFrom(), left.deductibleToExclusive(),
+                        right.deductibleFrom(), right.deductibleToExclusive());
     }
 
     private boolean ageOverlaps(RateTableRow left, RateTableRow right) {
@@ -202,6 +241,51 @@ public class RateTableDefinition {
         int leftEnd = left.ageToExclusive() == null ? Integer.MAX_VALUE : left.ageToExclusive();
         int rightEnd = right.ageToExclusive() == null ? Integer.MAX_VALUE : right.ageToExclusive();
         return Math.max(leftStart, rightStart) < Math.min(leftEnd, rightEnd);
+    }
+
+    /**
+     * 区间型金额维度的重叠判定：两个半开区间 {@code [from, toExclusive)} 是否相交。
+     * <p>
+     * 与年龄区间同构——空端点表示该侧无界（{@code null} 起点即 −∞、{@code null} 终点即 +∞），
+     * 两区间相交的充要条件是 {@code max(起点) < min(终点)}。
+     * </p>
+     * <p>
+     * 🔴 用 {@link BigDecimal#compareTo} 而非 {@code equals}：{@code 1000} 与 {@code 1000.00}
+     * 数值相等但 scale 不同，用 equals 会把「同一区间」判成不重叠，发布期漏过重复行。
+     * </p>
+     */
+    private boolean amountOverlaps(
+            BigDecimal leftFrom, BigDecimal leftToExclusive,
+            BigDecimal rightFrom, BigDecimal rightToExclusive) {
+        BigDecimal maxStart = maxStart(leftFrom, rightFrom);
+        BigDecimal minEnd = minEnd(leftToExclusive, rightToExclusive);
+        // 终点无界（+∞）或起点无界（−∞）时必然相交；此时另一侧无论取何值都构不成「起点 ≥ 终点」
+        if (maxStart == null || minEnd == null) {
+            return true;
+        }
+        return maxStart.compareTo(minEnd) < 0;
+    }
+
+    /** 取两个区间起点的较大者，{@code null} 视作 −∞（另一侧非空时由它胜出）。 */
+    private BigDecimal maxStart(BigDecimal left, BigDecimal right) {
+        if (left == null) {
+            return right;
+        }
+        if (right == null) {
+            return left;
+        }
+        return left.compareTo(right) >= 0 ? left : right;
+    }
+
+    /** 取两个区间终点的较小者，{@code null} 视作 +∞（另一侧非空时由它胜出）。 */
+    private BigDecimal minEnd(BigDecimal left, BigDecimal right) {
+        if (left == null) {
+            return right;
+        }
+        if (right == null) {
+            return left;
+        }
+        return left.compareTo(right) <= 0 ? left : right;
     }
 
     private boolean textOverlaps(String left, String right) {
@@ -230,6 +314,9 @@ public class RateTableDefinition {
                 nullable(row.ageFrom()), nullable(row.ageToExclusive()), nullable(row.gender()),
                 nullable(row.paymentTermYears()), nullable(row.coverageTermYears()),
                 nullable(row.occupationClass()), nullable(row.region()), nullable(row.vehicleType()),
+                nullableDecimal(row.sumInsuredFrom()), nullableDecimal(row.sumInsuredToExclusive()),
+                nullable(row.smoking()), nullable(row.socialInsurance()),
+                nullableDecimal(row.deductibleFrom()), nullableDecimal(row.deductibleToExclusive()),
                 row.rate().stripTrailingZeros().toPlainString(), nullableDecimal(row.minimumPremium()),
                 nullableDecimal(row.maximumPremium()));
     }
@@ -264,7 +351,7 @@ public class RateTableDefinition {
         return value == null ? "*" : value.toString();
     }
 
-    private static String nullableDecimal(java.math.BigDecimal value) {
+    private static String nullableDecimal(BigDecimal value) {
         return value == null ? "*" : value.stripTrailingZeros().toPlainString();
     }
 

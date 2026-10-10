@@ -71,7 +71,7 @@ class InsuranceProductTest {
                         null, null),
                 List.of(MAIN_CLAUSE_ID), Map.of(), MAIN_CLAUSE_ID,
                 null, null, null, null, null,
-                TENANT_ID, PricingMode.RATE_TABLE, null, null, null, CREATED_BY, null);
+                TENANT_ID, PricingMode.RATE_TABLE, null, null, null, CREATED_BY, null, null);
 
         fixture.givenNoPriorActivity()
                 .when(command)
@@ -100,7 +100,7 @@ class InsuranceProductTest {
                 null, null, null,
                 List.of(MAIN_CLAUSE_ID, MAIN_CLAUSE_ID), Map.of(), MAIN_CLAUSE_ID,
                 null, null, null, null, null,
-                TENANT_ID, PricingMode.RATE_TABLE, null, null, null, CREATED_BY, null);
+                TENANT_ID, PricingMode.RATE_TABLE, null, null, null, CREATED_BY, null, null);
 
         fixture.givenNoPriorActivity()
                 .when(command)
@@ -248,6 +248,6 @@ class InsuranceProductTest {
                 null, null, null,
                 clauseIds, Map.of(), mainClauseId,
                 null, null, null, null, null,
-                TENANT_ID, PricingMode.RATE_TABLE, null, null, null, CREATED_BY, null);
+                TENANT_ID, PricingMode.RATE_TABLE, null, null, null, CREATED_BY, null, null);
     }
 }

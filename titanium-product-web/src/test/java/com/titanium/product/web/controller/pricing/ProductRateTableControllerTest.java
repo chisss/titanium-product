@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -17,6 +18,7 @@ import com.titanium.common.context.RequestContextInterceptor;
 import com.titanium.product.application.command.pricing.RateTableCommandAppService;
 import com.titanium.product.application.query.pricing.RateTableQueryAppService;
 import com.titanium.product.web.handler.ProductExceptionHandler;
+import com.titanium.product.web.mapper.RateTableRowWebMapper;
 
 class ProductRateTableControllerTest {
 
@@ -27,7 +29,8 @@ class ProductRateTableControllerTest {
     void setUp() {
         commandAppService = mock(RateTableCommandAppService.class);
         RateTableQueryAppService queryAppService = mock(RateTableQueryAppService.class);
-        ProductRateTableController controller = new ProductRateTableController(commandAppService, queryAppService);
+        ProductRateTableController controller = new ProductRateTableController(
+                commandAppService, queryAppService, Mappers.getMapper(RateTableRowWebMapper.class));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new ProductExceptionHandler())
                 // m18：显式注册请求上下文拦截器（standaloneSetup 不装配容器里的拦截器），

@@ -3,6 +3,7 @@ package com.titanium.product.query.view;
 import java.time.LocalDateTime;
 
 import com.titanium.common.jpa.BaseView;
+import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.ProductEnum;
 
@@ -70,6 +71,14 @@ public class ProductView extends BaseView {
     @Enumerated(EnumType.STRING)
     @Column(name = "insurance_type", length = 32)
     private InsuranceProductType insuranceType;
+
+    /**
+     * 险别（法定强制/自愿投保，G11/g11-04）。
+     * <p>与险种正交的维度；{@code null} = 未声明（存量产品与全部非车险产品均如此）。</p>
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "insurance_mandate_type", length = 32)
+    private InsuranceMandateType insuranceMandateType;
 
     /** 产品类别 */
     @Enumerated(EnumType.STRING)

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import com.titanium.metadata.enums.Reserved;
 import com.titanium.metadata.enums.insurance.InsuranceCapabilityBit;
+import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceTypeCapability;
 import com.titanium.metadata.enums.underwriting.UnderwritingInputType;
 import com.titanium.product.common.enums.LiabilityStructure;
@@ -29,17 +30,19 @@ import com.titanium.product.common.enums.LiabilityStructure;
  * <ol>
  *   <li>{@link UnderwritingInputType}：6 值当前全部零触达（数据由 underwriting 域四个平行值对象承载，
  *       不经本枚举），须逐个标 {@link Reserved}；</li>
- *   <li>{@link LiabilityStructure}：<b>恰</b> {@code PACKAGE} 标 {@link Reserved}
- *       （其余 3 值的定性归 G11/AC-08，多标即越界）；</li>
+ *   <li>{@link LiabilityStructure}：<b>恰</b> {@code PACKAGE} 与 {@code MODULAR} 标 {@link Reserved}
+ *       （G11/g11-06 定性：SINGLE/MAIN_ADDITIONAL 为已接入值，多标即误标）；</li>
  *   <li>{@code "COMPULSORY"}：裸字符串（险别而非责任编码，注解贴不上），
- *       登记落在 {@link InsuranceCapabilityBit#DEFAULT_COVERAGE_CODES} 的 consumers 上。</li>
+ *       g11-04 迁移后由 {@link InsuranceMandateType} 唯一承载（落点由 AUTO 默认责任清单迁至枚举文件），
+ *       定性登记仍落在 {@link InsuranceCapabilityBit#DEFAULT_COVERAGE_CODES} 的 consumers 上。</li>
  * </ol>
  * </p>
  * <p>
  * 🔴 <b>「触达」那一面不在本测试</b>（静态消费方扫描 + 字面量唯一性）——归验收脚本
- * {@code ~/.g10-snapshots/validate-g10-06.sh}，两侧都要能判红。只跑本测试时，
- * 把 {@code @Reserved} 从 PACKAGE 挪到任意别的值上照样全绿，这正是「结构对得上、
- * 事实对不上」的同形判据陷阱。
+ * {@code ~/.g10-snapshots/validate-g10-06.sh}（② 的触达面复核随 g11-06 并入
+ * {@code ~/.g11-snapshots/validate-g11-06.sh}），两侧都要能判红。只跑本测试时，
+ * 把 {@code @Reserved} 从 PACKAGE/MODULAR 挪到任意别的值上照样全绿，这正是
+ * 「结构对得上、事实对不上」的同形判据陷阱。
  * </p>
  * <p>
  * 落点在 product-domain：它是本仓唯一能<b>同时</b>读到 metadata（①③ 的载体）与
@@ -66,8 +69,8 @@ class DeclarationRegistrationGuardTest {
     }
 
     @Test
-    @DisplayName("② LiabilityStructure 恰 PACKAGE 被标 @Reserved（多标=越界 G11/AC-08，漏标=登记被摘）")
-    void shouldReserveExactlyPackage() {
+    @DisplayName("② LiabilityStructure 恰 PACKAGE+MODULAR 被标 @Reserved（SINGLE/MAIN_ADDITIONAL 已接入，多标即误标）")
+    void shouldReserveExactlyPackageAndModular() {
         assertEquals(4, LiabilityStructure.values().length,
                 "基数=2026-10-09 核对时点值；增删值须同批重新定性");
 
@@ -78,21 +81,30 @@ class DeclarationRegistrationGuardTest {
             }
         }
 
-        assertEquals(List.of(LiabilityStructure.PACKAGE), reserved,
-                "本任务（g10-06）只处置 PACKAGE；其余 3 值的定性归 G11/AC-08，多标即越界");
-        assertFalse(reservedOf(LiabilityStructure.class, "PACKAGE").value().isBlank(),
-                "PACKAGE 的 @Reserved 须写明核对时点、裁决出处与边界");
+        assertEquals(List.of(LiabilityStructure.PACKAGE, LiabilityStructure.MODULAR), reserved,
+                "G11/g11-06 定性：PACKAGE/MODULAR 零触达标 @Reserved；SINGLE/MAIN_ADDITIONAL 有生产构值"
+                        + "与数据承载（已接入），多标即误标已接入值");
+        for (LiabilityStructure value : reserved) {
+            assertFalse(reservedOf(LiabilityStructure.class, value.name()).value().isBlank(),
+                    value + " 的 @Reserved 须写明核对时点、口径与边界");
+        }
     }
 
     @Test
-    @DisplayName("③ 裸字符串 COMPULSORY：须在 AUTO 默认责任清单内 + 登记册已登记 g11-04")
+    @DisplayName("③ 险别 COMPULSORY：已迁出 AUTO 默认责任清单，由 InsuranceMandateType 唯一承载 + 登记册保留 g11-04")
     void compulsoryMustStayRegistered() {
-        assertTrue(InsuranceTypeCapability.AUTO.getDefaultCoverageCodes().contains("COMPULSORY"),
-                "COMPULSORY 的载体位置变更后，本断言与验收脚本的字面量扫描须同批更新");
+        // g10-06 移交定案（g11-04 落地）：COMPULSORY 是险别而非险种、也非责任编码，属「值塞错载体」。
+        // 已从 AUTO 默认责任清单迁出、由 InsuranceMandateType 承载 ⇒「全仓带引号字面量恰一处」不变量
+        // 保持成立，仅落点由权威表迁至枚举文件；交强+商业同单走「多主险段 + 险别」而不经本清单。
+        assertFalse(InsuranceTypeCapability.AUTO.getDefaultCoverageCodes().contains("COMPULSORY"),
+                "COMPULSORY 是险别而非责任编码，不得回流 AUTO 默认责任清单（回流即两个字面量承载位，唯一性不变量破）");
+
+        assertEquals("COMPULSORY", InsuranceMandateType.COMPULSORY.getCode(),
+                "字面量的唯一承载位：InsuranceMandateType.COMPULSORY 的 code；改动须与验收脚本字面量扫描同批更新");
 
         assertTrue(InsuranceCapabilityBit.DEFAULT_COVERAGE_CODES.getConsumers().stream()
                         .anyMatch(consumer -> consumer.contains("g11-04") && consumer.contains("COMPULSORY")),
-                "COMPULSORY 是险别而非责任编码，注解贴不上裸字符串，登记须落在登记册 consumers 上");
+                "COMPULSORY 是险别而非责任编码，注解贴不上裸字符串，迁移后的定性登记须保留在登记册 consumers 上");
     }
 
     @Test

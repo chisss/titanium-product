@@ -8,7 +8,9 @@ import lombok.Getter;
 @Getter
 public enum SurrenderRefundType implements BaseEnum {
     COOLING_OFF_FULL_REFUND(1, "COOLING_OFF_FULL_REFUND", "犹豫期全额退费"),
-    CASH_VALUE(2, "CASH_VALUE", "现金价值退费");
+    CASH_VALUE(2, "CASH_VALUE", "现金价值退费"),
+    /** 未满期保费退费：一年期短期险口径（退费基准 {@code UNEARNED_PREMIUM}） */
+    UNEARNED_PREMIUM(3, "UNEARNED_PREMIUM", "未满期保费退费");
 
     private final Integer enumCode;
     private final String code;
