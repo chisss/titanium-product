@@ -1,6 +1,8 @@
 package com.titanium.product.web.mapper;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -393,6 +395,8 @@ public interface ProductWebMapper {
     @Mapping(target = "pricingType", source = "pricingBasicRule.pricingType")
     @Mapping(target = "baseRate", source = "pricingBasicRule.baseRate")
     @Mapping(target = "rateFormula", source = "pricingBasicRule.rateFormula")
+    @Mapping(target = "managementFeeRate", source = "pricingBasicRule.typeSpecificConfig",
+            qualifiedByName = "managementFeeRateFromConfig")
     @Mapping(target = "pricingMode", source = "pricingMode", qualifiedByName = "pricingModeCode")
     @Mapping(target = "predefinedInterestRate", source = "actuarialBasis.predefinedInterestRate")
     @Mapping(target = "mortalityTableRef", source = "actuarialBasis.mortalityTableRef")
@@ -401,6 +405,40 @@ public interface ProductWebMapper {
     @Mapping(target = "tableCode", source = "rateTableRef.tableCode")
     @Mapping(target = "tableVersion", source = "rateTableRef.version")
     PricingBasicRuleResponse toPricingRuleResponse(ProductQueryResult result);
+
+    /** 定价基础规则 {@code typeSpecificConfig} 中承载管理费年费率的约定键（G14/g14-04a，全仓唯一定义点） */
+    String MANAGEMENT_FEE_RATE_KEY = "managementFeeRate";
+
+    /**
+     * 险种专属配置（自由格式 Map）→ 管理费年费率（null 安全容错提取）。
+     * <p>
+     * 口径：Map 为 null 或缺键 ⇒ {@code null}（=「未配置」，合法不收费形态，调用方不得兜底默认值）；
+     * 值已是 {@code BigDecimal} 或可解析数值/字符串（如 {@code 0.015}、{@code "0.015"}）⇒ 原值提取；
+     * 🔴 值存在但不可解析 ⇒ 同样返回 {@code null}——读路径不做配置数据校验（写入侧校验属独立议题），
+     * 一个配置字段的脏值不得把产品详情/列表整体升级为可用性故障；该形态是本链路的<b>已知边界</b>，
+     * 最终由保单域出单时的账户创建值域守卫兜底（越界费率在 investment 侧被拒绝）。
+     * </p>
+     */
+    @Named("managementFeeRateFromConfig")
+    default BigDecimal managementFeeRateFromConfig(Map<String, Object> typeSpecificConfig) {
+        if (typeSpecificConfig == null) {
+            return null;
+        }
+        Object raw = typeSpecificConfig.get(MANAGEMENT_FEE_RATE_KEY);
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof BigDecimal decimal) {
+            return decimal;
+        }
+        try {
+            // fastjson2 之外的解析来源（Jackson/前端 JSON）可能给 Double/Integer/String，
+            // 统一经字符串构造 BigDecimal（Double.toString 给最短表示，0.015 不引入浮点误差）
+            return new BigDecimal(raw.toString().trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 
     /**
      * 寿险产品规格请求 → 寿险产品规格值对象（Controller 用）。

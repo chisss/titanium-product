@@ -47,6 +47,19 @@ public class PricingBasicRuleResponse {
      */
     private String rateTableId;
 
+    // ===== 投连/万能投资账户参数（G14/g14-04a） =====
+
+    /**
+     * 管理费年费率（投连险/万能险投资账户按月计提管理费的年化费率，如 0.015 表示 1.5%/年）。
+     * <p>
+     * 来源：产品定价基础规则 {@code typeSpecificConfig} 的 {@code managementFeeRate} 键（由本域
+     * Web 映射器提取为强类型，Feign 契约不暴露自由格式 Map）。
+     * 🔴 未配置（null）是<b>合法形态</b>——表示该产品不收取管理费，调用方不得按默认值兜底；
+     * 该值经保单域出单链路固化到投资账户合同字段（investment 域据此计提，G14/R-3）。
+     * </p>
+     */
+    private BigDecimal managementFeeRate;
+
     // ===== 寿险双模式定价扩展（PROD-3读侧） =====
 
     /**
