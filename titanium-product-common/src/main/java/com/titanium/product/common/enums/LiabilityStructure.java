@@ -31,6 +31,7 @@ import lombok.Getter;
  */
 @Getter
 public enum LiabilityStructure implements BaseEnum {
+    @Reserved("2026-10-14 g16-05 零引用登记（枚举级消费）：存在 values/valueOf/自定方法/:: 调用，常量名零出现；接入时摘标注+删清单行。见 docs/技术文档/枚举零引用清单.md")
     SINGLE(1, "SINGLE", "单一责任"),
     MAIN_ADDITIONAL(2, "MAIN_ADDITIONAL", "主险+附加险"),
     @Reserved("2026-10-09 核对：全仓无消费方引用本值（生产零消费）；交强+商业同单已裁决走险别载体表达（G11 方案 B 2026-09-26 / g11-04），不经本值。边界：其余 3 值归 G11/AC-08 定性，本任务只管本值")

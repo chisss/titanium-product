@@ -1,6 +1,7 @@
 package com.titanium.product.common.enums;
 
 import com.titanium.metadata.enums.BaseEnum;
+import com.titanium.metadata.enums.Reserved;
 
 import lombok.Getter;
 
@@ -14,16 +15,21 @@ import lombok.Getter;
 @Getter
 public enum DocumentType implements BaseEnum {
     /** 投保单 */
+    @Reserved("2026-10-14 g16-05 零引用登记（枚举级消费）：存在 values/valueOf/自定方法/:: 调用，常量名零出现；接入时摘标注+删清单行。见 docs/技术文档/枚举零引用清单.md")
     APPLICATION_FORM(1, "APPLICATION_FORM", "投保单"),
     /** 保单 */
     POLICY(2, "POLICY", "保单"),
     /** 健康告知书 */
+    @Reserved("2026-10-14 g16-05 零引用登记（枚举级消费）：存在 values/valueOf/自定方法/:: 调用，常量名零出现；接入时摘标注+删清单行。见 docs/技术文档/枚举零引用清单.md")
     HEALTH_NOTICE(3, "HEALTH_NOTICE", "健康告知书"),
     /** 理赔材料清单 */
+    @Reserved("2026-10-14 g16-05 零引用登记（枚举级消费）：存在 values/valueOf/自定方法/:: 调用，常量名零出现；接入时摘标注+删清单行。见 docs/技术文档/枚举零引用清单.md")
     CLAIM_MATERIAL_LIST(4, "CLAIM_MATERIAL_LIST", "理赔材料清单"),
     /** 续保通知书 */
+    @Reserved("2026-10-14 g16-05 零引用登记（枚举级消费）：存在 values/valueOf/自定方法/:: 调用，常量名零出现；接入时摘标注+删清单行。见 docs/技术文档/枚举零引用清单.md")
     RENEWAL_NOTICE(5, "RENEWAL_NOTICE", "续保通知书"),
     /** 保费收据 */
+    @Reserved("2026-10-14 g16-05 零引用登记（枚举级消费）：存在 values/valueOf/自定方法/:: 调用，常量名零出现；接入时摘标注+删清单行。见 docs/技术文档/枚举零引用清单.md")
     PREMIUM_RECEIPT(6, "PREMIUM_RECEIPT", "保费收据");
 
     private final Integer enumCode;

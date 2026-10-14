@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.titanium.metadata.enums.Reserved;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.request.product.AuditProductRequest;
 import com.titanium.product.api.request.product.CreateProductRequest;
@@ -38,10 +39,12 @@ public interface ProductApi {
 
     /** 查询标准险种产品定义目录 */
     @GetMapping("/definitions")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<List<InsuranceProductDefinitionResponse>> listDefinitions();
 
     /** 创建产品 */
     @PostMapping
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<String> createProduct(@RequestBody CreateProductRequest dto);
 
     /** 根据ID查询产品 */
@@ -50,29 +53,35 @@ public interface ProductApi {
 
     /** 提交产品审核 */
     @PutMapping("/{productId}/submit-audit")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<Void> submitForAudit(@PathVariable String productId);
 
     /** 审核产品 */
     @PutMapping("/{productId}/audit")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<Void> auditProduct(@PathVariable String productId,
                                     @RequestBody AuditProductRequest dto);
 
     /** 驳回产品审核 */
     @PutMapping("/{productId}/reject")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<Void> rejectAudit(@PathVariable String productId,
                                    @RequestBody AuditProductRequest dto);
 
     /** 下架产品 */
     @PutMapping("/{productId}/invalid")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<Void> invalidateProduct(@PathVariable String productId);
 
     /** 查询产品出单流程配置（供Policy域调用） */
     @GetMapping("/{productId}/issuance-config")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<IssuanceProcessConfigResponse> getIssuanceConfig(
             @PathVariable String productId);
 
     /** 查询产品核保配置（供Underwriting域调用） */
     @GetMapping("/{productId}/underwriting-config")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<UnderwritingConfigResponse> getUnderwritingConfig(
             @PathVariable String productId);
 
@@ -83,6 +92,7 @@ public interface ProductApi {
 
     /** 查询产品保单形态配置（供Policy域调用） */
     @GetMapping("/{productId}/policy-form-config")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<PolicyFormConfigResponse> getPolicyFormConfig(
             @PathVariable String productId);
 
@@ -121,6 +131,7 @@ public interface ProductApi {
      * @return 无数据体的成功响应；失败时 {@code code} 承载产品域业务错误码
      */
     @PutMapping("/{productId}/clauses")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<Void> updateProductClauseRel(@PathVariable String productId,
                                              @Valid @RequestBody UpdateProductClauseRelRequest request);
 
@@ -161,6 +172,7 @@ public interface ProductApi {
      * @return 无数据体的成功响应；失败时 {@code code} 承载产品域业务错误码
      */
     @PutMapping("/{productId}/coverage-sum-insured-configs")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<Void> updateCoverageSumInsuredConfig(
             @PathVariable String productId,
             @Valid @RequestBody UpdateCoverageSumInsuredConfigRequest request);

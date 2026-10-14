@@ -4,6 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.titanium.metadata.enums.Reserved;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.response.product.ProductTemplateResponse;
 
@@ -30,5 +31,6 @@ public interface ProductTemplateApi {
      * 根据模板ID查询产品模板
      */
     @GetMapping("/{templateId}")
+    @Reserved("g16-04: 跨域零消费者（管理面经 web 层）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<ProductTemplateResponse> getById(@PathVariable String templateId);
 }

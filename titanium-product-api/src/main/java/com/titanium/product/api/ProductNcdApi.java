@@ -4,6 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.titanium.metadata.enums.Reserved;
 import com.titanium.metadata.response.ApiResponse;
 import com.titanium.product.api.request.ncd.NcdResolutionRequest;
 import com.titanium.product.api.response.ncd.NcdResolutionResponse;
@@ -37,5 +38,6 @@ public interface ProductNcdApi {
      * @return 反算结果（含条数/区间/规则版本等取证字段）；取不到即失败信封
      */
     @PostMapping("/ncd-resolutions")
+    @Reserved("g16-04: 跨域零消费者（预留）；登记见 docs/技术文档/契约登记表.md")
     ApiResponse<NcdResolutionResponse> resolveNcd(@Valid @RequestBody NcdResolutionRequest request);
 }

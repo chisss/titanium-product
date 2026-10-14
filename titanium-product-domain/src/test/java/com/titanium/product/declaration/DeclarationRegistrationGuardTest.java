@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,8 +34,9 @@ import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
  * <ol>
  *   <li>{@link UnderwritingInputType}：6 值当前全部零触达（数据由 underwriting 域四个平行值对象承载，
  *       不经本枚举），须逐个标 {@link Reserved}；</li>
- *   <li>{@link LiabilityStructure}：<b>恰</b> {@code PACKAGE} 与 {@code MODULAR} 标 {@link Reserved}
- *       （G11/g11-06 定性：SINGLE/MAIN_ADDITIONAL 为已接入值，多标即误标）；</li>
+ *   <li>{@link LiabilityStructure}：<b>业务预留面恰</b> {@code PACKAGE} 与 {@code MODULAR} 标 {@link Reserved}
+ *       （G11/g11-06 定性：SINGLE/MAIN_ADDITIONAL 为已接入值，业务预留面多标即误标；
+ *       SINGLE 另有 g16-05 零引用登记标注，属另一族，见 {@link #isBusinessReservation}）；</li>
  *   <li>{@code "COMPULSORY"}：裸字符串（险别而非责任编码，注解贴不上），
  *       g11-04 迁移后由 {@link InsuranceMandateType} 唯一承载（落点由 AUTO 默认责任清单迁至枚举文件），
  *       定性登记仍落在 {@link InsuranceCapabilityBit#DEFAULT_COVERAGE_CODES} 的 consumers 上。</li>
@@ -75,25 +77,42 @@ class DeclarationRegistrationGuardTest {
     }
 
     @Test
-    @DisplayName("② LiabilityStructure 恰 PACKAGE+MODULAR 被标 @Reserved（SINGLE/MAIN_ADDITIONAL 已接入，多标即误标）")
+    @DisplayName("② LiabilityStructure 业务预留面恰 PACKAGE+MODULAR 被标 @Reserved（SINGLE/MAIN_ADDITIONAL 已接入，多标即误标）")
     void shouldReserveExactlyPackageAndModular() {
         assertEquals(4, LiabilityStructure.values().length,
                 "基数=2026-10-09 核对时点值；增删值须同批重新定性");
 
         List<LiabilityStructure> reserved = new ArrayList<>();
         for (LiabilityStructure value : LiabilityStructure.values()) {
-            if (reservedOf(LiabilityStructure.class, value.name()) != null) {
+            if (isBusinessReservation(reservedOf(LiabilityStructure.class, value.name()))) {
                 reserved.add(value);
             }
         }
 
         assertEquals(List.of(LiabilityStructure.PACKAGE, LiabilityStructure.MODULAR), reserved,
-                "G11/g11-06 定性：PACKAGE/MODULAR 零触达标 @Reserved；SINGLE/MAIN_ADDITIONAL 有生产构值"
-                        + "与数据承载（已接入），多标即误标已接入值");
+                "G11/g11-06 定性：PACKAGE/MODULAR 零触达标 @Reserved（业务预留面）；SINGLE/MAIN_ADDITIONAL"
+                        + "有生产构值与数据承载（已接入），业务预留面多标即误标（SINGLE 上的 g16-05 零引用"
+                        + "登记标注属另一族，见 isBusinessReservation 说明）");
         for (LiabilityStructure value : reserved) {
             assertFalse(reservedOf(LiabilityStructure.class, value.name()).value().isBlank(),
                     value + " 的 @Reserved 须写明核对时点、口径与边界");
         }
+    }
+
+    /**
+     * 业务预留族过滤：{@link Reserved} 现含两个语义族，本测试只断言<b>业务预留族</b>
+     * （g10~g15 人工逐值核对的定性产物，note 为逐值核对文案）。
+     * <p>
+     * 另一族为 <b>g16-05 零引用登记</b>（机械扫描「常量名零出现」的批量产物，登记载体
+     * {@code docs/技术文档/枚举零引用清单.md}，双向对账由 titanium-common 的
+     * {@code ZeroReferenceEnumGuardTest} 守护）——其 note 恒含固定前缀「g16-05 零引用登记」
+     * （四个变体共享：枚举级消费/未见消费/错误码表全量/参考数据），据此区分两族。
+     * 零引用族的增删不属本测试断言面（否则每次全域机械扫描都会打红本守卫），但改动/归一化
+     * 该前缀文案会（前缀是两族判据，改动须同批复核本族守卫测试）。
+     * </p>
+     */
+    private static boolean isBusinessReservation(Reserved reserved) {
+        return reserved != null && !reserved.value().contains("g16-05 零引用登记");
     }
 
     @Test
@@ -114,7 +133,7 @@ class DeclarationRegistrationGuardTest {
     }
 
     @Test
-    @DisplayName("④ @Reserved 契约：RUNTIME 保留 + 恰只允许 FIELD（扩到 TYPE 则值级粒度失效）")
+    @DisplayName("④ @Reserved 契约：RUNTIME 保留 + 允许面恰 FIELD/METHOD（扩到 TYPE 则值级粒度失效）")
     void reservedAnnotationContract() {
         Retention retention = Reserved.class.getAnnotation(Retention.class);
         Target target = Reserved.class.getAnnotation(Target.class);
@@ -122,8 +141,10 @@ class DeclarationRegistrationGuardTest {
         assertNotNull(retention, "@Reserved 未标 @Retention（源码级注解不进字节码，判据只能退化成 grep 源码文本）");
         assertEquals(RetentionPolicy.RUNTIME, retention.value());
         assertNotNull(target, "@Reserved 未标 @Target");
-        assertEquals(List.of(ElementType.FIELD), List.of(target.value()),
-                "标注粒度必须是值（枚举常量在字节码里即 FIELD）；扩到 TYPE 会让粒度退化为全有或全无");
+        assertEquals(Set.of(ElementType.FIELD, ElementType.METHOD), Set.of(target.value()),
+                "标注粒度必须是值（枚举常量/record 组件在字节码里即 FIELD）或契约方法"
+                        + "（METHOD，G16/g16-04 契约方法零消费者面，见 Reserved javadoc）；"
+                        + "扩到 TYPE 会让粒度退化为全有或全无");
     }
 
     @Test
