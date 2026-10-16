@@ -2,6 +2,8 @@ package com.titanium.product.event;
 
 import java.util.List;
 
+import org.axonframework.serialization.Revision;
+
 import com.titanium.product.valueobject.config.CoverageSumInsuredConfig;
 
 /**
@@ -21,6 +23,7 @@ import com.titanium.product.valueobject.config.CoverageSumInsuredConfig;
  * @param coverageSumInsuredConfigs 替换后的全部责任保额档次配置
  * @param tenantId                  租户ID（投影 upsert 时写入 {@code tenant_id}，非空约束）
  */
+@Revision("1")
 public record CoverageSumInsuredConfigUpdatedEvent(String productId,
                                                    List<CoverageSumInsuredConfig> coverageSumInsuredConfigs,
                                                    String tenantId) {

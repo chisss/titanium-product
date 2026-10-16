@@ -65,7 +65,7 @@ import lombok.Getter;
  * 保险产品聚合根 核心聚合根，封装产品的基础信息、形态、险种、绑定条款、定价基础规则、 出单流程配置、保单形态配置、核保配置等核心业务配置
  */
 @Getter
-@Aggregate
+@Aggregate(snapshotTriggerDefinition = "productSnapshotTriggerDefinition")
 public class InsuranceProduct extends BaseAggregate {
 
     // ====== 基础标识 ======

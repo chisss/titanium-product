@@ -47,7 +47,7 @@ import lombok.Getter;
  * 模板决定：出单模式、核保策略、理赔流程、保全规则等。
  */
 @Getter
-@Aggregate
+@Aggregate(snapshotTriggerDefinition = "productSnapshotTriggerDefinition")
 public class ProductTemplate extends BaseAggregate {
 
     @AggregateIdentifier

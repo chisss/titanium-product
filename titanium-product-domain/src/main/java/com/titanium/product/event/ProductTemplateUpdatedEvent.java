@@ -3,6 +3,8 @@ package com.titanium.product.event;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.axonframework.serialization.Revision;
+
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.valueobject.PolicyStage;
 import com.titanium.product.valueobject.config.BillingConfig;
@@ -16,6 +18,7 @@ import com.titanium.product.valueobject.config.UnderwritingConfig;
 /**
  * 产品模板更新事件
  */
+@Revision("1")
 public record ProductTemplateUpdatedEvent(String templateId, String templateName, ProductEnum.IssuanceMode issuanceMode,
                                           List<PolicyStage> policyStages, UnderwritingConfig underwritingConfig,
                                           PolicyStructureConfig policyStructure, MaintenanceConfig maintenanceConfig,

@@ -2,6 +2,8 @@ package com.titanium.product.event;
 
 import java.util.List;
 
+import org.axonframework.serialization.Revision;
+
 import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.product.PricingMode;
@@ -32,6 +34,7 @@ import com.titanium.product.valueobject.rate.RateTableRef;
  * {@code templateId}/{@code productCode}/{@code attachProductIds} 同族——是<b>继承值</b>而非本次修订的变更项。
  * </p>
  */
+@Revision("1")
 public record ProductRevisedEvent(String newProductId, String templateId, String originalProductId, String newVersion,
                                   String productCode, String newProductName, String newProductDesc,
                                   ProductEnum.ProductForm newForm,

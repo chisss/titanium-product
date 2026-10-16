@@ -2,6 +2,8 @@ package com.titanium.product.event;
 
 import java.time.LocalDateTime;
 
+import org.axonframework.serialization.Revision;
+
 import com.titanium.product.valueobject.LifeProductSpec;
 
 /**
@@ -16,6 +18,7 @@ import com.titanium.product.valueobject.LifeProductSpec;
  * @param tenantId 租户ID
  * @param occurredAt 事件发生时间
  */
+@Revision("1")
 public record LifeProductConfiguredEvent(String templateId, LifeProductSpec lifeProductSpec, String tenantId,
                                          LocalDateTime occurredAt) {
 }

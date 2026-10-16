@@ -2,6 +2,8 @@ package com.titanium.product.event;
 
 import java.util.List;
 
+import org.axonframework.serialization.Revision;
+
 /**
  * 附加险关联更新事件
  * <p>
@@ -12,5 +14,6 @@ import java.util.List;
  * @param productId        产品ID
  * @param attachProductIds 更新后的附加险产品ID列表
  */
+@Revision("1")
 public record ProductAttachUpdatedEvent(String productId, List<String> attachProductIds) {
 }

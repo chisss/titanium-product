@@ -3,6 +3,8 @@ package com.titanium.product.event;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.axonframework.serialization.Revision;
+
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.product.valueobject.config.ClaimConfig;
@@ -16,6 +18,7 @@ import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
 /**
  * 产品模板创建事件
  */
+@Revision("1")
 public record ProductTemplateCreatedEvent(String templateId, String templateCode, String templateName,
                                           InsuranceType insuranceType, String description,
                                           IssuanceProcessConfig issuanceProcessConfig,
