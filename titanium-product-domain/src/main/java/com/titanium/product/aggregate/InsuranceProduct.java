@@ -44,6 +44,7 @@ import com.titanium.product.exception.ProductAuditException;
 import com.titanium.product.exception.ProductStatusPreconditionException;
 import com.titanium.product.service.ProductDomainService;
 import com.titanium.product.valueobject.AuditInfo;
+import com.titanium.product.valueobject.config.ClauseBinding;
 import com.titanium.product.valueobject.config.CoveragePeriodConfig;
 import com.titanium.product.valueobject.config.CoverageSumInsuredConfig;
 import com.titanium.product.valueobject.config.DocumentConfig;
@@ -59,13 +60,11 @@ import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
 import com.titanium.product.valueobject.rate.RateTableRef;
 
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 
 /**
  * 保险产品聚合根 核心聚合根，封装产品的基础信息、形态、险种、绑定条款、定价基础规则、 出单流程配置、保单形态配置、核保配置等核心业务配置
  */
 @Getter
-@SuperBuilder(toBuilder = true)
 @Aggregate
 public class InsuranceProduct extends BaseAggregate {
 
@@ -182,8 +181,8 @@ public class InsuranceProduct extends BaseAggregate {
     // ====== 租户 ======
     // 租户ID（tenantId）由基类 BaseAggregate 提供
 
-    /** 无参构造器（Axon反射必备） */
-    public InsuranceProduct() {
+    /** 仅供 Axon 回放使用（框架反射实例化），业务代码禁止调用 */
+    protected InsuranceProduct() {
     }
 
     // ==================== 命令处理器 ====================
@@ -207,18 +206,19 @@ public class InsuranceProduct extends BaseAggregate {
         this.category = command.category() != null ? command.category() : ProductEnum.ProductCategory.MAIN;
         this.version = "V1.0";
         this.status = ProductEnum.ProductStatus.DRAFT;
-        this.saleStartTime = command.saleStartTime();
-        this.saleEndTime = command.saleEndTime();
+        this.saleStartTime = command.salesPeriod().saleStartTime();
+        this.saleEndTime = command.salesPeriod().saleEndTime();
         this.insureCondition = command.insureCondition();
         this.coveragePeriod = command.coveragePeriod();
         this.paymentConfig = command.paymentConfig();
         this.pricingBasicRule = command.pricingBasicRule();
         // 条款版本映射为可选元数据（前端可不传），缺省视为无显式版本，避免空指针
-        Map<String, String> clauseVersionMap = command.clauseVersionMap() != null
-                ? command.clauseVersionMap() : Map.of();
-        this.clauseRels = command
+        ClauseBinding clauseBinding = command.clauseBinding();
+        Map<String, String> clauseVersionMap = clauseBinding.clauseVersionMap() != null
+                ? clauseBinding.clauseVersionMap() : Map.of();
+        this.clauseRels = clauseBinding
                 .clauseIds().stream().map(clauseId -> new ProductClauseRel(clauseId,
-                        clauseVersionMap.get(clauseId), clauseId.equals(command.mainClauseId())))
+                        clauseVersionMap.get(clauseId), clauseId.equals(clauseBinding.mainClauseId())))
                 .collect(Collectors.toList());
         this.salesChannels = command.salesChannels();
         this.attachProductIds = command.attachProductIds();
@@ -637,10 +637,11 @@ public class InsuranceProduct extends BaseAggregate {
         if (command.templateId() == null || command.templateId().isBlank()) {
             throw new CommandValidationException(commandName, "templateId", "产品必须引用一个产品模板");
         }
-        assertClauseRelsNotEmpty(commandName, "clauseIds", command.clauseIds());
-        assertNoDuplicateClauseIds(commandName, "clauseIds", command.clauseIds());
+        ClauseBinding clauseBinding = command.clauseBinding();
+        assertClauseRelsNotEmpty(commandName, "clauseIds", clauseBinding.clauseIds());
+        assertNoDuplicateClauseIds(commandName, "clauseIds", clauseBinding.clauseIds());
         // 主条款必须在绑定条款列表中（跨条款关联的纯领域规则，委托领域服务判定）
-        if (!productDomainService.validateMainClause(command.clauseIds(), command.mainClauseId())) {
+        if (!productDomainService.validateMainClause(clauseBinding.clauseIds(), clauseBinding.mainClauseId())) {
             throw new CommandValidationException(commandName, "mainClauseId",
                     "必须指定一条主条款，且主条款须包含在绑定条款列表中");
         }
@@ -678,5 +679,25 @@ public class InsuranceProduct extends BaseAggregate {
             return "V" + (majorVersion + 1) + ".0";
         }
         return "V2.0";
+    }
+
+    /** coverageSumInsuredConfigs 不可变视图（DSN-02：杜绝经 getter 外泄内部集合引用，变更须经命令与事件） */
+    public List<CoverageSumInsuredConfig> getCoverageSumInsuredConfigs() {
+        return coverageSumInsuredConfigs == null ? null : List.copyOf(coverageSumInsuredConfigs);
+    }
+
+    /** clauseRels 不可变视图（DSN-02：杜绝经 getter 外泄内部集合引用，变更须经命令与事件） */
+    public List<ProductClauseRel> getClauseRels() {
+        return clauseRels == null ? null : List.copyOf(clauseRels);
+    }
+
+    /** salesChannels 不可变视图（DSN-02：杜绝经 getter 外泄内部集合引用，变更须经命令与事件） */
+    public List<SalesChannelConfig> getSalesChannels() {
+        return salesChannels == null ? null : List.copyOf(salesChannels);
+    }
+
+    /** attachProductIds 不可变视图（DSN-02：杜绝经 getter 外泄内部集合引用，变更须经命令与事件） */
+    public List<String> getAttachProductIds() {
+        return attachProductIds == null ? null : List.copyOf(attachProductIds);
     }
 }

@@ -97,6 +97,11 @@ public interface ProductWebMapper {
             expression = "java(request.getProductId() != null ? request.getProductId() : SnowflakeIdGenerator.generate())")
     @Mapping(target = "tenantId", source = "tenantId")
     @Mapping(target = "pricingMode", source = "request.pricingMode", qualifiedByName = "pricingModeFromCode")
+    @Mapping(target = "salesPeriod.saleStartTime", source = "request.saleStartTime")
+    @Mapping(target = "salesPeriod.saleEndTime", source = "request.saleEndTime")
+    @Mapping(target = "clauseBinding.clauseIds", source = "request.clauseIds")
+    @Mapping(target = "clauseBinding.clauseVersionMap", source = "request.clauseVersionMap")
+    @Mapping(target = "clauseBinding.mainClauseId", source = "request.mainClauseId")
     CreateProductCommand toCommand(CreateProductDTO request, String tenantId);
 
     /**
@@ -281,6 +286,11 @@ public interface ProductWebMapper {
             qualifiedByName = "pricingTypeFromCode")
     @Mapping(target = "tenantId", source = "tenantId")
     @Mapping(target = "pricingMode", source = "dto.pricingMode", qualifiedByName = "pricingModeFromCode")
+    @Mapping(target = "salesPeriod.saleStartTime", source = "dto.saleStartTime")
+    @Mapping(target = "salesPeriod.saleEndTime", source = "dto.saleEndTime")
+    @Mapping(target = "clauseBinding.clauseIds", source = "dto.clauseIds")
+    @Mapping(target = "clauseBinding.clauseVersionMap", source = "dto.clauseVersionMap")
+    @Mapping(target = "clauseBinding.mainClauseId", source = "dto.mainClauseId")
     CreateProductCommand toCommand(CreateProductRequest dto, String tenantId);
 
     /**

@@ -39,7 +39,6 @@ import com.titanium.product.valueobject.config.UnderwritingConfig;
 import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
 
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 
 /**
  * 产品模板聚合根
@@ -48,7 +47,6 @@ import lombok.experimental.SuperBuilder;
  * 模板决定：出单模式、核保策略、理赔流程、保全规则等。
  */
 @Getter
-@SuperBuilder(toBuilder = true)
 @Aggregate
 public class ProductTemplate extends BaseAggregate {
 
@@ -78,7 +76,8 @@ public class ProductTemplate extends BaseAggregate {
     private LifeProductSpec       lifeProductSpec;
     private CommonStatus          status;
 
-    public ProductTemplate() {
+    /** 仅供 Axon 回放使用（框架反射实例化），业务代码禁止调用 */
+    protected ProductTemplate() {
     }
 
     @CommandHandler
@@ -243,5 +242,20 @@ public class ProductTemplate extends BaseAggregate {
      */
     private String statusName() {
         return this.status != null ? this.status.name() : "UNKNOWN";
+    }
+
+    /** supportedCoverages 不可变视图（DSN-02：杜绝经 getter 外泄内部集合引用，变更须经命令与事件） */
+    public List<String> getSupportedCoverages() {
+        return supportedCoverages == null ? null : List.copyOf(supportedCoverages);
+    }
+
+    /** supportedExclusions 不可变视图（DSN-02：杜绝经 getter 外泄内部集合引用，变更须经命令与事件） */
+    public List<String> getSupportedExclusions() {
+        return supportedExclusions == null ? null : List.copyOf(supportedExclusions);
+    }
+
+    /** policyStages 不可变视图（DSN-02：杜绝经 getter 外泄内部集合引用，变更须经命令与事件） */
+    public List<PolicyStage> getPolicyStages() {
+        return policyStages == null ? null : List.copyOf(policyStages);
     }
 }

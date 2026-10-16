@@ -23,6 +23,7 @@ import com.titanium.product.command.UpdateProductClauseRelCommand;
 import com.titanium.product.entity.ProductClauseRel;
 import com.titanium.product.exception.ProductStatusPreconditionException;
 import com.titanium.product.service.ProductDomainService;
+import com.titanium.product.valueobject.config.ClauseBinding;
 import com.titanium.product.valueobject.config.InsureCondition;
 import com.titanium.product.valueobject.pricing.pricing.PricingBasicRule;
 import com.titanium.product.valueobject.pricing.pricing.PricingFactor;
@@ -64,12 +65,12 @@ class InsuranceProductTest {
                 Map.of("0次", new BigDecimal("0.6"), "3次", BigDecimal.ONE));
         CreateProductCommand command = new CreateProductCommand(
                 PRODUCT_ID, TEMPLATE_ID, PRODUCT_CODE, "测试产品", null,
-                ProductEnum.ProductForm.INDIVIDUAL, InsuranceProductType.AUTO, null, null, null, null,
+                ProductEnum.ProductForm.INDIVIDUAL, InsuranceProductType.AUTO, null, null, null,
                 new InsureCondition(18, 65, null, null, null, null, null, null, null, null, null, null, null, null),
                 null, null,
                 new PricingBasicRule(ProductEnum.PricingType.FACTOR, null, List.of(ncdFactor),
                         null, null),
-                List.of(MAIN_CLAUSE_ID), Map.of(), MAIN_CLAUSE_ID,
+                new ClauseBinding(List.of(MAIN_CLAUSE_ID), Map.of(), MAIN_CLAUSE_ID),
                 null, null, null, null, null,
                 TENANT_ID, PricingMode.RATE_TABLE, null, null, null, CREATED_BY, null, null);
 
@@ -95,10 +96,10 @@ class InsuranceProductTest {
     void shouldRejectCreateWhenClauseIdsDuplicated() {
         CreateProductCommand command = new CreateProductCommand(
                 PRODUCT_ID, TEMPLATE_ID, PRODUCT_CODE, "测试产品", null,
-                ProductEnum.ProductForm.INDIVIDUAL, InsuranceProductType.AUTO, null, null, null, null,
+                ProductEnum.ProductForm.INDIVIDUAL, InsuranceProductType.AUTO, null, null, null,
                 new InsureCondition(18, 65, null, null, null, null, null, null, null, null, null, null, null, null),
                 null, null, null,
-                List.of(MAIN_CLAUSE_ID, MAIN_CLAUSE_ID), Map.of(), MAIN_CLAUSE_ID,
+                new ClauseBinding(List.of(MAIN_CLAUSE_ID, MAIN_CLAUSE_ID), Map.of(), MAIN_CLAUSE_ID),
                 null, null, null, null, null,
                 TENANT_ID, PricingMode.RATE_TABLE, null, null, null, CREATED_BY, null, null);
 
@@ -243,10 +244,10 @@ class InsuranceProductTest {
     private CreateProductCommand command(List<String> clauseIds, String mainClauseId) {
         return new CreateProductCommand(
                 PRODUCT_ID, TEMPLATE_ID, PRODUCT_CODE, "测试产品", null,
-                ProductEnum.ProductForm.INDIVIDUAL, InsuranceProductType.AUTO, null, null, null, null,
+                ProductEnum.ProductForm.INDIVIDUAL, InsuranceProductType.AUTO, null, null, null,
                 new InsureCondition(18, 65, null, null, null, null, null, null, null, null, null, null, null, null),
                 null, null, null,
-                clauseIds, Map.of(), mainClauseId,
+                new ClauseBinding(clauseIds, Map.of(), mainClauseId),
                 null, null, null, null, null,
                 TENANT_ID, PricingMode.RATE_TABLE, null, null, null, CREATED_BY, null, null);
     }

@@ -70,7 +70,7 @@ public class ProductCommandAppService {
      */
     public String createProduct(CreateProductCommand command) {
         validateTemplateActive(command.templateId(), command.tenantId());
-        validateClauseBindable(command.clauseIds(), command.tenantId(),
+        validateClauseBindable(command.clauseBinding().clauseIds(), command.tenantId(),
                 CreateProductCommand.class.getSimpleName(), "clauseIds");
         return commandGateway.sendAndWait(command);
     }

@@ -44,6 +44,7 @@ import com.titanium.product.port.clause.ClauseExistencePort;
 import com.titanium.product.query.result.ProductClauseQueryResult;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
 import com.titanium.product.query.service.ProductTemplateQueryService;
+import com.titanium.product.valueobject.config.ClauseBinding;
 import com.titanium.product.valueobject.config.CoverageSumInsuredConfig;
 import com.titanium.product.valueobject.config.SumInsuredTier;
 
@@ -432,10 +433,9 @@ class ProductCommandAppServiceTest {
      */
     private CreateProductCommand command(List<String> clauseIds) {
         return new CreateProductCommand(PRODUCT_ID, TEMPLATE_ID, "P-001", "测试产品", null,
-                null, null, null,
-                null, null, null,
                 null, null, null, null,
-                clauseIds, Map.of(), clauseIds.isEmpty() ? null : clauseIds.get(0),
+                null, null, null, null, null,
+                new ClauseBinding(clauseIds, Map.of(), clauseIds.isEmpty() ? null : clauseIds.get(0)),
                 List.of(), List.of(),
                 null, null, null, TENANT_ID,
                 null, null, null, null, "tester", null, null);
