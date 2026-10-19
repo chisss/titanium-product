@@ -30,31 +30,6 @@ public class ProductDomainException extends DomainException {
         super(errorCode, message, cause);
     }
 
-    /**
-     * 以裸串错误码构造异常（旧用法）。
-     *
-     * @param errorCode 错误码字符串
-     * @param message 异常消息
-     * @deprecated 裸串错误码违反红线 19，请改用 {@link #ProductDomainException(ProductErrorCode, String)}
-     */
-    @Deprecated(since = "2026-08", forRemoval = true)
-    public ProductDomainException(String errorCode, String message) {
-        super(errorCode, message);
-    }
-
-    /**
-     * 以裸串错误码构造异常（旧用法，含根因）。
-     *
-     * @param errorCode 错误码字符串
-     * @param message 异常消息
-     * @param cause 根因异常
-     * @deprecated 裸串错误码违反红线 19，请改用 {@link #ProductDomainException(ProductErrorCode, String, Throwable)}
-     */
-    @Deprecated(since = "2026-08", forRemoval = true)
-    public ProductDomainException(String errorCode, String message, Throwable cause) {
-        super(errorCode, message, cause);
-    }
-
     // ====== 预定义异常工厂方法 ======
 
     public static ProductDomainException productNotFound(String productId) {

@@ -1,0 +1,8 @@
+Class <com.titanium.product.service.CalculationModelExecutionService> is annotated with @Service in (CalculationModelExecutionService.java:0)
+Class <com.titanium.product.service.CalculationTotalsService> is annotated with @Service in (CalculationTotalsService.java:0)
+Class <com.titanium.product.service.CommissionCalculationService> is annotated with @Service in (CommissionCalculationService.java:0)
+Class <com.titanium.product.service.PremiumCalculationBreakdownService> is annotated with @Service in (PremiumCalculationBreakdownService.java:0)
+Class <com.titanium.product.service.PremiumCompositionService> is annotated with @Service in (PremiumCompositionService.java:0)
+Class <com.titanium.product.service.ProductDomainService> is annotated with @Service in (ProductDomainService.java:0)
+Class <com.titanium.product.service.RateTableMatchingService> is annotated with @Service in (RateTableMatchingService.java:0)
+Class <com.titanium.product.service.TaxCalculationService> is annotated with @Service in (TaxCalculationService.java:0)
