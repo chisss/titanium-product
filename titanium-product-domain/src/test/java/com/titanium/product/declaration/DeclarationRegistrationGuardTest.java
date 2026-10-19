@@ -22,8 +22,8 @@ import com.titanium.metadata.enums.Reserved;
 import com.titanium.metadata.enums.insurance.InsuranceCapabilityBit;
 import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceTypeCapability;
+import com.titanium.metadata.enums.product.LiabilityStructure;
 import com.titanium.metadata.enums.underwriting.UnderwritingInputType;
-import com.titanium.product.common.enums.LiabilityStructure;
 import com.titanium.product.valueobject.LifeProductSpec;
 import com.titanium.product.valueobject.pricing.pricing.ActuarialBasis;
 

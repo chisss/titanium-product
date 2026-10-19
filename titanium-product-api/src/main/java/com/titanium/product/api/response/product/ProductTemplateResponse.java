@@ -6,8 +6,8 @@ import java.util.List;
 import com.titanium.metadata.enums.CommonStatus;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.insurance.SubjectType;
+import com.titanium.metadata.enums.product.LiabilityStructure;
 import com.titanium.metadata.enums.product.ProductEnum;
-import com.titanium.product.common.enums.LiabilityStructure;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

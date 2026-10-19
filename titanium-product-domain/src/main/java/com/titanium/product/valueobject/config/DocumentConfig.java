@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.titanium.metadata.enums.FileFormat;
-import com.titanium.product.common.enums.DocumentType;
+import com.titanium.metadata.enums.product.DocumentType;
 
 /**
  * 产品文档配置值对象

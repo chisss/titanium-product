@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component;
 
 import com.titanium.metadata.enums.InsuranceType;
 import com.titanium.metadata.enums.insurance.SubjectType;
+import com.titanium.metadata.enums.product.LiabilityStructure;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.command.CreateProductTemplateCommand;
-import com.titanium.product.common.enums.LiabilityStructure;
 import com.titanium.product.valueobject.config.IssuanceProcessConfig;
 import com.titanium.product.valueobject.config.PolicyStructureConfig;
 

@@ -44,6 +44,17 @@ spring:
       enable-idempotence: true
       # 瞬时故障（网络抖动、leader 选举）自动重试，避免直接落入死信队列
       retries: 2147483647
+    consumer:
+      # m27-04/PKG-04：本地赔案投影消费组（claim-created / claim-updated /
+      # claim-status-changed / claim-rejected 四主题，维护 t_product_claim_history_view）
+      group-id: titanium-product-group
+      # 入站统一 String 反序列化：由监听器按防腐入站 record 一次性解析，不依赖 JsonDeserializer 类型头
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # 🔴 新建消费组首次启动从头消费：在 Kafka 保留期内回填历史赔案。
+      #    保留期（默认 7 天）之外的历史不在投影内，R-3 启用 NCD 前须做一次性历史回填
+      #    （见 ClaimHistoryAdapter 类注释与 ADR-0002）。
+      auto-offset-reset: earliest
 
 server:
   port: 8082

@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.titanium.metadata.enums.insurance.SubjectType;
-import com.titanium.product.common.enums.LiabilityStructure;
+import com.titanium.metadata.enums.product.LiabilityStructure;
 
 /**
  * 保单结构配置值对象 定义产品的保单结构，包含标的类型、参与方角色、责任结构等

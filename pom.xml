@@ -23,6 +23,12 @@
     <dependencyManagement>
         <dependencies>
             <!-- 内部领域依赖（titanium-parent 未管理，需在此声明版本供子模块继承） -->
+            <!-- 共享内核（m27-01/PKG-01：原 titanium-common 的纯 Java 内核部分） -->
+            <dependency>
+                <groupId>com.titanium</groupId>
+                <artifactId>titanium-kernel</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>com.titanium</groupId>
                 <artifactId>titanium-common</artifactId>
@@ -52,12 +58,6 @@
             <dependency>
                 <groupId>com.titanium</groupId>
                 <artifactId>titanium-clause-api</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-            </dependency>
-            <!-- 理赔域契约：NCD 反算按车辆取历史赔案（ClaimHistoryAdapter）需要，G11/g11-03 -->
-            <dependency>
-                <groupId>com.titanium</groupId>
-                <artifactId>titanium-claim-api</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
             </dependency>
         </dependencies>

@@ -30,11 +30,26 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
-        <!-- 产品域常量(Kafka Topic 常量 ProductConstants)，并传递 fastjson2 -->
+        <!-- 产品域常量(Kafka Topic 常量 ProductConstants) -->
         <dependency>
             <groupId>com.titanium</groupId>
             <artifactId>titanium-product-common</artifactId>
             <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- 🔴 m27-04/PKG-04：跨域赔案事件投影写入读模型，需要读侧 View/ViewRepository
+             （同 billing-infrastructure → billing-query 的既有依赖方向：infra 依赖 query 的读模型） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-product-query</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- 跨域入站报文解析（fastjson2 一次性反序列化为防腐 record；
+             此前经 product-common 传递获得，m27-04 起显式声明以免上游传递面变动导致编译失败） -->
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
         </dependency>
 
         <!-- Product 定价编排的跨域 API 契约，仅由 Infrastructure Adapter 使用 -->
@@ -57,12 +72,9 @@
             <groupId>com.titanium</groupId>
             <artifactId>titanium-clause-api</artifactId>
         </dependency>
-        <!-- 理赔域 Feign 契约：仅 ClaimHistoryAdapter 使用（G11/g11-03 NCD 反算按车辆取历史赔案）。
-             新增跨域 Feign 契约须同批完成三处登记，见 titanium-product/CLAUDE.md §7.13。 -->
-        <dependency>
-            <groupId>com.titanium</groupId>
-            <artifactId>titanium-claim-api</artifactId>
-        </dependency>
+        <!-- 🔴 m27-04/PKG-04：理赔域 Feign 契约已移除——NCD 历史赔案改由本域消费
+             claim-created/updated/status-changed/rejected 事件投影到 t_product_claim_history_view，
+             不再同步调用 ClaimApi（product→claim 是服务依赖图的反馈边）。 -->
 
         <!-- Spring Boot Dependencies -->
         <dependency>
@@ -110,6 +122,31 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
+        </dependency>
+    
+        <!-- m27-01/PKG-01：显式声明实际使用的内核/starter 模块（原经 titanium-common 传递获得） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-kernel</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <!-- m27-01/PKG-01：显式声明实际使用的内核/starter 模块（原经 titanium-common 传递获得） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-starter-feign</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <!-- m27-01/PKG-01：显式声明实际使用的内核/starter 模块（原经 titanium-common 传递获得） -->
+        <dependency>
+            <groupId>com.titanium</groupId>
+            <artifactId>titanium-starter-kafka</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <!-- m27-02/PKG-02：api 契约层只以 provided 暴露 Feign 注解、不再向下游传递运行时；
+             @EnableFeignClients 所需的 Spring Cloud OpenFeign 由本模块显式声明 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
     </dependencies>
 </project>

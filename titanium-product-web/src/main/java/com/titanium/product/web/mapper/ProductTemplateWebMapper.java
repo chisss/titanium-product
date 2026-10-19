@@ -8,11 +8,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import com.titanium.metadata.enums.insurance.SubjectType;
+import com.titanium.metadata.enums.product.LiabilityStructure;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.api.response.product.ProductTemplateResponse;
 import com.titanium.product.command.CreateProductTemplateCommand;
 import com.titanium.product.command.UpdateProductTemplateCommand;
-import com.titanium.product.common.enums.LiabilityStructure;
 import com.titanium.product.query.result.ProductTemplateQueryResult;
 import com.titanium.product.valueobject.PolicyStage;
 import com.titanium.product.valueobject.config.ClaimConfig;

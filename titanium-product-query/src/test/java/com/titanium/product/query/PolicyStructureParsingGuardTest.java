@@ -13,7 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.titanium.metadata.enums.insurance.SubjectType;
-import com.titanium.product.common.enums.LiabilityStructure;
+import com.titanium.metadata.enums.product.LiabilityStructure;
 import com.titanium.product.query.repository.ProductTemplateViewRepository;
 import com.titanium.product.query.repository.ProductViewRepository;
 import com.titanium.product.query.service.impl.ProductTemplateQueryServiceImpl;

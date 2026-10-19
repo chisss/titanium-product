@@ -5,6 +5,7 @@ import java.util.List;
 import com.titanium.metadata.enums.insurance.InsuranceMandateType;
 import com.titanium.metadata.enums.insurance.InsuranceProductType;
 import com.titanium.metadata.enums.insurance.SubjectType;
+import com.titanium.metadata.enums.product.LiabilityStructure;
 import com.titanium.metadata.enums.product.ProductEnum;
 import com.titanium.product.api.response.config.AuditInfoResponse;
 import com.titanium.product.api.response.config.CoveragePeriodConfigResponse;
@@ -15,7 +16,6 @@ import com.titanium.product.api.response.config.PaymentConfigResponse;
 import com.titanium.product.api.response.config.PolicyFormConfigResponse;
 import com.titanium.product.api.response.config.UnderwritingConfigResponse;
 import com.titanium.product.api.response.pricing.PricingBasicRuleResponse;
-import com.titanium.product.common.enums.LiabilityStructure;
 
 import lombok.Data;
 

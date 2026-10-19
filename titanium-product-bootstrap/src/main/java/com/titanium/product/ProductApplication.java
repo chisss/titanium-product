@@ -27,7 +27,6 @@ import com.titanium.product.service.PremiumAdjustmentService;
 @EnableFeignClients(basePackages = {
         "com.titanium.product.api",
         "com.titanium.clause.api",
-        "com.titanium.claim.api",
         "com.titanium.featurecenter.api",
         "com.titanium.ruleengine.api",
         "com.titanium.channel.api"

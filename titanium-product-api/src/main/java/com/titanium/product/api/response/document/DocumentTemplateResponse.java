@@ -1,7 +1,7 @@
 package com.titanium.product.api.response.document;
 
 import com.titanium.metadata.enums.FileFormat;
-import com.titanium.product.common.enums.DocumentType;
+import com.titanium.metadata.enums.product.DocumentType;
 
 /**
  * 生成文档模板响应（api 契约，镜像领域值对象 DocumentConfig.DocumentTemplate）。

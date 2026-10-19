@@ -13,7 +13,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.titanium.channel.api.ChannelApi;
 import com.titanium.channel.api.CommissionSchemeApi;
-import com.titanium.claim.api.ClaimApi;
 import com.titanium.clause.api.ClauseApi;
 import com.titanium.featurecenter.api.FeatureCenterApi;
 import com.titanium.product.ProductApplication;
@@ -64,6 +63,8 @@ import com.titanium.ruleengine.api.RuleEngineApi;
                 "spring.jpa.hibernate.ddl-auto=create-drop",
                 "spring.liquibase.enabled=false",
                 "spring.task.scheduling.enabled=false",
+                // 本域新增赔案投影消费者（m27-04）：测试上下文不连接 Kafka，避免容器反复重连刷日志
+                "spring.kafka.listener.auto-startup=false",
                 "axon.axonserver.enabled=false"
         })
 @MockitoBean(types = {
@@ -78,8 +79,6 @@ import com.titanium.ruleengine.api.RuleEngineApi;
         ProductTemplateApi.class,
         // clause.api（条款存在性校验，R7-02）
         ClauseApi.class,
-        // claim.api（NCD 反算的历史赔案取数，G11/g11-03）
-        ClaimApi.class,
         // featurecenter.api（功能开关）
         FeatureCenterApi.class,
         // ruleengine.api（定价规则）
